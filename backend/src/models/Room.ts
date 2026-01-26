@@ -5,9 +5,9 @@ import mongoose, { Schema, Document, Types } from "mongoose";
  */
 export interface IRoom extends Document {
   _id: mongoose.Types.ObjectId;
-  organizationId: Types.ObjectId;
-  buildingId: Types.ObjectId;
-  departmentId?: Types.ObjectId;
+  cityId: Types.ObjectId;
+  zoneId: Types.ObjectId;
+  agencyId?: Types.ObjectId;
   roomNumber: string;
   floor: number;
   roomType:
@@ -33,21 +33,21 @@ export interface IRoom extends Document {
  */
 const RoomSchema = new Schema<IRoom>(
   {
-    organizationId: {
+    cityId: {
       type: Schema.Types.ObjectId,
-      ref: "Organization",
-      required: [true, "Organization ID is required"],
+      ref: "City",
+      required: [true, "City ID is required"],
       index: true,
     },
-    buildingId: {
+    zoneId: {
       type: Schema.Types.ObjectId,
-      ref: "Building",
-      required: [true, "Building ID is required"],
+      ref: "Zone",
+      required: [true, "Zone ID is required"],
       index: true,
     },
-    departmentId: {
+    agencyId: {
       type: Schema.Types.ObjectId,
-      ref: "Department",
+      ref: "Agency",
     },
     roomNumber: {
       type: String,
@@ -105,10 +105,7 @@ const RoomSchema = new Schema<IRoom>(
 );
 
 // Create compound index
-RoomSchema.index(
-  { organizationId: 1, buildingId: 1, roomNumber: 1 },
-  { unique: true },
-);
+RoomSchema.index({ cityId: 1, zoneId: 1, roomNumber: 1 }, { unique: true });
 
 // Create text index for search
 RoomSchema.index({

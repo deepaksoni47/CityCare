@@ -1,12 +1,13 @@
 import mongoose, { Schema, Document, Types } from "mongoose";
 
 /**
- * Building Document Interface
+ * Zone Document Interface
+ * Represents geographic zones within a city
  */
-export interface IBuilding extends Document {
+export interface IZone extends Document {
   _id: mongoose.Types.ObjectId;
-  organizationId: Types.ObjectId;
-  departmentId?: Types.ObjectId;
+  cityId: Types.ObjectId;
+  agencyId?: Types.ObjectId;
   name: string;
   code: string;
   location: {
@@ -14,47 +15,47 @@ export interface IBuilding extends Document {
     longitude: number;
   };
   address: string;
-  buildingType:
-    | "Academic"
+  zoneType:
     | "Residential"
-    | "Administrative"
-    | "Library"
-    | "Auditorium"
-    | "Sports"
+    | "Commercial"
+    | "Industrial"
+    | "Public"
+    | "Green"
+    | "Mixed"
     | "Other";
-  floors: number;
-  totalArea: number;
-  constructionYear: number;
-  lastRenovation?: Date;
-  status: "active" | "under_maintenance" | "decommissioned";
+  area: number;
+  populationDensity?: number;
+  createdYear: number;
+  lastMaintenanceDate?: Date;
+  status: "active" | "under_maintenance" | "inactive";
   createdAt: Date;
   updatedAt: Date;
 }
 
 /**
- * Building Schema
+ * Zone Schema
  */
-const BuildingSchema = new Schema<IBuilding>(
+const ZoneSchema = new Schema<IZone>(
   {
-    organizationId: {
+    cityId: {
       type: Schema.Types.ObjectId,
-      ref: "Organization",
-      required: [true, "Organization ID is required"],
+      ref: "City",
+      required: [true, "City ID is required"],
       index: true,
     },
-    departmentId: {
+    agencyId: {
       type: Schema.Types.ObjectId,
-      ref: "Department",
+      ref: "Agency",
     },
     name: {
       type: String,
-      required: [true, "Building name is required"],
+      required: [true, "Zone name is required"],
       trim: true,
       index: true,
     },
     code: {
       type: String,
-      required: [true, "Building code is required"],
+      required: [true, "Zone code is required"],
       trim: true,
       uppercase: true,
     },
@@ -72,41 +73,39 @@ const BuildingSchema = new Schema<IBuilding>(
       type: String,
       required: [true, "Address is required"],
     },
-    buildingType: {
+    zoneType: {
       type: String,
       enum: [
-        "Academic",
         "Residential",
-        "Administrative",
-        "Library",
-        "Auditorium",
-        "Sports",
+        "Commercial",
+        "Industrial",
+        "Public",
+        "Green",
+        "Mixed",
         "Other",
       ],
-      required: [true, "Building type is required"],
-      default: "Academic",
+      required: [true, "Zone type is required"],
+      default: "Residential",
       index: true,
     },
-    floors: {
+    area: {
       type: Number,
-      required: [true, "Number of floors is required"],
-      min: 1,
-    },
-    totalArea: {
-      type: Number,
-      required: [true, "Total area is required"],
+      required: [true, "Area is required"],
       min: 0,
     },
-    constructionYear: {
+    populationDensity: {
       type: Number,
-      required: [true, "Construction year is required"],
     },
-    lastRenovation: {
+    createdYear: {
+      type: Number,
+      required: [true, "Creation year is required"],
+    },
+    lastMaintenanceDate: {
       type: Date,
     },
     status: {
       type: String,
-      enum: ["active", "under_maintenance", "decommissioned"],
+      enum: ["active", "under_maintenance", "inactive"],
       default: "active",
       index: true,
     },
@@ -117,18 +116,22 @@ const BuildingSchema = new Schema<IBuilding>(
 );
 
 // Create geospatial index for location-based queries
-BuildingSchema.index({
+ZoneSchema.index({
   "location.latitude": 1,
   "location.longitude": 1,
 });
 
 // Create compound index
-BuildingSchema.index({ organizationId: 1, code: 1 }, { unique: true });
+ZoneSchema.index({ cityId: 1, code: 1 }, { unique: true });
 
 // Create text index for search
-BuildingSchema.index({
+ZoneSchema.index({
   name: "text",
   code: "text",
 });
 
-export const Building = mongoose.model<IBuilding>("Building", BuildingSchema);
+export const Zone = mongoose.model<IZone>("Zone", ZoneSchema);
+
+// Backward compatibility
+export const Building = Zone;
+export type IBuilding = IZone;

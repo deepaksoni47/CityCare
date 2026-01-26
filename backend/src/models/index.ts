@@ -11,3 +11,8 @@ export { IssuePrediction, type IIssuePrediction } from "./IssuePrediction";
 export { Badge, type IBadge } from "./Badge";
 export { Vote, type IVote } from "./Vote";
 export { Analytics, type IAnalytics } from "./Analytics";
+
+// Backward compatibility aliases
+export { Organization, type IOrganization } from "./Organization";
+export { Department, type IDepartment } from "./Department";
+export { Building, type IBuilding } from "./Building";

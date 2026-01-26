@@ -17,19 +17,19 @@ async function testAdminMetrics() {
   console.log("📊 Testing Admin Metrics...\n");
 
   try {
-    const organizationId = "ggv-university";
+    const cityId = "ggv-university";
     const timeWindowDays = 30;
     const comparisonTimeWindowDays = 30;
 
     console.log("Parameters:");
-    console.log(`- Organization ID: ${organizationId}`);
+    console.log(`- City ID: ${cityId}`);
     console.log(`- Time Window: ${timeWindowDays} days`);
     console.log(`- Comparison Window: ${comparisonTimeWindowDays} days\n`);
 
     const result = await analyticsService.getAdminMetrics(
-      organizationId,
+      cityId,
       timeWindowDays,
-      comparisonTimeWindowDays
+      comparisonTimeWindowDays,
     );
 
     // ========== MTTR ==========
@@ -48,7 +48,7 @@ async function testAdminMetrics() {
       console.log("By Building (Top 5):");
       result.mttr.byBuilding.slice(0, 5).forEach((bldg) => {
         console.log(
-          `  - ${bldg.buildingName}: ${bldg.mttr}h (${bldg.count} issues)`
+          `  - ${bldg.buildingName}: ${bldg.mttr}h (${bldg.count} issues)`,
         );
       });
       console.log("");
@@ -58,7 +58,7 @@ async function testAdminMetrics() {
       console.log("By Priority:");
       result.mttr.byPriority.forEach((pri) => {
         console.log(
-          `  - ${pri.priority.toUpperCase()}: ${pri.mttr}h (${pri.count} issues)`
+          `  - ${pri.priority.toUpperCase()}: ${pri.mttr}h (${pri.count} issues)`,
         );
       });
       console.log("");
@@ -72,7 +72,7 @@ async function testAdminMetrics() {
         console.log(`${index + 1}. ${building.buildingName}`);
         console.log(`   Risk Score: ${building.riskScore}`);
         console.log(
-          `   Open Issues: ${building.openIssues} (${building.criticalIssues} critical)`
+          `   Open Issues: ${building.openIssues} (${building.criticalIssues} critical)`,
         );
         console.log(`   Avg Severity: ${building.avgSeverity}`);
         console.log(`   Avg Unresolved Age: ${building.unressolvedAge} days`);
@@ -92,49 +92,49 @@ async function testAdminMetrics() {
 
     console.log("Current Period:");
     console.log(
-      `  - Total Issues: ${result.issueGrowthRate.currentPeriod.total}`
+      `  - Total Issues: ${result.issueGrowthRate.currentPeriod.total}`,
     );
     console.log(`  - Open: ${result.issueGrowthRate.currentPeriod.open}`);
     console.log(
-      `  - Resolved: ${result.issueGrowthRate.currentPeriod.resolved}`
+      `  - Resolved: ${result.issueGrowthRate.currentPeriod.resolved}`,
     );
     console.log(
-      `  - Avg/Day: ${result.issueGrowthRate.currentPeriod.avgPerDay}\n`
+      `  - Avg/Day: ${result.issueGrowthRate.currentPeriod.avgPerDay}\n`,
     );
 
     if (result.issueGrowthRate.previousPeriod) {
       console.log("Previous Period:");
       console.log(
-        `  - Total Issues: ${result.issueGrowthRate.previousPeriod.total}`
+        `  - Total Issues: ${result.issueGrowthRate.previousPeriod.total}`,
       );
       console.log(`  - Open: ${result.issueGrowthRate.previousPeriod.open}`);
       console.log(
-        `  - Resolved: ${result.issueGrowthRate.previousPeriod.resolved}`
+        `  - Resolved: ${result.issueGrowthRate.previousPeriod.resolved}`,
       );
       console.log(
-        `  - Avg/Day: ${result.issueGrowthRate.previousPeriod.avgPerDay}\n`
+        `  - Avg/Day: ${result.issueGrowthRate.previousPeriod.avgPerDay}\n`,
       );
 
       const growthIndicator =
         result.issueGrowthRate.growthRate > 0 ? "📈" : "📉";
       console.log(
-        `Growth Rate: ${growthIndicator} ${result.issueGrowthRate.growthRate}%\n`
+        `Growth Rate: ${growthIndicator} ${result.issueGrowthRate.growthRate}%\n`,
       );
     }
 
     console.log("Projections:");
     console.log(
-      `  - Next Week: ${result.issueGrowthRate.projections.nextWeek} issues`
+      `  - Next Week: ${result.issueGrowthRate.projections.nextWeek} issues`,
     );
     console.log(
-      `  - Next Month: ${result.issueGrowthRate.projections.nextMonth} issues\n`
+      `  - Next Month: ${result.issueGrowthRate.projections.nextMonth} issues\n`,
     );
 
     if (result.issueGrowthRate.trend.length > 0) {
       console.log("Recent Trend (Last 7 Days):");
       result.issueGrowthRate.trend.slice(-7).forEach((day) => {
         console.log(
-          `  ${day.period}: ${day.total} total (${day.open} open, ${day.resolved} resolved)`
+          `  ${day.period}: ${day.total} total (${day.open} open, ${day.resolved} resolved)`,
         );
       });
       console.log("");
@@ -156,7 +156,7 @@ async function testAdminMetrics() {
     }
     console.log(`✓ High-Risk Buildings: ${highRiskCount}`);
     console.log(
-      `✓ Issue Growth Rate: ${growthRate >= 0 ? "+" : ""}${growthRate}%`
+      `✓ Issue Growth Rate: ${growthRate >= 0 ? "+" : ""}${growthRate}%`,
     );
 
     // Performance Indicators

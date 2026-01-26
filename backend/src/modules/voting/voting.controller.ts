@@ -19,13 +19,13 @@ export async function voteOnIssue(req: Request, res: Response) {
     }
 
     // Get user's organization from request or user document
-    const organizationId =
-      req.user?.organizationId || req.body.organizationId || "unknown";
+    const cityId =
+      req.user?.cityId || req.body.cityId || "unknown";
 
     const result = await votingService.voteOnIssue(
       issueId,
       userId,
-      organizationId
+      cityId
     );
 
     if (!result.success) {

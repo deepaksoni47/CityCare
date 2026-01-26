@@ -15,15 +15,15 @@ const router = Router();
 router.get("/insights", aiRateLimiter, aiController.generateGeneralInsights);
 
 /**
- * @route   GET /api/ai/risk/:buildingId
- * @desc    Generate risk assessment for a specific building
+ * @route   GET /api/ai/risk/:zoneId
+ * @desc    Generate risk assessment for a specific zone
  * @access  Public
  */
 router.get(
-  "/risk/:buildingId",
+  "/risk/:zoneId",
   aiRateLimiter,
-  validateId("buildingId"),
-  aiController.generateBuildingRisk
+  validateId("zoneId"),
+  aiController.generateZoneRisk,
 );
 
 /**
@@ -35,7 +35,7 @@ router.get(
   "/summary/:issueId",
   aiRateLimiter,
   validateId("issueId"),
-  aiController.generateIssueSummary
+  aiController.generateIssueSummary,
 );
 
 /**
@@ -46,7 +46,7 @@ router.get(
 router.get(
   "/suggestions",
   aiRateLimiter,
-  aiController.getMaintenanceSuggestions
+  aiController.getMaintenanceSuggestions,
 );
 
 /**
@@ -69,7 +69,7 @@ router.post(
     .isLength({ max: 128 })
     .withMessage("Invalid conversation ID"),
   handleValidationErrors,
-  aiController.chatWithAI
+  aiController.chatWithAI,
 );
 
 /**
@@ -90,7 +90,7 @@ router.post(
   body("zone").optional().trim(),
   body("reporterName").optional().trim(),
   handleValidationErrors,
-  aiController.classifyTextIssue
+  aiController.classifyTextIssue,
 );
 
 /**
@@ -113,7 +113,7 @@ router.post(
   body("zone").optional().trim(),
   body("reporterName").optional().trim(),
   handleValidationErrors,
-  aiController.processVoice
+  aiController.processVoice,
 );
 
 /**
@@ -133,7 +133,7 @@ router.post(
   body("buildingName").optional().trim(),
   body("additionalContext").optional().trim().isLength({ max: 500 }),
   handleValidationErrors,
-  aiController.analyzeImage
+  aiController.analyzeImage,
 );
 
 /**
@@ -153,7 +153,7 @@ router.post(
   aiRateLimiter,
   body("trends").isArray({ min: 1 }).withMessage("Trends array is required"),
   handleValidationErrors,
-  aiController.getTrendExplanation
+  aiController.getTrendExplanation,
 );
 
 /**
@@ -165,7 +165,7 @@ router.get(
   "/incident-report/:issueId",
   aiRateLimiter,
   validateId("issueId"),
-  aiController.getIncidentReport
+  aiController.getIncidentReport,
 );
 
 export default router;

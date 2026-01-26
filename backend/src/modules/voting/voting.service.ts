@@ -10,7 +10,7 @@ const db = getFirestore();
 export async function voteOnIssue(
   issueId: string,
   userId: string,
-  organizationId: string
+  cityId: string
 ): Promise<{ success: boolean; message: string; voteCount: number }> {
   try {
     // Check if issue exists
@@ -87,7 +87,7 @@ export async function voteOnIssue(
         id: voteRef.id,
         issueId,
         userId,
-        organizationId,
+        cityId,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
       });
 
@@ -95,7 +95,7 @@ export async function voteOnIssue(
     });
 
     // Award points to voter (async, don't wait)
-    awardVotingPoints(userId, issueId, organizationId, "vote_cast").catch(
+    awardVotingPoints(userId, issueId, cityId, "vote_cast").catch(
       (err) => console.error("Error awarding vote points:", err)
     );
 
@@ -103,7 +103,7 @@ export async function voteOnIssue(
     awardVotingPoints(
       issue.reportedBy,
       issueId,
-      organizationId,
+      cityId,
       "vote_received"
     ).catch((err) => console.error("Error awarding reporter points:", err));
 
@@ -290,7 +290,7 @@ export async function hasUserVoted(
 async function awardVotingPoints(
   userId: string,
   issueId: string,
-  organizationId: string,
+  cityId: string,
   type: "vote_cast" | "vote_received"
 ): Promise<void> {
   const points = type === "vote_cast" ? 2 : 5;
@@ -327,7 +327,7 @@ async function awardVotingPoints(
       transaction.set(transactionRef, {
         id: transactionRef.id,
         userId,
-        organizationId,
+        cityId,
         type,
         points,
         relatedEntityId: issueId,
@@ -341,7 +341,7 @@ async function awardVotingPoints(
     });
 
     // Check for badge eligibility (don't wait)
-    checkAndAwardBadges(userId, organizationId).catch((err) =>
+    checkAndAwardBadges(userId, cityId).catch((err) =>
       console.error("Error checking badges:", err)
     );
   } catch (error) {
@@ -371,7 +371,7 @@ function calculateLevel(points: number): number {
  */
 async function checkAndAwardBadges(
   _userId: string,
-  _organizationId: string
+  _cityId: string
 ): Promise<void> {
   // This will be fully implemented in rewards.service.ts
   // For now, just a placeholder

@@ -77,7 +77,7 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
   : [
       "http://localhost:3000",
       "http://localhost:3001",
-      "https://campuscare-innovex.vercel.app",
+      "https://citycare-innovex.vercel.app",
     ];
 
 app.use(
@@ -160,7 +160,7 @@ app.get("/api", (_req: Request, res: Response) => {
       issues: "/api/issues",
       issuesHeatmap: "/api/issues/heatmap/:cityId",
       issuesStats: "/api/issues/stats/:cityId",
-      buildings: "/api/buildings",
+      buildings: "/api/zones",
       analytics: "/api/analytics",
       ai: "/api/ai",
       priority: "/api/priority",

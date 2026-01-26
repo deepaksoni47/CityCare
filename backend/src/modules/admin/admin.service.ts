@@ -19,7 +19,7 @@ interface IssueFilters {
   status?: string;
   category?: string;
   severity?: number;
-  buildingId?: string;
+  zoneId?: string;
   reportedBy?: string;
   assignedTo?: string;
   search?: string;
@@ -34,11 +34,11 @@ interface IssueFilters {
 /**
  * Get admin dashboard overview with key metrics
  */
-export async function getDashboardOverview(organizationId: string) {
+export async function getDashboardOverview(cityId: string) {
   // Get user counts
   const usersSnapshot = await db
     .collection("users")
-    .where("organizationId", "==", organizationId)
+    .where("cityId", "==", cityId)
     .get();
 
   const users = usersSnapshot.docs.map((doc) => ({
@@ -62,7 +62,7 @@ export async function getDashboardOverview(organizationId: string) {
   // Get issue counts
   const issuesSnapshot = await db
     .collection("issues")
-    .where("organizationId", "==", organizationId)
+    .where("cityId", "==", cityId)
     .get();
 
   const issues = issuesSnapshot.docs.map((doc) => ({
@@ -109,7 +109,7 @@ export async function getDashboardOverview(organizationId: string) {
     .sort(
       (a, b) =>
         (b.statistics?.issuesReported || 0) -
-        (a.statistics?.issuesReported || 0)
+        (a.statistics?.issuesReported || 0),
     )
     .slice(0, 5)
     .map((u) => ({
@@ -146,10 +146,7 @@ export async function getDashboardOverview(organizationId: string) {
 /**
  * Get all users with filters and pagination
  */
-export async function getAllUsers(
-  organizationId: string,
-  filters: UserFilters
-) {
+export async function getAllUsers(cityId: string, filters: UserFilters) {
   const {
     role,
     isActive,
@@ -160,9 +157,7 @@ export async function getAllUsers(
     sortOrder = "desc",
   } = filters;
 
-  let query = db
-    .collection("users")
-    .where("organizationId", "==", organizationId);
+  let query = db.collection("users").where("cityId", "==", cityId);
 
   if (role) {
     query = query.where("role", "==", role) as any;
@@ -184,7 +179,7 @@ export async function getAllUsers(
     users = users.filter(
       (u) =>
         u.name.toLowerCase().includes(searchLower) ||
-        u.email.toLowerCase().includes(searchLower)
+        u.email.toLowerCase().includes(searchLower),
     );
   }
 
@@ -323,15 +318,12 @@ export async function toggleUserStatus(userId: string) {
 /**
  * Get all issues with admin filters
  */
-export async function getAllIssues(
-  organizationId: string,
-  filters: IssueFilters
-) {
+export async function getAllIssues(cityId: string, filters: IssueFilters) {
   const {
     status,
     category,
     severity,
-    buildingId,
+    zoneId,
     reportedBy,
     assignedTo,
     search,
@@ -343,9 +335,7 @@ export async function getAllIssues(
     sortOrder = "desc",
   } = filters;
 
-  let query = db
-    .collection("issues")
-    .where("organizationId", "==", organizationId);
+  let query = db.collection("issues").where("cityId", "==", cityId);
 
   if (status) {
     query = query.where("status", "==", status) as any;
@@ -355,8 +345,8 @@ export async function getAllIssues(
     query = query.where("category", "==", category) as any;
   }
 
-  if (buildingId) {
-    query = query.where("buildingId", "==", buildingId) as any;
+  if (zoneId) {
+    query = query.where("zoneId", "==", zoneId) as any;
   }
 
   if (reportedBy) {
@@ -371,7 +361,7 @@ export async function getAllIssues(
     query = query.where(
       "createdAt",
       ">=",
-      firestore.Timestamp.fromDate(startDate)
+      firestore.Timestamp.fromDate(startDate),
     ) as any;
   }
 
@@ -379,7 +369,7 @@ export async function getAllIssues(
     query = query.where(
       "createdAt",
       "<=",
-      firestore.Timestamp.fromDate(endDate)
+      firestore.Timestamp.fromDate(endDate),
     ) as any;
   }
 
@@ -399,7 +389,7 @@ export async function getAllIssues(
     issues = issues.filter(
       (i) =>
         i.title.toLowerCase().includes(searchLower) ||
-        i.description.toLowerCase().includes(searchLower)
+        i.description.toLowerCase().includes(searchLower),
     );
   }
 
@@ -444,7 +434,7 @@ export async function getAllIssues(
           reporterName: "Unknown",
         };
       }
-    })
+    }),
   );
 
   return {
@@ -495,7 +485,7 @@ export async function getUserStatistics(userId: string) {
       acc[issue.category] = (acc[issue.category] || 0) + 1;
       return acc;
     },
-    {} as Record<string, number>
+    {} as Record<string, number>,
   );
 
   const avgSeverity =
@@ -536,19 +526,17 @@ export async function getUserStatistics(userId: string) {
  * Get system analytics
  */
 export async function getSystemAnalytics(
-  organizationId: string,
+  cityId: string,
   startDate?: Date,
-  endDate?: Date
+  endDate?: Date,
 ) {
-  let issuesQuery = db
-    .collection("issues")
-    .where("organizationId", "==", organizationId);
+  let issuesQuery = db.collection("issues").where("cityId", "==", cityId);
 
   if (startDate) {
     issuesQuery = issuesQuery.where(
       "createdAt",
       ">=",
-      firestore.Timestamp.fromDate(startDate)
+      firestore.Timestamp.fromDate(startDate),
     ) as any;
   }
 
@@ -556,7 +544,7 @@ export async function getSystemAnalytics(
     issuesQuery = issuesQuery.where(
       "createdAt",
       "<=",
-      firestore.Timestamp.fromDate(endDate)
+      firestore.Timestamp.fromDate(endDate),
     ) as any;
   }
 
@@ -571,7 +559,7 @@ export async function getSystemAnalytics(
 
   // Resolution trend
   const resolvedIssues = issues.filter(
-    (i) => i.status === IssueStatus.RESOLVED
+    (i) => i.status === IssueStatus.RESOLVED,
   );
   const resolutionTrend = calculateTrend(resolvedIssues, "updatedAt");
 
@@ -581,16 +569,16 @@ export async function getSystemAnalytics(
       acc[issue.category] = (acc[issue.category] || 0) + 1;
       return acc;
     },
-    {} as Record<string, number>
+    {} as Record<string, number>,
   );
 
-  // Building distribution
-  const buildingDistribution = issues.reduce(
+  // Zone distribution
+  const zoneDistribution = issues.reduce(
     (acc, issue) => {
-      acc[issue.buildingId] = (acc[issue.buildingId] || 0) + 1;
+      acc[issue.zoneId] = (acc[issue.zoneId] || 0) + 1;
       return acc;
     },
-    {} as Record<string, number>
+    {} as Record<string, number>,
   );
 
   // Severity distribution
@@ -620,7 +608,7 @@ export async function getSystemAnalytics(
  */
 export async function getUserActivity(
   userId: string,
-  options: { page?: number; limit?: number }
+  options: { page?: number; limit?: number },
 ) {
   const { page = 1, limit = 50 } = options;
 
@@ -681,7 +669,7 @@ export async function getUserActivity(
  */
 export async function bulkUpdateUsers(
   userIds: string[],
-  updates: Partial<User>
+  updates: Partial<User>,
 ) {
   const { id, createdAt, statistics, ...allowedUpdates } = updates as any;
 
@@ -725,13 +713,10 @@ export async function bulkUpdateUsers(
 /**
  * Export users data
  */
-export async function exportUsers(
-  organizationId: string,
-  format: "json" | "csv"
-) {
+export async function exportUsers(cityId: string, format: "json" | "csv") {
   const snapshot = await db
     .collection("users")
-    .where("organizationId", "==", organizationId)
+    .where("cityId", "==", cityId)
     .get();
 
   const users = snapshot.docs.map((doc) => {
@@ -761,13 +746,11 @@ export async function exportUsers(
  * Export issues data
  */
 export async function exportIssues(
-  organizationId: string,
+  cityId: string,
   format: "json" | "csv",
-  filters?: { status?: string; category?: string }
+  filters?: { status?: string; category?: string },
 ) {
-  let query = db
-    .collection("issues")
-    .where("organizationId", "==", organizationId);
+  let query = db.collection("issues").where("cityId", "==", cityId);
 
   if (filters?.status) {
     query = query.where("status", "==", filters.status) as any;
@@ -789,7 +772,7 @@ export async function exportIssues(
       status: data.status,
       severity: data.severity,
       priority: data.priority,
-      buildingId: data.buildingId,
+      zoneId: data.zoneId,
       reportedBy: data.reportedBy,
       assignedTo: data.assignedTo || "",
       voteCount: data.voteCount || 0,
@@ -809,7 +792,7 @@ export async function exportIssues(
 
 function calculateAvgResolutionTime(issues: Issue[]): number {
   const resolvedIssues = issues.filter(
-    (i) => i.status === IssueStatus.RESOLVED && i.updatedAt && i.createdAt
+    (i) => i.status === IssueStatus.RESOLVED && i.updatedAt && i.createdAt,
   );
 
   if (resolvedIssues.length === 0) return 0;
@@ -830,7 +813,7 @@ function calculateAvgResolutionTime(issues: Issue[]): number {
 
 function calculateTrend(
   items: any[],
-  dateField: string
+  dateField: string,
 ): Array<{ date: string; count: number }> {
   const trendMap: Record<string, number> = {};
 

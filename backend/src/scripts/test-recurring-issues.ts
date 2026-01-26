@@ -17,27 +17,27 @@ async function testRecurringIssues() {
   console.log("🔍 Testing Recurring Issues Detection...\n");
 
   try {
-    const organizationId = "ggv-university";
+    const cityId = "ggv-university";
     const timeWindowDays = 60; // Look back 60 days
     const minOccurrences = 2;
 
     console.log("Parameters:");
-    console.log(`- Organization ID: ${organizationId}`);
+    console.log(`- City ID: ${cityId}`);
     console.log(`- Time Window: ${timeWindowDays} days`);
     console.log(`- Min Occurrences: ${minOccurrences}\n`);
 
     const result = await analyticsService.detectRecurringIssues(
-      organizationId,
+      cityId,
       timeWindowDays,
-      minOccurrences
+      minOccurrences,
     );
 
     console.log("📊 Summary:");
     console.log(
-      `- Total Recurring Groups: ${result.summary.totalRecurringGroups}`
+      `- Total Recurring Groups: ${result.summary.totalRecurringGroups}`,
     );
     console.log(
-      `- Total Recurring Issues: ${result.summary.totalRecurringIssues}`
+      `- Total Recurring Issues: ${result.summary.totalRecurringIssues}`,
     );
     console.log(`- High Risk Groups: ${result.summary.highRiskGroups}`);
     console.log(`- Buildings Affected: ${result.summary.buildingsAffected}\n`);
@@ -47,30 +47,30 @@ async function testRecurringIssues() {
       result.recurringIssues.slice(0, 5).forEach((group, index) => {
         console.log(`${index + 1}. ${group.category} - ${group.buildingName}`);
         console.log(
-          `   Floor: ${group.floor || "N/A"}, Zone: ${group.zone || "N/A"}`
+          `   Floor: ${group.floor || "N/A"}, Zone: ${group.zone || "N/A"}`,
         );
         console.log(`   Occurrences: ${group.occurrences}`);
         console.log(`   Risk Score: ${group.riskScore}`);
         console.log(
-          `   Is Recurring Risk: ${group.isRecurringRisk ? "⚠️ YES" : "No"}`
+          `   Is Recurring Risk: ${group.isRecurringRisk ? "⚠️ YES" : "No"}`,
         );
         console.log(
-          `   First: ${new Date(group.firstOccurrence).toLocaleDateString()}`
+          `   First: ${new Date(group.firstOccurrence).toLocaleDateString()}`,
         );
         console.log(
-          `   Last: ${new Date(group.lastOccurrence).toLocaleDateString()}`
+          `   Last: ${new Date(group.lastOccurrence).toLocaleDateString()}`,
         );
         console.log(`   Issues:`);
         group.issues.forEach((issue) => {
           console.log(
-            `     - ${issue.title} (${issue.status}) - Severity: ${issue.severity}`
+            `     - ${issue.title} (${issue.status}) - Severity: ${issue.severity}`,
           );
         });
         console.log("");
       });
     } else {
       console.log(
-        "✅ No recurring issues detected in the specified time window."
+        "✅ No recurring issues detected in the specified time window.",
       );
     }
 

@@ -13,9 +13,9 @@ import { IssuePriority, IssueStatus } from "../types";
 interface SSEClient {
   id: string;
   response: Response;
-  organizationId: string;
+  cityId: string;
   campusId?: string;
-  buildingId?: string;
+  zoneId?: string;
   filters?: any;
   lastEventId?: string;
 }
@@ -29,7 +29,7 @@ export class SSEService {
   private heatmapClients: Map<string, SSEClient> = new Map();
   private issueClients: Map<string, SSEClient> = new Map();
 
-  // Heatmap cache and per-organization update intervals to avoid duplicate reads
+  // Heatmap cache and per-city update intervals to avoid duplicate reads
   private heatmapCache: Map<
     string,
     {
@@ -65,7 +65,7 @@ export class SSEService {
     req: Request,
     res: Response,
     clientId: string,
-    filters: any
+    filters: any,
   ): void {
     // Set SSE headers
     res.setHeader("Content-Type", "text/event-stream");
@@ -80,9 +80,9 @@ export class SSEService {
     const client: SSEClient = {
       id: clientId,
       response: res,
-      organizationId: filters.organizationId,
+      cityId: filters.cityId,
       campusId: filters.campusId,
-      buildingId: filters.buildingId,
+      zoneId: filters.zoneId,
       filters,
       lastEventId: req.headers["last-event-id"] as string,
     };
@@ -110,16 +110,12 @@ export class SSEService {
   }
 
   /**
-   * Broadcast to all clients in organization
+   * Broadcast to all clients in city
    */
-  public broadcastToOrganization(
-    organizationId: string,
-    event: string,
-    data: any
-  ): void {
+  public broadcastToCity(cityId: string, event: string, data: any): void {
     let count = 0;
     this.clients.forEach((client) => {
-      if (client.organizationId === organizationId) {
+      if (client.cityId === cityId) {
         try {
           this.sendEvent(client.response, event, data, `${Date.now()}`);
           count++;
@@ -130,7 +126,28 @@ export class SSEService {
       }
     });
     console.log(
-      `📤 Broadcasted ${event} to ${count} clients in org:${organizationId}`
+      `📤 Broadcasted ${event} to ${count} clients in city:${cityId}`,
+    );
+  }
+
+  /**
+   * Broadcast to all clients in building (zone)
+   */
+  public broadcastToZone(zoneId: string, event: string, data: any): void {
+    let count = 0;
+    this.clients.forEach((client) => {
+      if (client.zoneId === zoneId) {
+        try {
+          this.sendEvent(client.response, event, data, `${Date.now()}`);
+          count++;
+        } catch (error) {
+          console.error(`Error sending to client ${client.id}:`, error);
+          this.clients.delete(client.id);
+        }
+      }
+    });
+    console.log(
+      `📤 Broadcasted ${event} to ${count} clients in zone:${zoneId}`,
     );
   }
 
@@ -138,17 +155,14 @@ export class SSEService {
    * Broadcast to campus clients
    */
   public broadcastToCampus(
-    organizationId: string,
+    cityId: string,
     campusId: string,
     event: string,
-    data: any
+    data: any,
   ): void {
     let count = 0;
     this.clients.forEach((client) => {
-      if (
-        client.organizationId === organizationId &&
-        client.campusId === campusId
-      ) {
+      if (client.cityId === cityId && client.campusId === campusId) {
         try {
           this.sendEvent(client.response, event, data, `${Date.now()}`);
           count++;
@@ -159,7 +173,7 @@ export class SSEService {
       }
     });
     console.log(
-      `📤 Broadcasted ${event} to ${count} clients in campus:${campusId}`
+      `📤 Broadcasted ${event} to ${count} clients in campus:${campusId}`,
     );
   }
 
@@ -167,14 +181,14 @@ export class SSEService {
    * Send heatmap update to subscribed clients
    */
   public sendHeatmapUpdate(
-    organizationId: string,
+    cityId: string,
     campusId: string | undefined,
-    data: any
+    data: any,
   ): void {
     let count = 0;
     this.heatmapClients.forEach((client) => {
       if (
-        client.organizationId === organizationId &&
+        client.cityId === cityId &&
         (!campusId || client.campusId === campusId)
       ) {
         try {
@@ -182,7 +196,7 @@ export class SSEService {
             client.response,
             "heatmap:update",
             data,
-            `${Date.now()}`
+            `${Date.now()}`,
           );
           count++;
         } catch (error) {
@@ -197,29 +211,22 @@ export class SSEService {
   /**
    * Heatmap cache helpers
    */
-  public getCachedHeatmap(organizationId: string) {
-    const entry = this.heatmapCache.get(organizationId);
+  public getCachedHeatmap(cityId: string) {
+    const entry = this.heatmapCache.get(cityId);
     if (!entry) return null;
     return entry;
   }
 
-  public setCachedHeatmap(
-    organizationId: string,
-    data: any,
-    updateIntervalMs: number
-  ) {
-    this.heatmapCache.set(organizationId, {
+  public setCachedHeatmap(cityId: string, data: any, updateIntervalMs: number) {
+    this.heatmapCache.set(cityId, {
       data,
       timestamp: Date.now(),
       updateIntervalMs,
     });
   }
 
-  public ensureHeatmapUpdater(
-    organizationId: string,
-    updateIntervalMs: number
-  ) {
-    const entry = this.heatmapCache.get(organizationId);
+  public ensureHeatmapUpdater(cityId: string, updateIntervalMs: number) {
+    const entry = this.heatmapCache.get(cityId);
     if (entry && entry.interval) {
       // If update interval changed, restart
       if (entry.updateIntervalMs !== updateIntervalMs) {
@@ -230,24 +237,24 @@ export class SSEService {
       }
     }
 
-    // Start a new interval to fetch and broadcast heatmap for this org
+    // Start a new interval to fetch and broadcast heatmap for this city
     const interval = setInterval(async () => {
       try {
-        const filters: HeatmapFilters = { organizationId };
+        const filters: HeatmapFilters = { cityId };
         const config: HeatmapConfig = {
           timeDecayFactor: 0.5,
           severityWeightMultiplier: 2.0,
           normalizeWeights: true,
         };
         const data = await getHeatmapData(filters, config);
-        this.setCachedHeatmap(organizationId, data, updateIntervalMs);
-        this.broadcastHeatmapUpdate(organizationId, data);
+        this.setCachedHeatmap(cityId, data, updateIntervalMs);
+        this.broadcastHeatmapUpdate(cityId, undefined, data);
       } catch (err) {
-        console.error("Error in heatmap updater for org", organizationId, err);
+        console.error("Error in heatmap updater for city", cityId, err);
       }
     }, updateIntervalMs);
 
-    this.heatmapCache.set(organizationId, {
+    this.heatmapCache.set(cityId, {
       data: entry?.data,
       timestamp: entry?.timestamp || Date.now(),
       interval,
@@ -255,54 +262,54 @@ export class SSEService {
     });
   }
 
-  public stopHeatmapUpdater(organizationId: string) {
-    const entry = this.heatmapCache.get(organizationId);
+  public stopHeatmapUpdater(cityId: string) {
+    const entry = this.heatmapCache.get(cityId);
     if (entry && entry.interval) {
       clearInterval(entry.interval);
     }
-    this.heatmapCache.delete(organizationId);
+    this.heatmapCache.delete(cityId);
   }
 
-  private broadcastHeatmapUpdate(organizationId: string, data: any) {
-    // Broadcast to all org clients
+  private broadcastHeatmapUpdate(cityId: string, data: any) {
+    // Broadcast to all city clients
     this.heatmapClients.forEach((client) => {
-      if (client.organizationId === organizationId) {
+      if (client.cityId === cityId) {
         try {
           this.sendEvent(
             client.response,
             "heatmap:update",
             data,
-            `${Date.now()}`
+            `${Date.now()}`,
           );
         } catch (err) {
           console.error(
             "Error broadcasting heatmap update to client",
             client.id,
-            err
+            err,
           );
           this.heatmapClients.delete(client.id);
         }
       }
     });
-    console.log(`📤 Broadcasted heatmap update for org ${organizationId}`);
+    console.log(`📤 Broadcasted heatmap update for city ${cityId}`);
   }
 
   /**
    * Send issue update to subscribed clients
    */
   public sendIssueUpdate(
-    organizationId: string,
+    cityId: string,
     campusId: string | undefined,
-    buildingId: string | undefined,
+    zoneId: string | undefined,
     event: string,
-    data: any
+    data: any,
   ): void {
     let count = 0;
     this.issueClients.forEach((client) => {
       if (
-        client.organizationId === organizationId &&
+        client.cityId === cityId &&
         (!campusId || client.campusId === campusId) &&
-        (!buildingId || client.buildingId === buildingId)
+        (!zoneId || client.zoneId === zoneId)
       ) {
         try {
           this.sendEvent(client.response, event, data, `${Date.now()}`);
@@ -310,7 +317,7 @@ export class SSEService {
         } catch (error) {
           console.error(
             `Error sending issue update to client ${client.id}:`,
-            error
+            error,
           );
           this.issueClients.delete(client.id);
         }
@@ -378,12 +385,12 @@ export class SSEService {
   }
 
   /**
-   * Get clients by organization
+   * Get clients by city
    */
-  public getOrganizationClientsCount(organizationId: string): number {
+  public getCityClientsCount(cityId: string): number {
     let count = 0;
     this.clients.forEach((client) => {
-      if (client.organizationId === organizationId) {
+      if (client.cityId === cityId) {
         count++;
       }
     });
@@ -401,18 +408,18 @@ export class SSEService {
  */
 export async function streamHeatmapUpdates(
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> {
   const {
-    organizationId,
+    cityId,
     campusId,
-    buildingIds,
+    zoneIds,
     categories,
     updateInterval = 30000, // 30 seconds default
   } = req.query;
 
-  if (!organizationId) {
-    res.status(400).json({ error: "organizationId is required" });
+  if (!cityId) {
+    res.status(400).json({ error: "cityId is required" });
     return;
   }
 
@@ -421,9 +428,9 @@ export async function streamHeatmapUpdates(
 
   // Setup SSE connection
   sseService.setupSSEConnection(req, res, clientId, {
-    organizationId,
+    cityId,
     campusId,
-    buildingIds,
+    zoneIds,
     categories,
   });
 
@@ -431,42 +438,42 @@ export async function streamHeatmapUpdates(
   const client: SSEClient = {
     id: clientId,
     response: res,
-    organizationId: organizationId as string,
+    cityId: cityId as string,
     campusId: campusId as string,
-    buildingId: buildingIds as string,
-    filters: { organizationId, campusId, buildingIds, categories },
+    zoneId: zoneIds as string,
+    filters: { cityId, campusId, zoneIds, categories },
   };
   sseService.addHeatmapClient(client);
 
-  // Use per-organization cached heatmap and a single updater to prevent duplicate reads
-  const orgId = organizationId as string;
+  // Use per-city cached heatmap and a single updater to prevent duplicate reads
+  const cId = cityId as string;
 
   try {
     // Clamp requested interval to a safe minimum to avoid very frequent reads
     const MIN_UPDATE_INTERVAL_MS = parseInt(
       process.env.HEATMAP_MIN_INTERVAL_MS || "60000",
-      10
+      10,
     ); // 60s
     const requestedInterval = Math.max(
       MIN_UPDATE_INTERVAL_MS,
-      parseInt(updateInterval as string, 10) || MIN_UPDATE_INTERVAL_MS
+      parseInt(updateInterval as string, 10) || MIN_UPDATE_INTERVAL_MS,
     );
 
-    // Ensure there is an updater for this organization (single background fetch)
-    sseService.ensureHeatmapUpdater(orgId, requestedInterval);
+    // Ensure there is an updater for this city (single background fetch)
+    sseService.ensureHeatmapUpdater(cId, requestedInterval);
 
     // Send cached data immediately if available (avoid a DB read)
-    const cached = sseService.getCachedHeatmap(orgId);
+    const cached = sseService.getCachedHeatmap(cId);
     if (cached) {
       try {
         console.log(
-          `📥 Serving cached heatmap for org ${orgId} (age=${Date.now() - cached.timestamp}ms)`
+          `📥 Serving cached heatmap for city ${cId} (age=${Date.now() - cached.timestamp}ms)`,
         );
         sseService.sendEvent(
           res,
           "heatmap:initial",
           cached.data,
-          `${Date.now()}`
+          `${Date.now()}`,
         );
       } catch (err) {
         console.error("Error sending cached heatmap to client:", err);
@@ -474,13 +481,13 @@ export async function streamHeatmapUpdates(
     } else {
       // No cache yet - do a single initial fetch and populate cache
       const filters: HeatmapFilters = {
-        organizationId: orgId,
+        cityId: cId,
       };
       if (campusId) filters.campusId = campusId as string;
-      if (buildingIds) {
-        filters.buildingIds = Array.isArray(buildingIds)
-          ? (buildingIds as string[])
-          : [buildingIds as string];
+      if (zoneIds) {
+        filters.zoneIds = Array.isArray(zoneIds)
+          ? (zoneIds as string[])
+          : [zoneIds as string];
       }
       if (categories) {
         filters.categories = Array.isArray(categories)
@@ -496,12 +503,12 @@ export async function streamHeatmapUpdates(
 
       try {
         const heatmapData = await getHeatmapData(filters, config);
-        sseService.setCachedHeatmap(orgId, heatmapData, requestedInterval);
+        sseService.setCachedHeatmap(cId, heatmapData, requestedInterval);
         sseService.sendEvent(
           res,
           "heatmap:initial",
           heatmapData,
-          `${Date.now()}`
+          `${Date.now()}`,
         );
       } catch (error) {
         console.error("Error fetching initial heatmap:", error);
@@ -511,10 +518,10 @@ export async function streamHeatmapUpdates(
     console.error("Error ensuring heatmap updater:", e);
   }
 
-  // Cleanup on disconnect - stop updater if no clients left for the organization
+  // Cleanup on disconnect - stop updater if no clients left for the city
   req.on("close", () => {
-    if (sseService.getOrganizationClientsCount(orgId) === 0) {
-      sseService.stopHeatmapUpdater(orgId);
+    if (sseService.getCityClientsCount(cId) === 0) {
+      sseService.stopHeatmapUpdater(cId);
     }
   });
 }
@@ -525,13 +532,12 @@ export async function streamHeatmapUpdates(
  */
 export async function streamIssueUpdates(
   req: Request,
-  res: Response
+  res: Response,
 ): Promise<void> {
-  const { organizationId, campusId, buildingId, priorities, statuses } =
-    req.query;
+  const { cityId, campusId, zoneId, priorities, statuses } = req.query;
 
-  if (!organizationId) {
-    res.status(400).json({ error: "organizationId is required" });
+  if (!cityId) {
+    res.status(400).json({ error: "cityId is required" });
     return;
   }
 
@@ -540,9 +546,9 @@ export async function streamIssueUpdates(
 
   // Setup SSE connection
   sseService.setupSSEConnection(req, res, clientId, {
-    organizationId,
+    cityId,
     campusId,
-    buildingId,
+    zoneId,
     priorities,
     statuses,
   });
@@ -551,18 +557,18 @@ export async function streamIssueUpdates(
   const client: SSEClient = {
     id: clientId,
     response: res,
-    organizationId: organizationId as string,
+    cityId: cityId as string,
     campusId: campusId as string,
-    buildingId: buildingId as string,
-    filters: { organizationId, campusId, buildingId, priorities, statuses },
+    zoneId: zoneId as string,
+    filters: { cityId, campusId, zoneId, priorities, statuses },
   };
   sseService.addIssueClient(client);
 
   // Send initial issues list
   try {
     const issuesResult = await getIssues({
-      organizationId: organizationId as string,
-      buildingId: buildingId as string,
+      cityId: cityId as string,
+      zoneId: zoneId as string,
       priority: priorities
         ? Array.isArray(priorities)
           ? (priorities[0] as IssuePriority)
@@ -578,7 +584,7 @@ export async function streamIssueUpdates(
       res,
       "issues:initial",
       { issues: issuesResult.issues, count: issuesResult.issues.length },
-      `${Date.now()}`
+      `${Date.now()}`,
     );
   } catch (error) {
     console.error("Error fetching initial issues:", error);
@@ -592,12 +598,12 @@ export async function streamIssueUpdates(
 export async function getSSEStats(req: Request, res: Response): Promise<void> {
   try {
     const sseService = SSEService.getInstance();
-    const { organizationId } = req.query;
+    const { cityId } = req.query;
 
     const stats = {
       totalConnections: sseService.getConnectedClientsCount(),
-      organizationConnections: organizationId
-        ? sseService.getOrganizationClientsCount(organizationId as string)
+      cityConnections: cityId
+        ? sseService.getCityClientsCount(cityId as string)
         : undefined,
       timestamp: new Date(),
     };

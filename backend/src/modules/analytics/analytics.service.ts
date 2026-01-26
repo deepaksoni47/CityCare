@@ -6,40 +6,40 @@ import { firestoreCache } from "../../utils/firestore-cache";
 const db = getFirestore();
 
 /**
- * Batch fetch building names with caching
+ * Batch fetch zone names with caching
  */
-async function getBuildingNames(
-  buildingIds: string[],
+async function getZoneNames(
+  zoneIds: string[],
 ): Promise<Record<string, string>> {
-  const buildingNamesMap: Record<string, string> = {};
+  const zoneNamesMap: Record<string, string> = {};
   const idsToFetch: string[] = [];
 
   // Check cache first
-  for (const id of buildingIds) {
-    const cached = firestoreCache.get<string>(`building:${id}`);
+  for (const id of zoneIds) {
+    const cached = firestoreCache.get<string>(`zone:${id}`);
     if (cached) {
-      buildingNamesMap[id] = cached;
+      zoneNamesMap[id] = cached;
     } else {
       idsToFetch.push(id);
     }
   }
 
-  // Batch fetch uncached buildings
+  // Batch fetch uncached zones
   if (idsToFetch.length > 0) {
-    const buildingDocs = await Promise.all(
-      idsToFetch.map((id) => db.collection("buildings").doc(id).get()),
+    const zoneDocs = await Promise.all(
+      idsToFetch.map((id) => db.collection("zones").doc(id).get()),
     );
 
     for (let i = 0; i < idsToFetch.length; i++) {
-      const buildingId = idsToFetch[i];
-      const doc = buildingDocs[i];
-      const name = doc.exists ? doc.get("name") || buildingId : buildingId;
-      buildingNamesMap[buildingId] = name;
-      firestoreCache.set(`building:${buildingId}`, name, 10 * 60 * 1000); // 10 min TTL
+      const zoneId = idsToFetch[i];
+      const doc = zoneDocs[i];
+      const name = doc.exists ? doc.get("name") || zoneId : zoneId;
+      zoneNamesMap[zoneId] = name;
+      firestoreCache.set(`zone:${zoneId}`, name, 10 * 60 * 1000); // 10 min TTL
     }
   }
 
-  return buildingNamesMap;
+  return zoneNamesMap;
 }
 
 /**
@@ -87,18 +87,18 @@ async function getRoomData(
 }
 
 /**
- * Get issues per building over time
- * OPTIMIZED: Uses limit(), field projection, and caching for building names
+ * Get issues per zone over time
+ * OPTIMIZED: Uses limit(), field projection, and caching for zone names
  */
-export async function getIssuesPerBuildingOverTime(
-  organizationId: string,
+export async function getIssuesPerZoneOverTime(
+  cityId: string,
   startDate: Date,
   endDate: Date,
   groupBy: "day" | "week" | "month" = "day",
 ): Promise<{
-  buildings: Array<{
-    buildingId: string;
-    buildingName: string;
+  zones: Array<{
+    zoneId: string;
+    zoneName: string;
     timeSeries: Array<{
       period: string;
       count: number;
@@ -108,7 +108,7 @@ export async function getIssuesPerBuildingOverTime(
   // Fetch issues with field projection to reduce data transfer (limit to 5000 to avoid quota overload)
   const issuesSnapshot = await db
     .collection("issues")
-    .where("organizationId", "==", organizationId)
+    .where("cityId", "==", cityId)
     .where("createdAt", ">=", firestore.Timestamp.fromDate(startDate))
     .where("createdAt", "<=", firestore.Timestamp.fromDate(endDate))
     .orderBy("createdAt", "asc")
@@ -120,41 +120,40 @@ export async function getIssuesPerBuildingOverTime(
     ...doc.data(),
   })) as Issue[];
 
-  // Get building names with batch fetching and caching
-  const buildingIds = [...new Set(issues.map((i) => i.buildingId))];
-  const buildingNamesMap = await getBuildingNames(buildingIds);
+  // Get zone names with batch fetching and caching
+  const zoneIds = [...new Set(issues.map((i) => i.zoneId))];
+  const zoneNamesMap = await getZoneNames(zoneIds);
 
-  // Group issues by building and period
-  const buildingData: Record<string, Record<string, number>> = {};
+  // Group issues by zone and period
+  const zoneData: Record<string, Record<string, number>> = {};
 
   issues.forEach((issue) => {
-    const buildingId = issue.buildingId;
+    const zoneId = issue.zoneId;
     const createdAt = issue.createdAt.toDate();
     const period = formatPeriod(createdAt, groupBy);
 
-    if (!buildingData[buildingId]) {
-      buildingData[buildingId] = {};
+    if (!zoneData[zoneId]) {
+      zoneData[zoneId] = {};
     }
 
-    buildingData[buildingId][period] =
-      (buildingData[buildingId][period] || 0) + 1;
+    zoneData[zoneId][period] = (zoneData[zoneId][period] || 0) + 1;
   });
 
   // Convert to response format
-  const result = buildingIds.map((buildingId) => {
-    const periods = buildingData[buildingId] || {};
+  const result = zoneIds.map((zoneId) => {
+    const periods = zoneData[zoneId] || {};
     const timeSeries = Object.entries(periods)
       .map(([period, count]) => ({ period, count }))
       .sort((a, b) => a.period.localeCompare(b.period));
 
     return {
-      buildingId,
-      buildingName: buildingNamesMap[buildingId],
+      zoneId,
+      zoneName: zoneNamesMap[zoneId],
       timeSeries,
     };
   });
 
-  return { buildings: result };
+  return { zones: result };
 }
 
 /**
@@ -162,10 +161,10 @@ export async function getIssuesPerBuildingOverTime(
  * OPTIMIZED: Uses limit() to cap results at 10000 issues
  */
 export async function getMostCommonIssueTypes(
-  organizationId: string,
+  cityId: string,
   startDate?: Date,
   endDate?: Date,
-  buildingId?: string,
+  zoneId?: string,
   queryLimit: number = 10,
 ): Promise<{
   issueTypes: Array<{
@@ -180,10 +179,10 @@ export async function getMostCommonIssueTypes(
 }> {
   let query: firestore.Query = db
     .collection("issues")
-    .where("organizationId", "==", organizationId);
+    .where("cityId", "==", cityId);
 
-  if (buildingId) {
-    query = query.where("buildingId", "==", buildingId);
+  if (zoneId) {
+    query = query.where("zoneId", "==", zoneId);
   }
 
   if (startDate) {
@@ -271,11 +270,11 @@ export async function getMostCommonIssueTypes(
  * Get resolution time averages
  */
 export async function getResolutionTimeAverages(
-  organizationId: string,
+  cityId: string,
   startDate?: Date,
   endDate?: Date,
-  buildingId?: string,
-  groupBy?: "category" | "building" | "priority",
+  zoneId?: string,
+  groupBy?: "category" | "zone" | "priority",
 ): Promise<{
   overall: {
     avgResolutionHours: number;
@@ -293,11 +292,11 @@ export async function getResolutionTimeAverages(
 }> {
   let query: firestore.Query = db
     .collection("issues")
-    .where("organizationId", "==", organizationId)
+    .where("cityId", "==", cityId)
     .where("status", "==", IssueStatus.RESOLVED);
 
-  if (buildingId) {
-    query = query.where("buildingId", "==", buildingId);
+  if (zoneId) {
+    query = query.where("zoneId", "==", zoneId);
   }
 
   if (startDate) {
@@ -344,8 +343,8 @@ export async function getResolutionTimeAverages(
         let groupKey: string;
         if (groupBy === "category") {
           groupKey = issue.category;
-        } else if (groupBy === "building") {
-          groupKey = issue.buildingId;
+        } else if (groupBy === "zone") {
+          groupKey = issue.zoneId;
         } else if (groupBy === "priority") {
           groupKey = issue.priority || "unknown";
         } else {
@@ -393,19 +392,16 @@ export async function getResolutionTimeAverages(
   if (groupBy && Object.keys(groupedData).length > 0) {
     breakdown = [];
 
-    // Fetch building names if grouping by building
-    const buildingNames: Record<string, string> = {};
-    if (groupBy === "building") {
-      const buildingIds = Object.keys(groupedData);
-      for (const buildingId of buildingIds) {
-        const buildingDoc = await db
-          .collection("buildings")
-          .doc(buildingId)
-          .get();
-        if (buildingDoc.exists) {
-          buildingNames[buildingId] = buildingDoc.data()?.name || buildingId;
+    // Fetch zone names if grouping by zone
+    const zoneNames: Record<string, string> = {};
+    if (groupBy === "zone") {
+      const zoneIds = Object.keys(groupedData);
+      for (const zoneId of zoneIds) {
+        const zoneDoc = await db.collection("zones").doc(zoneId).get();
+        if (zoneDoc.exists) {
+          zoneNames[zoneId] = zoneDoc.data()?.name || zoneId;
         } else {
-          buildingNames[buildingId] = buildingId;
+          zoneNames[zoneId] = zoneId;
         }
       }
     }
@@ -416,7 +412,7 @@ export async function getResolutionTimeAverages(
       const median = sorted[Math.floor(sorted.length / 2)];
 
       breakdown.push({
-        group: groupBy === "building" ? buildingNames[group] || group : group,
+        group: groupBy === "zone" ? zoneNames[group] || group : group,
         avgResolutionHours: Math.round(avg * 100) / 100,
         medianResolutionHours: Math.round(median * 100) / 100,
         count: times.length,
@@ -440,7 +436,7 @@ export async function getResolutionTimeAverages(
  * OPTIMIZED: Added limit() to cap query results
  */
 export async function getComprehensiveTrends(
-  organizationId: string,
+  cityId: string,
   startDate: Date,
   endDate: Date,
   groupBy: "day" | "week" | "month" = "day",
@@ -456,7 +452,7 @@ export async function getComprehensiveTrends(
 }> {
   const issuesSnapshot = await db
     .collection("issues")
-    .where("organizationId", "==", organizationId)
+    .where("cityId", "==", cityId)
     .where("createdAt", ">=", firestore.Timestamp.fromDate(startDate))
     .where("createdAt", "<=", firestore.Timestamp.fromDate(endDate))
     .orderBy("createdAt", "asc")
@@ -526,15 +522,15 @@ export async function getComprehensiveTrends(
  * Detect recurring issues (same issue type + same location + time window)
  */
 export async function detectRecurringIssues(
-  organizationId: string,
+  cityId: string,
   timeWindowDays: number = 30,
   minOccurrences: number = 2,
   locationRadius?: number,
 ): Promise<{
   recurringIssues: Array<{
     category: string;
-    buildingId: string;
-    buildingName: string;
+    zoneId: string;
+    zoneName: string;
     floor?: string;
     zone?: string;
     locationKey: string;
@@ -559,7 +555,7 @@ export async function detectRecurringIssues(
     totalRecurringGroups: number;
     totalRecurringIssues: number;
     highRiskGroups: number;
-    buildingsAffected: number;
+    zonesAffected: number;
   };
 }> {
   const endDate = new Date();
@@ -570,7 +566,7 @@ export async function detectRecurringIssues(
   // Fetch all issues in the time window with limit
   const issuesSnapshot = await db
     .collection("issues")
-    .where("organizationId", "==", organizationId)
+    .where("cityId", "==", cityId)
     .where("createdAt", ">=", firestore.Timestamp.fromDate(startDate))
     .where("createdAt", "<=", firestore.Timestamp.fromDate(endDate))
     .orderBy("createdAt", "desc")
@@ -596,7 +592,7 @@ export async function detectRecurringIssues(
     const roomData = issue.roomId ? roomDataMap[issue.roomId] : undefined;
     const floor = roomData?.floor?.toString() || "";
 
-    // Create a location key based on building, floor, and optional coordinates
+    // Create a location key based on zone, floor, and optional coordinates
     let locationKey: string;
 
     if (issue.location && locationRadius) {
@@ -605,10 +601,10 @@ export async function detectRecurringIssues(
         Math.round(issue.location.latitude / locationRadius) * locationRadius;
       const lngRounded =
         Math.round(issue.location.longitude / locationRadius) * locationRadius;
-      locationKey = `${issue.buildingId}|${floor}|${latRounded},${lngRounded}`;
+      locationKey = `${issue.zoneId}|${floor}|${latRounded},${lngRounded}`;
     } else {
-      // Use building and floor only
-      locationKey = `${issue.buildingId}|${floor}`;
+      // Use zone and floor only
+      locationKey = `${issue.zoneId}|${floor}`;
     }
 
     // Group by category + location
@@ -626,9 +622,9 @@ export async function detectRecurringIssues(
     ([, issues]) => issues.length >= minOccurrences,
   );
 
-  // Batch fetch building names with caching
-  const buildingIds = [...new Set(issues.map((i) => i.buildingId))];
-  const buildingNames = await getBuildingNames(buildingIds);
+  // Batch fetch zone names with caching
+  const zoneIds = [...new Set(issues.map((i) => i.zoneId))];
+  const zoneNames = await getZoneNames(zoneIds);
 
   // Build recurring issues result
   const recurringIssues = recurringGroups
@@ -673,8 +669,8 @@ export async function detectRecurringIssues(
 
       return {
         category,
-        buildingId: firstIssue.buildingId,
-        buildingName: buildingNames[firstIssue.buildingId],
+        zoneId: firstIssue.zoneId,
+        zoneName: zoneNames[firstIssue.zoneId],
         floor,
         zone,
         locationKey,
@@ -708,9 +704,8 @@ export async function detectRecurringIssues(
   const highRiskGroups = recurringIssues.filter(
     (group) => group.isRecurringRisk,
   ).length;
-  const buildingsAffected = new Set(
-    recurringIssues.map((group) => group.buildingId),
-  ).size;
+  const zonesAffected = new Set(recurringIssues.map((group) => group.zoneId))
+    .size;
 
   return {
     recurringIssues,
@@ -718,16 +713,16 @@ export async function detectRecurringIssues(
       totalRecurringGroups: recurringIssues.length,
       totalRecurringIssues,
       highRiskGroups,
-      buildingsAffected,
+      zonesAffected,
     },
   };
 }
 
 /**
- * Get admin metrics (MTTR, high-risk buildings, issue growth rate)
+ * Get admin metrics (MTTR, high-risk zones, issue growth rate)
  */
 export async function getAdminMetrics(
-  organizationId: string,
+  cityId: string,
   timeWindowDays: number = 30,
   comparisonTimeWindowDays?: number,
 ): Promise<{
@@ -738,9 +733,9 @@ export async function getAdminMetrics(
       mttr: number;
       count: number;
     }>;
-    byBuilding: Array<{
-      buildingId: string;
-      buildingName: string;
+    byZone: Array<{
+      zoneId: string;
+      zoneName: string;
       mttr: number;
       count: number;
     }>;
@@ -754,9 +749,9 @@ export async function getAdminMetrics(
       mttr: number;
     }>;
   };
-  highRiskBuildings: Array<{
-    buildingId: string;
-    buildingName: string;
+  highRiskZones: Array<{
+    zoneId: string;
+    zoneName: string;
     riskScore: number;
     openIssues: number;
     criticalIssues: number;
@@ -801,7 +796,7 @@ export async function getAdminMetrics(
   // Fetch all resolved issues in the time window with limit
   const resolvedIssuesSnapshot = await db
     .collection("issues")
-    .where("organizationId", "==", organizationId)
+    .where("cityId", "==", cityId)
     .where("status", "==", IssueStatus.RESOLVED)
     .where("resolvedAt", ">=", firestore.Timestamp.fromDate(startDate))
     .where("resolvedAt", "<=", firestore.Timestamp.fromDate(endDate))
@@ -850,24 +845,24 @@ export async function getAdminMetrics(
     }))
     .sort((a, b) => b.mttr - a.mttr);
 
-  // MTTR by building
-  const buildingMTTR: Record<string, { total: number; count: number }> = {};
+  // MTTR by zone
+  const zoneMTTR: Record<string, { total: number; count: number }> = {};
   resolutionTimes.forEach(({ issue, hours }) => {
-    if (!buildingMTTR[issue.buildingId]) {
-      buildingMTTR[issue.buildingId] = { total: 0, count: 0 };
+    if (!zoneMTTR[issue.zoneId]) {
+      zoneMTTR[issue.zoneId] = { total: 0, count: 0 };
     }
-    buildingMTTR[issue.buildingId].total += hours;
-    buildingMTTR[issue.buildingId].count++;
+    zoneMTTR[issue.zoneId].total += hours;
+    zoneMTTR[issue.zoneId].count++;
   });
 
-  // Batch fetch building names with caching
-  const buildingIds = Object.keys(buildingMTTR);
-  const buildingNames = await getBuildingNames(buildingIds);
+  // Batch fetch zone names with caching
+  const zoneIds = Object.keys(zoneMTTR);
+  const zoneNames = await getZoneNames(zoneIds);
 
-  const mttrByBuilding = Object.entries(buildingMTTR)
-    .map(([buildingId, data]) => ({
-      buildingId,
-      buildingName: buildingNames[buildingId],
+  const mttrByZone = Object.entries(zoneMTTR)
+    .map(([zoneId, data]) => ({
+      zoneId,
+      zoneName: zoneNames[zoneId],
       mttr: Math.round((data.total / data.count) * 100) / 100,
       count: data.count,
     }))
@@ -916,12 +911,12 @@ export async function getAdminMetrics(
     }))
     .sort((a, b) => a.period.localeCompare(b.period));
 
-  // ========== High-Risk Buildings ==========
+  // ========== High-Risk Zones ==========
 
   // Fetch all open issues with limit
   const openIssuesSnapshot = await db
     .collection("issues")
-    .where("organizationId", "==", organizationId)
+    .where("cityId", "==", cityId)
     .where("status", "in", [IssueStatus.OPEN, IssueStatus.IN_PROGRESS])
     .limit(10000)
     .get();
@@ -931,31 +926,31 @@ export async function getAdminMetrics(
     ...doc.data(),
   })) as Issue[];
 
-  // Group issues by building
-  const buildingIssues: Record<string, Issue[]> = {};
+  // Group issues by zone
+  const zoneIssues: Record<string, Issue[]> = {};
   openIssues.forEach((issue) => {
-    if (!buildingIssues[issue.buildingId]) {
-      buildingIssues[issue.buildingId] = [];
+    if (!zoneIssues[issue.zoneId]) {
+      zoneIssues[issue.zoneId] = [];
     }
-    buildingIssues[issue.buildingId].push(issue);
+    zoneIssues[issue.zoneId].push(issue);
   });
 
-  // Get recurring issues for each building
+  // Get recurring issues for each zone
   const recurringIssuesData = await detectRecurringIssues(
-    organizationId,
+    cityId,
     timeWindowDays,
     2,
   );
 
-  const buildingRecurringCount: Record<string, number> = {};
+  const zoneRecurringCount: Record<string, number> = {};
   recurringIssuesData.recurringIssues.forEach((group) => {
-    buildingRecurringCount[group.buildingId] =
-      (buildingRecurringCount[group.buildingId] || 0) + 1;
+    zoneRecurringCount[group.zoneId] =
+      (zoneRecurringCount[group.zoneId] || 0) + 1;
   });
 
-  // Calculate risk scores for each building
-  const highRiskBuildings = Object.entries(buildingIssues)
-    .map(([buildingId, issues]) => {
+  // Calculate risk scores for each zone
+  const highRiskZones = Object.entries(zoneIssues)
+    .map(([zoneId, issues]) => {
       const openCount = issues.length;
       const criticalCount = issues.filter(
         (i) => i.priority === "critical",
@@ -971,7 +966,7 @@ export async function getAdminMetrics(
           return sum + age / (1000 * 60 * 60 * 24); // Convert to days
         }, 0) / openCount;
 
-      const recurringCount = buildingRecurringCount[buildingId] || 0;
+      const recurringCount = zoneRecurringCount[zoneId] || 0;
 
       // Risk score calculation
       let riskScore =
@@ -990,8 +985,8 @@ export async function getAdminMetrics(
       if (openCount > 10) riskFactors.push("High Issue Volume");
 
       return {
-        buildingId,
-        buildingName: buildingNames[buildingId] || buildingId,
+        zoneId,
+        zoneName: zoneNames[zoneId] || zoneId,
         riskScore: Math.round(riskScore),
         openIssues: openCount,
         criticalIssues: criticalCount,
@@ -1008,7 +1003,7 @@ export async function getAdminMetrics(
   // Fetch all issues in current period with limit
   const currentIssuesSnapshot = await db
     .collection("issues")
-    .where("organizationId", "==", organizationId)
+    .where("cityId", "==", cityId)
     .where("createdAt", ">=", firestore.Timestamp.fromDate(startDate))
     .where("createdAt", "<=", firestore.Timestamp.fromDate(endDate))
     .limit(10000)
@@ -1039,7 +1034,7 @@ export async function getAdminMetrics(
 
     const previousIssuesSnapshot = await db
       .collection("issues")
-      .where("organizationId", "==", organizationId)
+      .where("cityId", "==", cityId)
       .where("createdAt", ">=", firestore.Timestamp.fromDate(prevStartDate))
       .where("createdAt", "<=", firestore.Timestamp.fromDate(prevEndDate))
       .limit(10000)
@@ -1110,11 +1105,11 @@ export async function getAdminMetrics(
     mttr: {
       overall: Math.round(overallMTTR * 100) / 100,
       byCategory: mttrByCategory,
-      byBuilding: mttrByBuilding,
+      byZone: mttrByZone,
       byPriority: mttrByPriority,
       trend: mttrTrend,
     },
-    highRiskBuildings: highRiskBuildings.slice(0, 10), // Top 10
+    highRiskZones: highRiskZones.slice(0, 10), // Top 10
     issueGrowthRate: {
       currentPeriod: {
         ...currentPeriodStats,
@@ -1160,8 +1155,8 @@ function formatPeriod(date: Date, groupBy: "day" | "week" | "month"): string {
  * Export analytics data to CSV format
  */
 export async function exportAnalyticsToCSV(
-  organizationId: string,
-  exportType: "issues" | "mttr" | "buildings" | "summary",
+  cityId: string,
+  exportType: "issues" | "mttr" | "zones" | "summary",
   startDate: Date,
   endDate: Date,
 ): Promise<string> {
@@ -1169,20 +1164,16 @@ export async function exportAnalyticsToCSV(
 
   switch (exportType) {
     case "issues":
-      csvContent = await generateIssuesCSV(organizationId, startDate, endDate);
+      csvContent = await generateIssuesCSV(cityId, startDate, endDate);
       break;
     case "mttr":
-      csvContent = await generateMTTRCSV(organizationId, startDate, endDate);
+      csvContent = await generateMTTRCSV(cityId, startDate, endDate);
       break;
-    case "buildings":
-      csvContent = await generateBuildingsCSV(
-        organizationId,
-        startDate,
-        endDate,
-      );
+    case "zones":
+      csvContent = await generateZonesCSV(cityId, startDate, endDate);
       break;
     case "summary":
-      csvContent = await generateSummaryCSV(organizationId, startDate, endDate);
+      csvContent = await generateSummaryCSV(cityId, startDate, endDate);
       break;
   }
 
@@ -1193,13 +1184,13 @@ export async function exportAnalyticsToCSV(
  * Generate issues CSV
  */
 async function generateIssuesCSV(
-  organizationId: string,
+  cityId: string,
   startDate: Date,
   endDate: Date,
 ): Promise<string> {
   const issuesSnapshot = await db
     .collection("issues")
-    .where("organizationId", "==", organizationId)
+    .where("cityId", "==", cityId)
     .where("createdAt", ">=", firestore.Timestamp.fromDate(startDate))
     .where("createdAt", "<=", firestore.Timestamp.fromDate(endDate))
     .orderBy("createdAt", "desc")
@@ -1218,7 +1209,7 @@ async function generateIssuesCSV(
     "Status",
     "Priority",
     "Severity",
-    "Building ID",
+    "Zone ID",
     "Created At",
     "Resolved At",
     "Resolution Time (hours)",
@@ -1241,7 +1232,7 @@ async function generateIssuesCSV(
       issue.status,
       issue.priority || "N/A",
       issue.severity || "N/A",
-      issue.buildingId,
+      issue.zoneId,
       issue.createdAt.toDate().toISOString(),
       issue.resolvedAt?.toDate().toISOString() || "N/A",
       resolutionTime,
@@ -1256,12 +1247,12 @@ async function generateIssuesCSV(
  * Generate MTTR CSV
  */
 async function generateMTTRCSV(
-  organizationId: string,
+  cityId: string,
   startDate: Date,
   endDate: Date,
 ): Promise<string> {
   const metrics = await getAdminMetrics(
-    organizationId,
+    cityId,
     Math.ceil(
       (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24),
     ),
@@ -1285,13 +1276,13 @@ async function generateMTTRCSV(
     ]);
   });
 
-  // By Building
-  metrics.mttr.byBuilding.forEach((bldg) => {
+  // By Zone
+  metrics.mttr.byZone.forEach((zone) => {
     rows.push([
-      "Building",
-      `"${bldg.buildingName.replace(/"/g, '""')}"`,
-      bldg.mttr.toString(),
-      bldg.count.toString(),
+      "Zone",
+      `"${zone.zoneName.replace(/"/g, '""')}"`,
+      zone.mttr.toString(),
+      zone.count.toString(),
     ]);
   });
 
@@ -1309,15 +1300,15 @@ async function generateMTTRCSV(
 }
 
 /**
- * Generate buildings CSV
+ * Generate zones CSV
  */
-async function generateBuildingsCSV(
-  organizationId: string,
+async function generateZonesCSV(
+  cityId: string,
   startDate: Date,
   endDate: Date,
 ): Promise<string> {
   const metrics = await getAdminMetrics(
-    organizationId,
+    cityId,
     Math.ceil(
       (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24),
     ),
@@ -1325,8 +1316,8 @@ async function generateBuildingsCSV(
 
   // CSV Header
   const headers = [
-    "Building ID",
-    "Building Name",
+    "Zone ID",
+    "Zone Name",
     "Risk Score",
     "Open Issues",
     "Critical Issues",
@@ -1336,16 +1327,16 @@ async function generateBuildingsCSV(
     "Risk Factors",
   ];
 
-  const rows = metrics.highRiskBuildings.map((building) => [
-    building.buildingId,
-    `"${building.buildingName.replace(/"/g, '""')}"`,
-    building.riskScore.toString(),
-    building.openIssues.toString(),
-    building.criticalIssues.toString(),
-    building.avgSeverity.toString(),
-    building.unressolvedAge.toString(),
-    building.recurringIssues.toString(),
-    `"${building.riskFactors.join("; ")}"`,
+  const rows = metrics.highRiskZones.map((zone) => [
+    zone.zoneId,
+    `"${zone.zoneName.replace(/"/g, '""')}"`,
+    zone.riskScore.toString(),
+    zone.openIssues.toString(),
+    zone.criticalIssues.toString(),
+    zone.avgSeverity.toString(),
+    zone.unressolvedAge.toString(),
+    zone.recurringIssues.toString(),
+    `"${zone.riskFactors.join("; ")}"`,
   ]);
 
   return [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
@@ -1355,7 +1346,7 @@ async function generateBuildingsCSV(
  * Generate summary CSV
  */
 async function generateSummaryCSV(
-  organizationId: string,
+  cityId: string,
   startDate: Date,
   endDate: Date,
 ): Promise<string> {
@@ -1363,13 +1354,9 @@ async function generateSummaryCSV(
     (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24),
   );
 
-  const metrics = await getAdminMetrics(
-    organizationId,
-    timeWindowDays,
-    timeWindowDays,
-  );
+  const metrics = await getAdminMetrics(cityId, timeWindowDays, timeWindowDays);
   const commonIssues = await getMostCommonIssueTypes(
-    organizationId,
+    cityId,
     startDate,
     endDate,
   );
@@ -1382,7 +1369,7 @@ async function generateSummaryCSV(
     "Report Period",
     `${startDate.toISOString()} to ${endDate.toISOString()}`,
   ]);
-  rows.push(["Organization ID", organizationId]);
+  rows.push(["City ID", cityId]);
   rows.push(["Generated At", new Date().toISOString()]);
   rows.push(["", ""]);
 
@@ -1417,20 +1404,17 @@ async function generateSummaryCSV(
   ]);
   rows.push(["", ""]);
 
-  // Building Risks
-  rows.push(["=== High-Risk Buildings ===", ""]);
-  rows.push([
-    "Total High-Risk Buildings",
-    metrics.highRiskBuildings.length.toString(),
-  ]);
-  if (metrics.highRiskBuildings.length > 0) {
+  // Zone Risks
+  rows.push(["=== High-Risk Zones ===", ""]);
+  rows.push(["Total High-Risk Zones", metrics.highRiskZones.length.toString()]);
+  if (metrics.highRiskZones.length > 0) {
     rows.push([
-      "Highest Risk Building",
-      `"${metrics.highRiskBuildings[0].buildingName.replace(/"/g, '""')}"`,
+      "Highest Risk Zone",
+      `"${metrics.highRiskZones[0].zoneName.replace(/"/g, '""')}"`,
     ]);
     rows.push([
       "Highest Risk Score",
-      metrics.highRiskBuildings[0].riskScore.toString(),
+      metrics.highRiskZones[0].riskScore.toString(),
     ]);
   }
   rows.push(["", ""]);
@@ -1451,7 +1435,7 @@ async function generateSummaryCSV(
  * Generate daily/weekly snapshot report
  */
 export async function generateSnapshotReport(
-  organizationId: string,
+  cityId: string,
   snapshotType: "daily" | "weekly",
 ): Promise<{
   period: string;
@@ -1463,9 +1447,9 @@ export async function generateSnapshotReport(
     avgSeverity: number;
     mttr: number;
   };
-  topBuildings: Array<{
-    buildingId: string;
-    buildingName: string;
+  topZones: Array<{
+    zoneId: string;
+    zoneName: string;
     issueCount: number;
     criticalCount: number;
   }>;
@@ -1494,7 +1478,7 @@ export async function generateSnapshotReport(
   // Fetch current period issues
   const currentIssuesSnapshot = await db
     .collection("issues")
-    .where("organizationId", "==", organizationId)
+    .where("cityId", "==", cityId)
     .where("createdAt", ">=", firestore.Timestamp.fromDate(startDate))
     .where("createdAt", "<=", firestore.Timestamp.fromDate(endDate))
     .get();
@@ -1507,7 +1491,7 @@ export async function generateSnapshotReport(
   // Fetch previous period for comparison
   const previousIssuesSnapshot = await db
     .collection("issues")
-    .where("organizationId", "==", organizationId)
+    .where("cityId", "==", cityId)
     .where("createdAt", ">=", firestore.Timestamp.fromDate(comparisonStartDate))
     .where("createdAt", "<", firestore.Timestamp.fromDate(startDate))
     .get();
@@ -1549,34 +1533,33 @@ export async function generateSnapshotReport(
         }, 0) / resolvedWithTime.length
       : 0;
 
-  // Top buildings
-  const buildingCounts: Record<string, { count: number; critical: number }> =
-    {};
+  // Top zones
+  const zoneCounts: Record<string, { count: number; critical: number }> = {};
   currentIssues.forEach((issue) => {
-    if (!buildingCounts[issue.buildingId]) {
-      buildingCounts[issue.buildingId] = { count: 0, critical: 0 };
+    if (!zoneCounts[issue.zoneId]) {
+      zoneCounts[issue.zoneId] = { count: 0, critical: 0 };
     }
-    buildingCounts[issue.buildingId].count++;
+    zoneCounts[issue.zoneId].count++;
     if (issue.priority === "critical") {
-      buildingCounts[issue.buildingId].critical++;
+      zoneCounts[issue.zoneId].critical++;
     }
   });
 
-  const buildingIds = Object.keys(buildingCounts);
-  const buildingNames: Record<string, string> = {};
-  for (const buildingId of buildingIds) {
-    const buildingDoc = await db.collection("buildings").doc(buildingId).get();
-    if (buildingDoc.exists) {
-      buildingNames[buildingId] = buildingDoc.data()?.name || buildingId;
+  const zoneIds = Object.keys(zoneCounts);
+  const zoneNames: Record<string, string> = {};
+  for (const zoneId of zoneIds) {
+    const zoneDoc = await db.collection("zones").doc(zoneId).get();
+    if (zoneDoc.exists) {
+      zoneNames[zoneId] = zoneDoc.data()?.name || zoneId;
     } else {
-      buildingNames[buildingId] = buildingId;
+      zoneNames[zoneId] = zoneId;
     }
   }
 
-  const topBuildings = Object.entries(buildingCounts)
-    .map(([buildingId, data]) => ({
-      buildingId,
-      buildingName: buildingNames[buildingId],
+  const topZones = Object.entries(zoneCounts)
+    .map(([zoneId, data]) => ({
+      zoneId,
+      zoneName: zoneNames[zoneId],
       issueCount: data.count,
       criticalCount: data.critical,
     }))
@@ -1680,7 +1663,7 @@ export async function generateSnapshotReport(
       avgSeverity: Math.round(avgSeverity * 100) / 100,
       mttr: Math.round(mttr * 100) / 100,
     },
-    topBuildings,
+    topZones,
     topCategories,
     trends: {
       issueGrowth: Math.round(issueGrowth * 100) / 100,

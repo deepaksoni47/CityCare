@@ -14,7 +14,7 @@ const REFRESH_TOKEN_EXPIRE = process.env.REFRESH_TOKEN_EXPIRE || "30d";
 export interface JWTPayload {
   userId: string;
   email: string;
-  organizationId: string;
+  cityId: string;
   role: string;
   iat?: number;
   exp?: number;
@@ -27,7 +27,7 @@ export function generateAccessToken(user: IUser): string {
   const payload: JWTPayload = {
     userId: user._id.toString(),
     email: user.email,
-    organizationId: user.organizationId.toString(),
+    cityId: user.cityId.toString(),
     role: user.role,
   };
 
@@ -43,7 +43,7 @@ export function generateRefreshToken(user: IUser): string {
   const payload: JWTPayload = {
     userId: user._id.toString(),
     email: user.email,
-    organizationId: user.organizationId.toString(),
+    cityId: user.cityId.toString(),
     role: user.role,
   };
 

@@ -18,9 +18,9 @@ const router = Router();
  * GET /api/realtime/heatmap/stream
  *
  * Query params:
- * - organizationId* (required)
+ * - cityId* (required)
  * - campusId
- * - buildingIds[]
+ * - zoneIds[]
  * - categories[]
  * - updateInterval (default: 30000ms)
  */
@@ -37,9 +37,9 @@ router.get(
  * GET /api/realtime/issues/stream
  *
  * Query params:
- * - organizationId* (required)
+ * - cityId* (required)
  * - campusId
- * - buildingId
+ * - zoneId
  * - priorities[]
  * - statuses[]
  */
@@ -56,7 +56,7 @@ router.get(
  * GET /api/realtime/stats
  *
  * Query params:
- * - organizationId (optional)
+ * - cityId (optional)
  */
 router.get("/stats", authenticate, apiRateLimiter, getSSEStats);
 

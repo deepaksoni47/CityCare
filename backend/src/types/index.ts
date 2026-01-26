@@ -28,14 +28,14 @@ export interface Organization {
 }
 
 /**
- * Department entity
+ * Agency entity
  */
-export interface Department {
+export interface Agency {
   id: string;
-  organizationId: string;
+  cityId: string;
   name: string;
   code: string; // e.g., "CSE", "EE", "ME"
-  buildingId?: string;
+  zoneId?: string;
   contactPerson?: string;
   contactEmail?: string;
   contactPhone?: string;
@@ -44,18 +44,21 @@ export interface Department {
   updatedAt: firestore.Timestamp;
 }
 
+// Backward compatibility alias
+export type Department = Agency;
+
 /**
- * Building/Infrastructure entity
+ * Zone/Infrastructure entity
  */
-export interface Building {
+export interface Zone {
   id: string;
-  organizationId: string;
-  departmentId?: string;
+  cityId: string;
+  agencyId?: string;
   name: string;
   code: string;
   location: firestore.GeoPoint;
   address: string;
-  buildingType: string;
+  zoneType: string;
   floors: number;
   totalArea?: number;
   constructionYear?: number;
@@ -65,14 +68,17 @@ export interface Building {
   updatedAt: firestore.Timestamp;
 }
 
+// Backward compatibility alias
+export type Building = Zone;
+
 /**
  * Room entity
  */
 export interface Room {
   id: string;
-  organizationId: string;
-  buildingId: string;
-  departmentId?: string;
+  cityId: string;
+  zoneId: string;
+  agencyId?: string;
   roomNumber: string;
   floor: number;
   roomType:
@@ -98,10 +104,10 @@ export interface Room {
  */
 export interface Issue {
   id: string;
-  organizationId: string;
+  cityId: string;
   campusId?: string; // Campus identifier (optional)
-  buildingId: string;
-  departmentId?: string;
+  zoneId: string;
+  agencyId?: string;
   roomId?: string;
   title: string;
   description: string;
@@ -189,11 +195,11 @@ export interface IssueHistory {
 }
 
 /**
- * Zone Document (for campus zones)
+ * Zone Document (for city zones)
  */
-export interface Zone {
+export interface ZoneDefinition {
   id: string;
-  organizationId: string;
+  cityId: string;
   name: string;
   boundary: firestore.GeoPoint[]; // Array of GeoPoints for polygon
   zoneType:
@@ -202,7 +208,7 @@ export interface Zone {
     | "administrative"
     | "recreational"
     | "other";
-  buildingIds?: string[];
+  zoneIds?: string[];
   createdAt: firestore.Timestamp;
   updatedAt: firestore.Timestamp;
 }
@@ -212,9 +218,9 @@ export interface Zone {
  */
 export interface RiskScore {
   id: string;
-  organizationId: string;
-  buildingId?: string;
+  cityId: string;
   zoneId?: string;
+  agencyId?: string;
   category: string;
   score: number; // 0-100
   riskLevel: "low" | "medium" | "high" | "critical";
@@ -232,11 +238,11 @@ export interface RiskScore {
  */
 export interface User {
   id: string; // Firebase Auth UID
-  organizationId: string;
+  cityId: string;
   email: string;
   name: string;
   role: "admin" | "facility_manager" | "staff" | "faculty" | "student";
-  departmentId?: string;
+  agencyId?: string;
   phone?: string;
   isActive: boolean;
   permissions: {
@@ -271,9 +277,9 @@ export interface User {
  */
 export interface IssuePrediction {
   id: string;
-  organizationId: string;
-  buildingId: string;
-  departmentId?: string;
+  cityId: string;
+  zoneId: string;
+  agencyId?: string;
   roomId?: string;
   predictedCategory: string;
   predictedSeverity: number;
@@ -293,7 +299,7 @@ export interface IssuePrediction {
  */
 export interface AnalyticsEvent {
   id: string;
-  organizationId: string;
+  cityId: string;
   eventType:
     | "issue_created"
     | "issue_resolved"
@@ -313,7 +319,7 @@ export interface Vote {
   id: string;
   issueId: string;
   userId: string;
-  organizationId: string;
+  cityId: string;
   createdAt: firestore.Timestamp;
 }
 
@@ -352,7 +358,7 @@ export interface UserBadge {
   id: string;
   userId: string;
   badgeId: string;
-  organizationId: string;
+  cityId: string;
   earnedAt: firestore.Timestamp;
   progress?: number; // For tracking progress towards next level of same badge
 }
@@ -363,7 +369,7 @@ export interface UserBadge {
 export interface RewardTransaction {
   id: string;
   userId: string;
-  organizationId: string;
+  cityId: string;
   type:
     | "issue_created"
     | "issue_resolved"
@@ -386,7 +392,7 @@ export interface RewardTransaction {
 export interface LeaderboardEntry {
   id: string;
   userId: string;
-  organizationId: string;
+  cityId: string;
   userName: string;
   userRole: string;
   rewardPoints: number;

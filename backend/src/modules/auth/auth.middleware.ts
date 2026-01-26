@@ -9,7 +9,7 @@ declare module "express-serve-static-core" {
   interface Request {
     userData?: {
       id: string;
-      organizationId: string;
+      cityId: string;
       role: UserRole;
       permissions: Record<string, boolean>;
     };
@@ -60,13 +60,13 @@ export async function authenticate(
       uid: decodedToken.uid,
       email: decodedToken.email,
       role: user.role,
-      organizationId: user.organizationId,
+      cityId: user.cityId,
     } as AuthUser;
 
     // Attach detailed user data to request
     req.userData = {
       id: user.id,
-      organizationId: user.organizationId,
+      cityId: user.cityId,
       role: user.role as UserRole,
       permissions: user.permissions,
     };
@@ -135,7 +135,7 @@ export function sameOrganization(
   res: Response,
   next: NextFunction
 ) {
-  const { organizationId } = req.params;
+  const { cityId } = req.params;
 
   if (!req.userData) {
     return res.status(401).json({
@@ -144,7 +144,7 @@ export function sameOrganization(
     });
   }
 
-  if (req.userData.organizationId !== organizationId) {
+  if (req.userData.cityId !== cityId) {
     return res.status(403).json({
       error: "Forbidden",
       message: "You can only access resources from your organization",
@@ -175,7 +175,7 @@ export async function optionalAuth(
       if (user && user.isActive) {
         req.userData = {
           id: user.id,
-          organizationId: user.organizationId,
+          cityId: user.cityId,
           role: user.role as UserRole,
           permissions: user.permissions,
         };

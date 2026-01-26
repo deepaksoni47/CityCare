@@ -22,7 +22,7 @@ async function testGeminiFeatures() {
   // eslint-disable-next-line no-console
   console.log("🤖 Testing Gemini AI Features\n");
 
-  const organizationId = "ggv-university";
+  const cityId = "ggv-university";
 
   try {
     // Test 1: Text Issue Classification
@@ -58,7 +58,7 @@ async function testGeminiFeatures() {
         console.log(`\n🔍 Input: "${test.text}"`);
         const classification = await geminiService.classifyIssueFromText(
           test.text,
-          test.context
+          test.context,
         );
         // eslint-disable-next-line no-console
         console.log(`✅ Classification:`);
@@ -79,7 +79,7 @@ async function testGeminiFeatures() {
         if (classification.extractedLocation) {
           // eslint-disable-next-line no-console
           console.log(
-            `   Location: ${JSON.stringify(classification.extractedLocation)}`
+            `   Location: ${JSON.stringify(classification.extractedLocation)}`,
           );
         }
       }
@@ -111,13 +111,13 @@ async function testGeminiFeatures() {
       console.log("📝 Example usage:");
       // eslint-disable-next-line no-console
       console.log(
-        `   const analysis = await geminiService.analyzeInfrastructureImage(`
+        `   const analysis = await geminiService.analyzeInfrastructureImage(`,
       );
       // eslint-disable-next-line no-console
       console.log(`     'https://example.com/issue-image.jpg',`);
       // eslint-disable-next-line no-console
       console.log(
-        `     { buildingName: 'Science Lab', expectedCategory: 'Plumbing' }`
+        `     { buildingName: 'Science Lab', expectedCategory: 'Plumbing' }`,
       );
       // eslint-disable-next-line no-console
       console.log(`   );`);
@@ -171,7 +171,7 @@ async function testGeminiFeatures() {
       const outputDir = path.resolve(__dirname, "../../test-output");
       fs.writeFileSync(
         path.join(outputDir, "daily-summary.json"),
-        JSON.stringify(summary, null, 2)
+        JSON.stringify(summary, null, 2),
       );
       // eslint-disable-next-line no-console
       console.log(`\n💾 Full summary saved to: test-output/daily-summary.json`);
@@ -253,7 +253,7 @@ async function testGeminiFeatures() {
       const outputDir = path.resolve(__dirname, "../../test-output");
       fs.writeFileSync(
         path.join(outputDir, "trend-explanation.json"),
-        JSON.stringify(explanation, null, 2)
+        JSON.stringify(explanation, null, 2),
       );
       // eslint-disable-next-line no-console
       console.log(`\n💾 Saved to: test-output/trend-explanation.json`);
@@ -335,11 +335,11 @@ async function testGeminiFeatures() {
         const outputDir = path.resolve(__dirname, "../../test-output");
         fs.writeFileSync(
           path.join(outputDir, "incident-report.json"),
-          JSON.stringify(report, null, 2)
+          JSON.stringify(report, null, 2),
         );
         // eslint-disable-next-line no-console
         console.log(
-          `\n💾 Full report saved to: test-output/incident-report.json`
+          `\n💾 Full report saved to: test-output/incident-report.json`,
         );
       }
     } catch (error) {

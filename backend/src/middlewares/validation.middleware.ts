@@ -7,7 +7,7 @@ import { body, param, query, validationResult } from "express-validator";
 export const handleValidationErrors = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): void => {
   const errors = validationResult(req);
 
@@ -54,7 +54,7 @@ export const validatePassword = body("password")
   .withMessage("Password must contain at least one number")
   .matches(/[@$!%*?&#]/)
   .withMessage(
-    "Password must contain at least one special character (@$!%*?&#)"
+    "Password must contain at least one special character (@$!%*?&#)",
   );
 
 // Phone number validation
@@ -73,13 +73,20 @@ export const validateId = (field: string = "id") =>
     .isLength({ min: 1, max: 128 })
     .withMessage(`${field} must be between 1 and 128 characters`);
 
-// Organization ID validation
-export const validateOrganizationId = body("organizationId")
+// City ID validation
+export const validateCityId = body("cityId")
   .trim()
   .notEmpty()
-  .withMessage("Organization ID is required")
+  .withMessage("City ID is required");
+
+// Agency ID validation
+export const validateAgencyId = body("agencyId")
+  .optional()
+  .trim()
+  .notEmpty()
+  .withMessage("Agency ID is required when provided")
   .isLength({ min: 1, max: 128 })
-  .withMessage("Organization ID must be between 1 and 128 characters");
+  .withMessage("Agency ID must be between 1 and 128 characters");
 
 // User role validation
 export const validateUserRole = body("role")
@@ -147,19 +154,19 @@ export const validateIssueCreation = [
       return typeof value === "string" ? parseFloat(value) : value;
     }),
 
-  body("buildingId")
+  body("zoneId")
     .trim()
     .notEmpty()
-    .withMessage("Building ID is required")
+    .withMessage("Zone ID is required")
     .isLength({ max: 128 })
-    .withMessage("Building ID must not exceed 128 characters"),
+    .withMessage("Zone ID must not exceed 128 characters"),
 
-  body("organizationId")
+  body("cityId")
     .trim()
     .notEmpty()
-    .withMessage("Organization ID is required")
+    .withMessage("City ID is required")
     .isLength({ max: 128 })
-    .withMessage("Organization ID must not exceed 128 characters"),
+    .withMessage("City ID must not exceed 128 characters"),
 
   body("images")
     .optional()
@@ -225,10 +232,7 @@ export const validateIssueUpdate = [
  * Heatmap query validation
  */
 export const validateHeatmapQuery = [
-  query("organizationId")
-    .trim()
-    .notEmpty()
-    .withMessage("Organization ID is required"),
+  query("cityId").trim().notEmpty().withMessage("City ID is required"),
 
   query("campusId")
     .optional()
@@ -466,10 +470,7 @@ export const validateUploadMetadata = [
  * Validate real-time query parameters
  */
 export const validateRealtimeQuery = [
-  query("organizationId")
-    .trim()
-    .notEmpty()
-    .withMessage("Organization ID is required"),
+  query("cityId").trim().notEmpty().withMessage("City ID is required"),
 
   query("updateInterval")
     .optional()

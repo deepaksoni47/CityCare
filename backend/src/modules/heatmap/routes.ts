@@ -15,7 +15,7 @@ const router = Router();
 
 /**
  * Get heatmap data with full configuration
- * Query params: organizationId, campusId, buildingIds[], categories[], priorities[], statuses[],
+ * Query params: cityId, campusId, zoneIds[], categories[], priorities[], statuses[],
  *               startDate, endDate, minSeverity, maxAge, timeDecayFactor, severityWeightMultiplier,
  *               clusterRadius, minClusterSize, gridSize, normalizeWeights
  */
@@ -29,7 +29,7 @@ router.get(
 
 /**
  * Get heatmap data in GeoJSON format (simplified)
- * Query params: organizationId, campusId, buildingIds[], categories[],
+ * Query params: cityId, campusId, zoneIds[], categories[],
  *               timeDecayFactor, severityWeightMultiplier
  */
 router.get(
@@ -42,7 +42,7 @@ router.get(
 
 /**
  * Get clustered heatmap data
- * Query params: organizationId, campusId, buildingIds[], categories[],
+ * Query params: cityId, campusId, zoneIds[], categories[],
  *               clusterRadius (default: 100m), minClusterSize (default: 2)
  */
 router.get(
@@ -55,7 +55,7 @@ router.get(
 
 /**
  * Get grid-based heatmap data (optimized for performance)
- * Query params: organizationId, campusId, buildingIds[], categories[],
+ * Query params: cityId, campusId, zoneIds[], categories[],
  *               gridSize (default: 100m)
  */
 router.get(

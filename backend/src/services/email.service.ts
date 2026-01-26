@@ -17,7 +17,7 @@ const apiInstance = new brevo.TransactionalEmailsApi();
 if (process.env.BREVO_API_KEY) {
   apiInstance.setApiKey(
     brevo.TransactionalEmailsApiApiKeys.apiKey,
-    process.env.BREVO_API_KEY
+    process.env.BREVO_API_KEY,
   );
 }
 
@@ -281,12 +281,12 @@ export async function sendWelcomeEmail(user: User): Promise<void> {
         <div class="greeting">Hello ${user.name}! 👋</div>
         
         <p class="intro-text">
-          Thank you for joining the <strong>CampusCare</strong>. 
+          Thank you for joining the <strong>CityCare</strong>. 
           We're thrilled to have you as part of our community dedicated to making our campus better!
         </p>
         
         <div class="features">
-          <div class="features-title">🚀 What you can do with CampusCare:</div>
+          <div class="features-title">🚀 What you can do with CityCare:</div>
           <div class="feature-grid">
             <div class="feature-item">
               <div class="feature-icon">🔍</div>
@@ -346,8 +346,8 @@ export async function sendWelcomeEmail(user: User): Promise<void> {
           </div>
           <div class="detail-row">
             <div class="detail-icon">🏢</div>
-            <div class="detail-label">Organization:</div>
-            <div class="detail-value">${user.organizationId}</div>
+            <div class="detail-label">City:</div>
+            <div class="detail-value">${user.cityId}</div>
           </div>
         </div>
         
@@ -383,7 +383,7 @@ export async function sendWelcomeEmail(user: User): Promise<void> {
 
   await sendEmail({
     to: user.email,
-    subject: "🎉 Welcome to CampusCare!",
+    subject: "🎉 Welcome to CityCare!",
     html,
   });
 }
@@ -394,7 +394,7 @@ export async function sendWelcomeEmail(user: User): Promise<void> {
 export async function sendIssueResolvedEmail(
   user: User,
   issue: Issue,
-  resolutionComment?: string
+  resolutionComment?: string,
 ): Promise<void> {
   const html = `
 <!DOCTYPE html>
@@ -816,16 +816,16 @@ export async function sendIssueResolvedEmail(
         
         <div class="signature">
           Best regards,<br>
-          <strong>The CampusCare Team</strong> 💚
+          <strong>The CityCare Team</strong> 💚
         </div>
       </div>
       
       <div class="footer">
         <p class="footer-text">
-          This is an automated message from the CampusCare
+          This is an automated message from the CityCare
         </p>
         <p class="footer-text">
-          © ${new Date().getFullYear()} CampusCare. All rights reserved.
+          © ${new Date().getFullYear()} CityCare. All rights reserved.
         </p>
       </div>
     </div>
@@ -846,7 +846,7 @@ export async function sendIssueResolvedEmail(
  */
 export async function sendIssueDeletedEmail(
   user: User,
-  issue: Issue
+  issue: Issue,
 ): Promise<void> {
   const html = `
 <!DOCTYPE html>
@@ -1119,21 +1119,21 @@ export async function sendIssueDeletedEmail(
         </div>
         
         <p class="closing-text">
-          Thank you for your contribution in helping improve our campus infrastructure.
+          Thank you for your contribution in helping improve our city infrastructure.
         </p>
         
         <div class="signature">
           Best regards,<br>
-          <strong>The CampusCare Team</strong>
+          <strong>The CityCare Team</strong>
         </div>
       </div>
       
       <div class="footer">
         <p class="footer-text">
-          This is an automated message from the CampusCare
+          This is an automated message from the CityCare
         </p>
         <p class="footer-text">
-          © ${new Date().getFullYear()} CampusCare. All rights reserved.
+          © ${new Date().getFullYear()} CityCare. All rights reserved.
         </p>
       </div>
     </div>

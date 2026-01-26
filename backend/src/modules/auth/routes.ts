@@ -38,7 +38,7 @@ router.post(
     .withMessage("Name is required")
     .isLength({ max: 100 })
     .withMessage("Name must be less than 100 characters"),
-  body("organizationId")
+  body("cityId")
     .trim()
     .notEmpty()
     .withMessage("Organization ID is required"),
@@ -139,16 +139,16 @@ router.post(
 );
 
 /**
- * @route   GET /api/auth/users/:organizationId
+ * @route   GET /api/auth/users/:cityId
  * @desc    Get users by organization
  * @access  Private (Admin/Facility Manager only)
  */
 router.get(
-  "/users/:organizationId",
+  "/users/:cityId",
   authenticate,
   authorize(UserRole.ADMIN, UserRole.FACILITY_MANAGER),
   apiRateLimiter,
-  validateId("organizationId"),
+  validateId("cityId"),
   authController.getOrganizationUsers,
 );
 

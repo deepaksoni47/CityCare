@@ -11,7 +11,7 @@ async function testEmailNotifications() {
     email: "ciis.innovex@gmail.com",
     name: "Test User",
     role: "student" as any,
-    organizationId: "ggv-bilaspur",
+    cityId: "ggv-bilaspur",
     isActive: true,
     permissions: {
       canCreateIssues: true,
@@ -44,8 +44,8 @@ async function testEmailNotifications() {
     status: "open" as any,
     priority: 85,
     reportedBy: testUser.id,
-    organizationId: "ggv-bilaspur",
-    buildingId: "building_001",
+    cityId: "ggv-bilaspur",
+    zoneId: "building_001",
     location: {
       building: "Main Building",
       floor: "2nd Floor",
@@ -68,14 +68,14 @@ async function testEmailNotifications() {
     await emailService.sendIssueResolvedEmail(
       testUser as unknown as User,
       testIssue as any,
-      "The water fountain has been repaired and is now working properly."
+      "The water fountain has been repaired and is now working properly.",
     );
     console.log("✅ Issue resolved email sent!\n");
 
     console.log("📧 3. Testing Issue Deleted Email...");
     await emailService.sendIssueDeletedEmail(
       testUser as unknown as User,
-      testIssue as any
+      testIssue as any,
     );
     console.log("✅ Issue deleted email sent!\n");
 

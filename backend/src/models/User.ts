@@ -21,7 +21,7 @@ export interface IUser extends Document {
   avatar?: string;
   phone?: string;
   role: "citizen" | "officer" | "manager" | "admin";
-  departmentId?: Types.ObjectId;
+  agencyId?: Types.ObjectId;
   isActive: boolean;
   isVerified: boolean;
 
@@ -94,9 +94,9 @@ const UserSchema = new Schema<IUser>(
       default: "citizen",
       index: true,
     },
-    departmentId: {
+    agencyId: {
       type: Schema.Types.ObjectId,
-      ref: "Department",
+      ref: "Agency",
     },
     isActive: {
       type: Boolean,

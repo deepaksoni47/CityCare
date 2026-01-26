@@ -1,22 +1,21 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 /**
- * Organization Document Interface
+ * City Document Interface
  * Represents a city/municipality using the City Care platform
  */
-export interface IOrganization extends Document {
+export interface ICity extends Document {
   _id: mongoose.Types.ObjectId;
   name: string;
-  shortName: string;
+  code: string;
   address: string;
-  city: string;
   state: string;
   country: string;
-  campusCenter: {
+  centerPoint: {
     latitude: number;
     longitude: number;
   };
-  campusBounds: {
+  boundaries: {
     northWest: { latitude: number; longitude: number };
     northEast: { latitude: number; longitude: number };
     southWest: { latitude: number; longitude: number };
@@ -25,6 +24,7 @@ export interface IOrganization extends Document {
   contactEmail: string;
   contactPhone: string;
   website?: string;
+  population?: number;
   timezone: string;
   isActive: boolean;
   createdAt: Date;
@@ -32,19 +32,19 @@ export interface IOrganization extends Document {
 }
 
 /**
- * Organization Schema
+ * City Schema
  */
-const OrganizationSchema = new Schema<IOrganization>(
+const CitySchema = new Schema<ICity>(
   {
     name: {
       type: String,
-      required: [true, "Organization name is required"],
+      required: [true, "City name is required"],
       trim: true,
       index: true,
     },
-    shortName: {
+    code: {
       type: String,
-      required: [true, "Short name is required"],
+      required: [true, "City code is required"],
       trim: true,
       unique: true,
     },
@@ -52,21 +52,17 @@ const OrganizationSchema = new Schema<IOrganization>(
       type: String,
       required: [true, "Address is required"],
     },
-    city: {
-      type: String,
-      required: [true, "City is required"],
-      index: true,
-    },
     state: {
       type: String,
       required: [true, "State is required"],
+      index: true,
     },
     country: {
       type: String,
       required: [true, "Country is required"],
       default: "India",
     },
-    campusCenter: {
+    centerPoint: {
       latitude: {
         type: Number,
         required: [true, "Center latitude is required"],
@@ -76,7 +72,7 @@ const OrganizationSchema = new Schema<IOrganization>(
         required: [true, "Center longitude is required"],
       },
     },
-    campusBounds: {
+    boundaries: {
       northWest: {
         latitude: { type: Number, required: true },
         longitude: { type: Number, required: true },
@@ -110,6 +106,10 @@ const OrganizationSchema = new Schema<IOrganization>(
       type: String,
       trim: true,
     },
+    population: {
+      type: Number,
+      default: 0,
+    },
     timezone: {
       type: String,
       required: [true, "Timezone is required"],
@@ -127,19 +127,20 @@ const OrganizationSchema = new Schema<IOrganization>(
 );
 
 // Create geospatial index for location-based queries
-OrganizationSchema.index({
-  "campusCenter.latitude": 1,
-  "campusCenter.longitude": 1,
+CitySchema.index({
+  "centerPoint.latitude": 1,
+  "centerPoint.longitude": 1,
 });
 
 // Create text index for search
-OrganizationSchema.index({
+CitySchema.index({
   name: "text",
-  shortName: "text",
-  city: "text",
+  code: "text",
+  state: "text",
 });
 
-export const Organization = mongoose.model<IOrganization>(
-  "Organization",
-  OrganizationSchema,
-);
+export const City = mongoose.model<ICity>("City", CitySchema);
+
+// Backward compatibility
+export const Organization = City;
+export type IOrganization = ICity;

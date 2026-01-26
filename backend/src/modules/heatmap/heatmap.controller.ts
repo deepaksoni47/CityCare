@@ -16,9 +16,9 @@ import { IssuePriority, IssueStatus } from "../../types";
 export async function getHeatmap(req: Request, res: Response): Promise<void> {
   try {
     const {
-      organizationId,
+      cityId,
       campusId,
-      buildingIds,
+      zoneIds,
       categories,
       priorities,
       statuses,
@@ -35,21 +35,21 @@ export async function getHeatmap(req: Request, res: Response): Promise<void> {
     } = req.query;
 
     // Validate required fields
-    if (!organizationId) {
-      res.status(400).json({ error: "organizationId is required" });
+    if (!cityId) {
+      res.status(400).json({ error: "cityId is required" });
       return;
     }
 
     // Build filters
     const filters: HeatmapFilters = {
-      organizationId: organizationId as string,
+      cityId: cityId as string,
     };
 
     if (campusId) filters.campusId = campusId as string;
-    if (buildingIds) {
-      filters.buildingIds = Array.isArray(buildingIds)
-        ? (buildingIds as string[])
-        : [buildingIds as string];
+    if (zoneIds) {
+      filters.zoneIds = Array.isArray(zoneIds)
+        ? (zoneIds as string[])
+        : [zoneIds as string];
     }
     if (categories) {
       filters.categories = Array.isArray(categories)
@@ -144,28 +144,28 @@ export async function getHeatmap(req: Request, res: Response): Promise<void> {
 export async function getGeoJSON(req: Request, res: Response): Promise<void> {
   try {
     const {
-      organizationId,
+      cityId,
       campusId,
-      buildingIds,
+      zoneIds,
       categories,
       timeDecayFactor,
       severityWeightMultiplier,
     } = req.query;
 
-    if (!organizationId) {
-      res.status(400).json({ error: "organizationId is required" });
+    if (!cityId) {
+      res.status(400).json({ error: "cityId is required" });
       return;
     }
 
     const filters: HeatmapFilters = {
-      organizationId: organizationId as string,
+      cityId: cityId as string,
     };
 
     if (campusId) filters.campusId = campusId as string;
-    if (buildingIds) {
-      filters.buildingIds = Array.isArray(buildingIds)
-        ? (buildingIds as string[])
-        : [buildingIds as string];
+    if (zoneIds) {
+      filters.zoneIds = Array.isArray(zoneIds)
+        ? (zoneIds as string[])
+        : [zoneIds as string];
     }
     if (categories) {
       filters.categories = Array.isArray(categories)
@@ -204,28 +204,28 @@ export async function getGeoJSON(req: Request, res: Response): Promise<void> {
 export async function getClusters(req: Request, res: Response): Promise<void> {
   try {
     const {
-      organizationId,
+      cityId,
       campusId,
-      buildingIds,
+      zoneIds,
       categories,
       clusterRadius,
       minClusterSize,
     } = req.query;
 
-    if (!organizationId) {
-      res.status(400).json({ error: "organizationId is required" });
+    if (!cityId) {
+      res.status(400).json({ error: "cityId is required" });
       return;
     }
 
     const filters: HeatmapFilters = {
-      organizationId: organizationId as string,
+      cityId: cityId as string,
     };
 
     if (campusId) filters.campusId = campusId as string;
-    if (buildingIds) {
-      filters.buildingIds = Array.isArray(buildingIds)
-        ? (buildingIds as string[])
-        : [buildingIds as string];
+    if (zoneIds) {
+      filters.zoneIds = Array.isArray(zoneIds)
+        ? (zoneIds as string[])
+        : [zoneIds as string];
     }
     if (categories) {
       filters.categories = Array.isArray(categories)
@@ -265,23 +265,23 @@ export async function getClusters(req: Request, res: Response): Promise<void> {
  */
 export async function getGrid(req: Request, res: Response): Promise<void> {
   try {
-    const { organizationId, campusId, buildingIds, categories, gridSize } =
+    const { cityId, campusId, zoneIds, categories, gridSize } =
       req.query;
 
-    if (!organizationId) {
-      res.status(400).json({ error: "organizationId is required" });
+    if (!cityId) {
+      res.status(400).json({ error: "cityId is required" });
       return;
     }
 
     const filters: HeatmapFilters = {
-      organizationId: organizationId as string,
+      cityId: cityId as string,
     };
 
     if (campusId) filters.campusId = campusId as string;
-    if (buildingIds) {
-      filters.buildingIds = Array.isArray(buildingIds)
-        ? (buildingIds as string[])
-        : [buildingIds as string];
+    if (zoneIds) {
+      filters.zoneIds = Array.isArray(zoneIds)
+        ? (zoneIds as string[])
+        : [zoneIds as string];
     }
     if (categories) {
       filters.categories = Array.isArray(categories)
@@ -315,9 +315,9 @@ export async function getGrid(req: Request, res: Response): Promise<void> {
 export async function getStats(req: Request, res: Response): Promise<void> {
   try {
     const {
-      organizationId,
+      cityId,
       campusId,
-      buildingIds,
+      zoneIds,
       categories,
       priorities,
       statuses,
@@ -329,20 +329,20 @@ export async function getStats(req: Request, res: Response): Promise<void> {
       severityWeightMultiplier,
     } = req.query;
 
-    if (!organizationId) {
-      res.status(400).json({ error: "organizationId is required" });
+    if (!cityId) {
+      res.status(400).json({ error: "cityId is required" });
       return;
     }
 
     const filters: HeatmapFilters = {
-      organizationId: organizationId as string,
+      cityId: cityId as string,
     };
 
     if (campusId) filters.campusId = campusId as string;
-    if (buildingIds) {
-      filters.buildingIds = Array.isArray(buildingIds)
-        ? (buildingIds as string[])
-        : [buildingIds as string];
+    if (zoneIds) {
+      filters.zoneIds = Array.isArray(zoneIds)
+        ? (zoneIds as string[])
+        : [zoneIds as string];
     }
     if (categories) {
       filters.categories = Array.isArray(categories)

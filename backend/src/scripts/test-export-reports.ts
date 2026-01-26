@@ -25,7 +25,7 @@ async function testExportReports() {
   // eslint-disable-next-line no-console
   console.log("🚀 Testing Export and Reports Functionality\n");
 
-  const organizationId = "ggv-university";
+  const cityId = "ggv-university";
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - 30);
   const endDate = new Date();
@@ -38,15 +38,15 @@ async function testExportReports() {
     console.log("=====================================");
     try {
       const issuesCSV = await exportAnalyticsToCSV(
-        organizationId,
+        cityId,
         "issues",
         startDate,
-        endDate
+        endDate,
       );
       const lines = issuesCSV.split("\n").filter((line) => line.trim());
       // eslint-disable-next-line no-console
       console.log(
-        `✅ Generated Issues CSV: ${lines.length} lines (including header)`
+        `✅ Generated Issues CSV: ${lines.length} lines (including header)`,
       );
       // eslint-disable-next-line no-console
       console.log(`📝 Headers: ${lines[0]}`);
@@ -74,15 +74,15 @@ async function testExportReports() {
     console.log("=====================================");
     try {
       const mttrCSV = await exportAnalyticsToCSV(
-        organizationId,
+        cityId,
         "mttr",
         startDate,
-        endDate
+        endDate,
       );
       const lines = mttrCSV.split("\n").filter((line) => line.trim());
       // eslint-disable-next-line no-console
       console.log(
-        `✅ Generated MTTR CSV: ${lines.length} lines (including header)`
+        `✅ Generated MTTR CSV: ${lines.length} lines (including header)`,
       );
       // eslint-disable-next-line no-console
       console.log(`📝 Headers: ${lines[0]}`);
@@ -106,15 +106,15 @@ async function testExportReports() {
     console.log("=====================================");
     try {
       const buildingsCSV = await exportAnalyticsToCSV(
-        organizationId,
+        cityId,
         "buildings",
         startDate,
-        endDate
+        endDate,
       );
       const lines = buildingsCSV.split("\n").filter((line) => line.trim());
       // eslint-disable-next-line no-console
       console.log(
-        `✅ Generated Buildings CSV: ${lines.length} lines (including header)`
+        `✅ Generated Buildings CSV: ${lines.length} lines (including header)`,
       );
       // eslint-disable-next-line no-console
       console.log(`📝 Headers: ${lines[0]}`);
@@ -126,7 +126,7 @@ async function testExportReports() {
       const outputDir = path.resolve(__dirname, "../../test-output");
       fs.writeFileSync(
         path.join(outputDir, "buildings-export.csv"),
-        buildingsCSV
+        buildingsCSV,
       );
       // eslint-disable-next-line no-console
       console.log(`💾 Saved to: test-output/buildings-export.csv\n`);
@@ -141,15 +141,15 @@ async function testExportReports() {
     console.log("=====================================");
     try {
       const summaryCSV = await exportAnalyticsToCSV(
-        organizationId,
+        cityId,
         "summary",
         startDate,
-        endDate
+        endDate,
       );
       const lines = summaryCSV.split("\n").filter((line) => line.trim());
       // eslint-disable-next-line no-console
       console.log(
-        `✅ Generated Summary CSV: ${lines.length} lines (including header)`
+        `✅ Generated Summary CSV: ${lines.length} lines (including header)`,
       );
       // eslint-disable-next-line no-console
       console.log(`📝 Headers: ${lines[0]}`);
@@ -174,10 +174,7 @@ async function testExportReports() {
     // eslint-disable-next-line no-console
     console.log("=====================================");
     try {
-      const dailySnapshot = await generateSnapshotReport(
-        organizationId,
-        "daily"
-      );
+      const dailySnapshot = await generateSnapshotReport(cityId, "daily");
       // eslint-disable-next-line no-console
       console.log(`✅ Generated Daily Snapshot`);
       // eslint-disable-next-line no-console
@@ -190,15 +187,15 @@ async function testExportReports() {
       console.log(`   Open Issues: ${dailySnapshot.summary.openIssues}`);
       // eslint-disable-next-line no-console
       console.log(
-        `   Resolved Issues: ${dailySnapshot.summary.resolvedIssues}`
+        `   Resolved Issues: ${dailySnapshot.summary.resolvedIssues}`,
       );
       // eslint-disable-next-line no-console
       console.log(
-        `   Critical Issues: ${dailySnapshot.summary.criticalIssues}`
+        `   Critical Issues: ${dailySnapshot.summary.criticalIssues}`,
       );
       // eslint-disable-next-line no-console
       console.log(
-        `   Avg Severity: ${dailySnapshot.summary.avgSeverity.toFixed(2)}`
+        `   Avg Severity: ${dailySnapshot.summary.avgSeverity.toFixed(2)}`,
       );
       // eslint-disable-next-line no-console
       console.log(`   MTTR: ${dailySnapshot.summary.mttr.toFixed(2)} hours`);
@@ -206,11 +203,11 @@ async function testExportReports() {
       console.log(`📊 Trends:`);
       // eslint-disable-next-line no-console
       console.log(
-        `   Issue Growth: ${dailySnapshot.trends.issueGrowth > 0 ? "+" : ""}${dailySnapshot.trends.issueGrowth.toFixed(1)}%`
+        `   Issue Growth: ${dailySnapshot.trends.issueGrowth > 0 ? "+" : ""}${dailySnapshot.trends.issueGrowth.toFixed(1)}%`,
       );
       // eslint-disable-next-line no-console
       console.log(
-        `   MTTR Change: ${dailySnapshot.trends.mttrChange > 0 ? "+" : ""}${dailySnapshot.trends.mttrChange.toFixed(1)}%`
+        `   MTTR Change: ${dailySnapshot.trends.mttrChange > 0 ? "+" : ""}${dailySnapshot.trends.mttrChange.toFixed(1)}%`,
       );
 
       if (dailySnapshot.alerts.length > 0) {
@@ -234,19 +231,19 @@ async function testExportReports() {
             issueCount: number;
             criticalCount: number;
           },
-          idx: number
+          idx: number,
         ) => {
           // eslint-disable-next-line no-console
           console.log(
-            `   ${idx + 1}. ${building.buildingName}: ${building.issueCount} issues (${building.criticalCount} critical)`
+            `   ${idx + 1}. ${building.buildingName}: ${building.issueCount} issues (${building.criticalCount} critical)`,
           );
-        }
+        },
       );
 
       const outputDir = path.resolve(__dirname, "../../test-output");
       fs.writeFileSync(
         path.join(outputDir, "daily-snapshot.json"),
-        JSON.stringify(dailySnapshot, null, 2)
+        JSON.stringify(dailySnapshot, null, 2),
       );
       // eslint-disable-next-line no-console
       console.log(`💾 Saved to: test-output/daily-snapshot.json\n`);
@@ -260,10 +257,7 @@ async function testExportReports() {
     // eslint-disable-next-line no-console
     console.log("=====================================");
     try {
-      const weeklySnapshot = await generateSnapshotReport(
-        organizationId,
-        "weekly"
-      );
+      const weeklySnapshot = await generateSnapshotReport(cityId, "weekly");
       // eslint-disable-next-line no-console
       console.log(`✅ Generated Weekly Snapshot`);
       // eslint-disable-next-line no-console
@@ -276,15 +270,15 @@ async function testExportReports() {
       console.log(`   Open Issues: ${weeklySnapshot.summary.openIssues}`);
       // eslint-disable-next-line no-console
       console.log(
-        `   Resolved Issues: ${weeklySnapshot.summary.resolvedIssues}`
+        `   Resolved Issues: ${weeklySnapshot.summary.resolvedIssues}`,
       );
       // eslint-disable-next-line no-console
       console.log(
-        `   Critical Issues: ${weeklySnapshot.summary.criticalIssues}`
+        `   Critical Issues: ${weeklySnapshot.summary.criticalIssues}`,
       );
       // eslint-disable-next-line no-console
       console.log(
-        `   Avg Severity: ${weeklySnapshot.summary.avgSeverity.toFixed(2)}`
+        `   Avg Severity: ${weeklySnapshot.summary.avgSeverity.toFixed(2)}`,
       );
       // eslint-disable-next-line no-console
       console.log(`   MTTR: ${weeklySnapshot.summary.mttr.toFixed(2)} hours`);
@@ -292,11 +286,11 @@ async function testExportReports() {
       console.log(`📊 Trends:`);
       // eslint-disable-next-line no-console
       console.log(
-        `   Issue Growth: ${weeklySnapshot.trends.issueGrowth > 0 ? "+" : ""}${weeklySnapshot.trends.issueGrowth.toFixed(1)}%`
+        `   Issue Growth: ${weeklySnapshot.trends.issueGrowth > 0 ? "+" : ""}${weeklySnapshot.trends.issueGrowth.toFixed(1)}%`,
       );
       // eslint-disable-next-line no-console
       console.log(
-        `   MTTR Change: ${weeklySnapshot.trends.mttrChange > 0 ? "+" : ""}${weeklySnapshot.trends.mttrChange.toFixed(1)}%`
+        `   MTTR Change: ${weeklySnapshot.trends.mttrChange > 0 ? "+" : ""}${weeklySnapshot.trends.mttrChange.toFixed(1)}%`,
       );
 
       if (weeklySnapshot.alerts.length > 0) {
@@ -318,19 +312,19 @@ async function testExportReports() {
         .forEach(
           (
             category: { category: string; count: number; percentage: number },
-            idx: number
+            idx: number,
           ) => {
             // eslint-disable-next-line no-console
             console.log(
-              `   ${idx + 1}. ${category.category}: ${category.count} issues (${category.percentage.toFixed(1)}%)`
+              `   ${idx + 1}. ${category.category}: ${category.count} issues (${category.percentage.toFixed(1)}%)`,
             );
-          }
+          },
         );
 
       const outputDir = path.resolve(__dirname, "../../test-output");
       fs.writeFileSync(
         path.join(outputDir, "weekly-snapshot.json"),
-        JSON.stringify(weeklySnapshot, null, 2)
+        JSON.stringify(weeklySnapshot, null, 2),
       );
       // eslint-disable-next-line no-console
       console.log(`💾 Saved to: test-output/weekly-snapshot.json\n`);

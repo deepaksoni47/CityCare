@@ -63,40 +63,40 @@ export async function generateGeneralInsights(_req: Request, res: Response) {
 }
 
 /**
- * Generate risk assessment for a specific building
+ * Generate risk assessment for a specific zone
  */
-export async function generateBuildingRisk(req: Request, res: Response) {
+export async function generateZoneRisk(req: Request, res: Response) {
   try {
-    const { buildingId } = req.params;
+    const { zoneId } = req.params;
 
-    if (!buildingId) {
+    if (!zoneId) {
       return res.status(400).json({
         error: "Missing parameter",
-        message: "buildingId is required",
+        message: "zoneId is required",
       });
     }
 
     const db = getFirestore();
 
-    // Get building info
-    const buildingDoc = await db.collection("buildings").doc(buildingId).get();
+    // Get zone info
+    const zoneDoc = await db.collection("zones").doc(zoneId).get();
 
-    if (!buildingDoc.exists) {
+    if (!zoneDoc.exists) {
       return res.status(404).json({
-        error: "Building not found",
-        message: `Building with ID ${buildingId} does not exist`,
+        error: "Zone not found",
+        message: `Zone with ID ${zoneId} does not exist`,
       });
     }
 
-    const building = buildingDoc.data();
+    const zone = zoneDoc.data();
 
-    // Get recent issues for this building (last 30 days) with limit
+    // Get recent issues for this zone (last 30 days) with limit
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
     const issuesSnapshot = await db
       .collection("issues")
-      .where("buildingId", "==", buildingId)
+      .where("zoneId", "==", zoneId)
       .where("createdAt", ">=", thirtyDaysAgo)
       .limit(1000)
       .get();
@@ -107,15 +107,15 @@ export async function generateBuildingRisk(req: Request, res: Response) {
     }));
 
     const riskAssessment = await geminiService.generateRiskAssessment(
-      building?.name || buildingId,
+      zone?.name || zoneId,
       recentIssues,
     );
 
     res.json({
       success: true,
       data: {
-        buildingId,
-        buildingName: building?.name,
+        zoneId,
+        zoneName: zone?.name,
         ...riskAssessment,
         recentIssuesCount: recentIssues.length,
         assessmentDate: new Date().toISOString(),
@@ -233,7 +233,7 @@ export async function chatWithAI(req: Request, res: Response) {
       });
     }
 
-    const systemPrompt = `You are an AI assistant for a CampusCare. 
+    const systemPrompt = `You are an AI assistant for a CityCare. 
 Help facility managers and administrators with infrastructure-related questions, issue analysis, 
 and maintenance recommendations. Keep responses professional and actionable.
 
@@ -392,19 +392,19 @@ export async function analyzeImage(req: Request, res: Response) {
  */
 export async function getDailySummary(req: Request, res: Response) {
   try {
-    const { organizationId, date } = req.query;
+    const { cityId, date } = req.query;
 
-    if (!organizationId) {
+    if (!cityId) {
       return res.status(400).json({
         error: "Missing parameter",
-        message: "organizationId is required",
+        message: "cityId is required",
       });
     }
 
     const summaryDate = date ? new Date(date as string) : new Date();
 
     const summary = await geminiService.generateDailySummary(
-      organizationId as string,
+      cityId as string,
       summaryDate,
     );
 
@@ -476,13 +476,13 @@ export async function getIncidentReport(req: Request, res: Response) {
 
     const issue = { id: issueDoc.id, ...issueDoc.data() };
 
-    // Get related issues (same category and building, last 90 days)
+    // Get related issues (same category and zone, last 90 days)
     const ninetyDaysAgo = new Date();
     ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
 
     const relatedSnapshot = await db
       .collection("issues")
-      .where("buildingId", "==", (issue as any).buildingId)
+      .where("zoneId", "==", (issue as any).zoneId)
       .where("category", "==", (issue as any).category)
       .where("createdAt", ">=", ninetyDaysAgo)
       .get();

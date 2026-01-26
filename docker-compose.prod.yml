@@ -1,13 +1,13 @@
 version: "3.8"
 
 services:
-  # Backend API Service (Node.js + Express + Firebase)
+  # Backend API Service (Node.js + Express + MongoDB)
   backend:
-    image: campuscare/backend:latest
+    image: citycare/backend:latest
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: campuscare-backend
+    container_name: citycare-backend
     restart: always
     environment:
       NODE_ENV: production
@@ -26,7 +26,7 @@ services:
     expose:
       - "3001"
     networks:
-      - campuscare-network
+      - citycare-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
       interval: 30s
@@ -35,11 +35,11 @@ services:
 
   # Frontend Application (Next.js)
   frontend:
-    image: campuscare/frontend:latest
+    image: citycare/frontend:latest
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: campuscare-frontend
+    container_name: citycare-frontend
     restart: always
     depends_on:
       backend:
@@ -57,7 +57,7 @@ services:
     expose:
       - "3000"
     networks:
-      - campuscare-network
+      - citycare-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000"]
       interval: 30s
@@ -67,7 +67,7 @@ services:
   # Reverse Proxy (Nginx) - Optional for production
   nginx:
     image: nginx:latest
-    container_name: campuscare-nginx
+    container_name: citycare-nginx
     restart: always
     depends_on:
       - frontend
@@ -79,8 +79,8 @@ services:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - ./ssl:/etc/nginx/ssl:ro
     networks:
-      - campuscare-network
+      - citycare-network
 
 networks:
-  campuscare-network:
+  citycare-network:
     driver: bridge

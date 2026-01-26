@@ -9,7 +9,7 @@ async function testFirestoreIssues() {
 
     const snapshot = await db
       .collection("issues")
-      .where("organizationId", "==", "ggv-bilaspur")
+      .where("cityId", "==", "ggv-bilaspur")
       .limit(5)
       .get();
 

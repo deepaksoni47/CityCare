@@ -10,7 +10,7 @@ export interface PriorityInput {
   description?: string;
 
   // Location factors
-  buildingId?: string;
+  zoneId?: string;
   roomId?: string;
   roomType?: string;
   affectedArea?: number; // square meters

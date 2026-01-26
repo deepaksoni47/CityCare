@@ -1,14 +1,15 @@
 import mongoose, { Schema, Document, Types } from "mongoose";
 
 /**
- * Department Document Interface
+ * Agency Document Interface
+ * Represents government agencies managing city infrastructure
  */
-export interface IDepartment extends Document {
+export interface IAgency extends Document {
   _id: mongoose.Types.ObjectId;
-  organizationId: Types.ObjectId;
+  cityId: Types.ObjectId;
   name: string;
   code: string;
-  buildingId?: Types.ObjectId;
+  zoneId?: Types.ObjectId;
   contactPerson?: string;
   contactEmail?: string;
   contactPhone?: string;
@@ -18,31 +19,31 @@ export interface IDepartment extends Document {
 }
 
 /**
- * Department Schema
+ * Agency Schema
  */
-const DepartmentSchema = new Schema<IDepartment>(
+const AgencySchema = new Schema<IAgency>(
   {
-    organizationId: {
+    cityId: {
       type: Schema.Types.ObjectId,
-      ref: "Organization",
-      required: [true, "Organization ID is required"],
+      ref: "City",
+      required: [true, "City ID is required"],
       index: true,
     },
     name: {
       type: String,
-      required: [true, "Department name is required"],
+      required: [true, "Agency name is required"],
       trim: true,
       index: true,
     },
     code: {
       type: String,
-      required: [true, "Department code is required"],
+      required: [true, "Agency code is required"],
       trim: true,
       uppercase: true,
     },
-    buildingId: {
+    zoneId: {
       type: Schema.Types.ObjectId,
-      ref: "Building",
+      ref: "Zone",
     },
     contactPerson: {
       type: String,
@@ -71,15 +72,16 @@ const DepartmentSchema = new Schema<IDepartment>(
 );
 
 // Create compound index
-DepartmentSchema.index({ organizationId: 1, code: 1 }, { unique: true });
+AgencySchema.index({ cityId: 1, code: 1 }, { unique: true });
 
 // Create text index for search
-DepartmentSchema.index({
+AgencySchema.index({
   name: "text",
   code: "text",
 });
 
-export const Department = mongoose.model<IDepartment>(
-  "Department",
-  DepartmentSchema,
-);
+export const Agency = mongoose.model<IAgency>("Agency", AgencySchema);
+
+// Backward compatibility
+export const Department = Agency;
+export type IDepartment = IAgency;

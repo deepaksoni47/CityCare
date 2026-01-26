@@ -12,7 +12,7 @@ async function testEmail() {
     "   EMAIL_PASSWORD:",
     process.env.EMAIL_PASSWORD
       ? `✅ SET (${process.env.EMAIL_PASSWORD.length} characters)`
-      : "❌ NOT SET"
+      : "❌ NOT SET",
   );
   console.log("   FRONTEND_URL:", process.env.FRONTEND_URL || "❌ NOT SET");
   console.log();
@@ -24,7 +24,7 @@ async function testEmail() {
     email: "ciis.innovex@gmail.com", // Sending to yourself for testing
     name: "Test User",
     role: "student" as any,
-    organizationId: "test-org",
+    cityId: "test-org",
     isActive: true,
     permissions: {
       canCreateIssues: true,

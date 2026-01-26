@@ -81,7 +81,7 @@ export async function generateInsights(prompt: string): Promise<string> {
       process.env.GOOGLE_GEMINI_API_KEY === ""
     ) {
       console.warn(
-        "⚠️ GOOGLE_GEMINI_API_KEY not configured. Using fallback response."
+        "⚠️ GOOGLE_GEMINI_API_KEY not configured. Using fallback response.",
       );
       return generateFallbackInsight(prompt);
     }
@@ -186,7 +186,7 @@ Keep the response concise and actionable (3-4 paragraphs).`;
  */
 export async function generateRiskAssessment(
   location: string,
-  recentIssues: any[]
+  recentIssues: any[],
 ): Promise<{
   riskScore: number;
   riskLevel: string;
@@ -224,7 +224,7 @@ Provide a JSON response with:
     // Fallback: calculate basic risk score
     const riskScore = Math.min(
       100,
-      Math.round((issueCount * 5 + avgSeverity * 8) / 2)
+      Math.round((issueCount * 5 + avgSeverity * 8) / 2),
     );
     return {
       riskScore,
@@ -251,7 +251,7 @@ export async function generateIssueSummary(issue: any): Promise<string> {
 
 Category: ${issue.category}
 Severity: ${issue.severity}/10
-Location: ${issue.buildingId || "Unknown"}
+Location: ${issue.zoneId || "Unknown"}
 Description: ${issue.description || "No description provided"}
 Status: ${issue.status}
 
@@ -265,7 +265,7 @@ Provide a concise summary suitable for a facility manager.`;
  */
 export async function suggestMaintenanceActions(
   category: string,
-  severity: number
+  severity: number,
 ): Promise<string[]> {
   const prompt = `Suggest 3-5 specific maintenance actions for:
 
@@ -301,7 +301,7 @@ Example: ["Step 1", "Step 2", "Step 3"]`;
  */
 export async function analyzeIssueImage(
   imageUrl: string,
-  category?: string
+  category?: string,
 ): Promise<{
   description: string;
   severity: number;
@@ -366,7 +366,7 @@ Respond in JSON format:
  */
 export function calculatePriority(
   severity: number,
-  category: string
+  category: string,
 ): "low" | "medium" | "high" | "critical" {
   // Critical categories with high severity
   if (
@@ -387,7 +387,7 @@ export function calculatePriority(
  */
 export async function generateFailurePrediction(
   locationName: string,
-  historicalIssues: any[]
+  historicalIssues: any[],
 ): Promise<{
   predictedCategory: string;
   probability: number;
@@ -411,7 +411,7 @@ export async function generateFailurePrediction(
   }, {});
 
   const mostCommon = Object.entries(categoryCount).sort(
-    ([, a]: any, [, b]: any) => b - a
+    ([, a]: any, [, b]: any) => b - a,
   )[0];
 
   const prompt = `Analyze failure patterns for: ${locationName}
@@ -450,7 +450,7 @@ Respond in JSON:
       predictedCategory: mostCommon[0] as string,
       probability: Math.min(
         0.8,
-        (mostCommon[1] as number) / historicalIssues.length + 0.3
+        (mostCommon[1] as number) / historicalIssues.length + 0.3,
       ),
       timeframe: "within 30 days",
       reasoning: `Based on ${mostCommon[1]} previous ${mostCommon[0]} issues`,
@@ -476,7 +476,7 @@ export async function classifyIssueFromText(
     buildingName?: string;
     zone?: string;
     reporterName?: string;
-  }
+  },
 ): Promise<{
   issueType: string;
   category: string;
@@ -493,7 +493,7 @@ export async function classifyIssueFromText(
   urgency: string;
   estimatedResolutionTime: string;
 }> {
-  const prompt = `You are an AI assistant for a CampusCare. Analyze this issue report and extract structured information.
+  const prompt = `You are an AI assistant for a CityCare. Analyze this issue report and extract structured information.
 
 User Input: "${textInput}"
 
@@ -544,7 +544,7 @@ Only respond with valid JSON.`;
         category: parsed.category || "Other",
         severity: Math.max(1, Math.min(10, parsed.severity || 5)),
         priority: ["low", "medium", "high", "critical"].includes(
-          parsed.priority
+          parsed.priority,
         )
           ? parsed.priority
           : "medium",
@@ -631,7 +631,7 @@ export async function processVoiceInput(
     buildingName?: string;
     zone?: string;
     reporterName?: string;
-  }
+  },
 ): Promise<{
   transcription: string;
   confidence: number;
@@ -693,7 +693,7 @@ Respond in JSON:
           const delayMs = 500 * Math.pow(2, attempt); // 1s, 2s, 4s approx
           console.warn(
             `Gemini generateContent attempt ${attempt} failed with 503; retrying in ${delayMs}ms...`,
-            err
+            err,
           );
           await new Promise((res) => setTimeout(res, delayMs));
           continue;
@@ -713,7 +713,7 @@ Respond in JSON:
         msg.toLowerCase().includes("overloaded")
       ) {
         throw new Error(
-          "Voice processing temporarily unavailable (model overloaded). Please try again in a few seconds or transcribe on the client and call /api/ai/classify-text as a fallback."
+          "Voice processing temporarily unavailable (model overloaded). Please try again in a few seconds or transcribe on the client and call /api/ai/classify-text as a fallback.",
         );
       }
       throw lastError || new Error("Failed to process audio");
@@ -726,7 +726,7 @@ Respond in JSON:
       // Now classify the transcribed text using existing text classifier
       const issueClassification = await classifyIssueFromText(
         parsed.transcription,
-        context
+        context,
       );
 
       return {
@@ -748,12 +748,12 @@ Respond in JSON:
     const msg = String(error?.message || error);
     if (msg.includes("not found") || msg.includes("not supported")) {
       throw new Error(
-        "Voice processing via Gemini is not supported by the configured model/API. Transcribe on the client (Web Speech API) and call /api/ai/classify-text, or configure an audio-capable Gemini model (e.g., Gemini 2.5 Flash audio-enabled)."
+        "Voice processing via Gemini is not supported by the configured model/API. Transcribe on the client (Web Speech API) and call /api/ai/classify-text, or configure an audio-capable Gemini model (e.g., Gemini 2.5 Flash audio-enabled).",
       );
     }
 
     throw new Error(
-      "Voice processing failed. You can transcribe on the client and call /api/ai/classify-text as a fallback."
+      "Voice processing failed. You can transcribe on the client and call /api/ai/classify-text as a fallback.",
     );
   }
 }
@@ -768,7 +768,7 @@ export async function analyzeInfrastructureImage(
     expectedCategory?: string;
     buildingName?: string;
     additionalContext?: string;
-  }
+  },
 ): Promise<{
   issueDetected: boolean;
   description: string;
@@ -852,7 +852,7 @@ Guidelines:
         severity: Math.max(1, Math.min(10, parsed.severity || 5)),
         severityConfidence: Math.max(
           0,
-          Math.min(1, parsed.severityConfidence || 0.7)
+          Math.min(1, parsed.severityConfidence || 0.7),
         ),
         suggestedCategory:
           parsed.suggestedCategory ||
@@ -898,8 +898,8 @@ Guidelines:
  * Generate daily issue summary for administrators
  */
 export async function generateDailySummary(
-  organizationId: string,
-  date: Date = new Date()
+  cityId: string,
+  date: Date = new Date(),
 ): Promise<{
   date: string;
   executiveSummary: string;
@@ -926,7 +926,7 @@ export async function generateDailySummary(
 
     const todaySnapshot = await db
       .collection("issues")
-      .where("organizationId", "==", organizationId)
+      .where("cityId", "==", cityId)
       .where("createdAt", ">=", startOfDay)
       .where("createdAt", "<=", endOfDay)
       .get();
@@ -939,7 +939,7 @@ export async function generateDailySummary(
     // Get all open issues
     const openSnapshot = await db
       .collection("issues")
-      .where("organizationId", "==", organizationId)
+      .where("cityId", "==", cityId)
       .where("status", "in", ["open", "in_progress"])
       .get();
 
@@ -949,11 +949,11 @@ export async function generateDailySummary(
     }));
 
     const resolvedToday = todayIssues.filter(
-      (i: any) => i.status === "resolved"
+      (i: any) => i.status === "resolved",
     ).length;
 
     const criticalIssues = openIssues.filter(
-      (i: any) => i.severity >= 8 || i.priority === "critical"
+      (i: any) => i.severity >= 8 || i.priority === "critical",
     );
 
     const avgSeverity =
@@ -981,7 +981,7 @@ Metrics:
 Critical Issues:
 ${criticalIssues
   .slice(0, 5)
-  .map((i: any) => `- ${i.title} (${i.buildingId}, Severity: ${i.severity})`)
+  .map((i: any) => `- ${i.title} (${i.zoneId}, Severity: ${i.severity})`)
   .join("\n")}
 
 Generate a comprehensive daily summary in JSON format:
@@ -1042,7 +1042,7 @@ export async function generateTrendExplanation(
     previousValue: number;
     percentageChange: number;
     timeframe: string;
-  }[]
+  }[],
 ): Promise<{
   summary: string;
   keyFindings: string[];
@@ -1056,7 +1056,7 @@ Trend Data:
 ${trendData
   .map(
     (t) =>
-      `- ${t.metric}: ${t.currentValue} (was ${t.previousValue}) - ${t.percentageChange > 0 ? "+" : ""}${t.percentageChange.toFixed(1)}% over ${t.timeframe}`
+      `- ${t.metric}: ${t.currentValue} (was ${t.previousValue}) - ${t.percentageChange > 0 ? "+" : ""}${t.percentageChange.toFixed(1)}% over ${t.timeframe}`,
   )
   .join("\n")}
 
@@ -1088,14 +1088,14 @@ Focus on actionable insights and root causes.`;
       .filter((t) => t.percentageChange < -10)
       .map(
         (t) =>
-          `${t.metric} decreased by ${Math.abs(t.percentageChange).toFixed(1)}%`
+          `${t.metric} decreased by ${Math.abs(t.percentageChange).toFixed(1)}%`,
       );
 
     return {
       summary: `Analysis of ${trendData.length} infrastructure metrics over recent period shows mixed results.`,
       keyFindings: trendData.map(
         (t) =>
-          `${t.metric}: ${t.currentValue} (${t.percentageChange > 0 ? "+" : ""}${t.percentageChange.toFixed(1)}%)`
+          `${t.metric}: ${t.currentValue} (${t.percentageChange > 0 ? "+" : ""}${t.percentageChange.toFixed(1)}%)`,
       ),
       concerningTrends:
         concerning.length > 0 ? concerning : ["No concerning trends"],
@@ -1117,7 +1117,7 @@ Focus on actionable insights and root causes.`;
  */
 export async function generateIncidentReport(
   issue: any,
-  relatedIssues: any[] = []
+  relatedIssues: any[] = [],
 ): Promise<{
   reportTitle: string;
   executiveSummary: string;
@@ -1142,7 +1142,7 @@ Incident Details:
 - Category: ${issue.category}
 - Severity: ${issue.severity}/10
 - Priority: ${issue.priority}
-- Location: ${issue.buildingId} ${issue.zone ? `- ${issue.zone}` : ""}
+- Location: ${issue.zoneId} ${issue.zone ? `- ${issue.zone}` : ""}
 - Reported: ${new Date(issue.createdAt?.toDate?.() || issue.createdAt).toLocaleString()}
 - Status: ${issue.status}
 - Description: ${issue.description}
@@ -1185,13 +1185,13 @@ Make it thorough and professional for administrative records.`;
         reportTitle: parsed.reportTitle || `Incident Report: ${issue.title}`,
         executiveSummary:
           parsed.executiveSummary ||
-          `Infrastructure incident at ${issue.buildingId}`,
+          `Infrastructure incident at ${issue.zoneId}`,
         incidentDetails: parsed.incidentDetails || {
           what: issue.description,
           when: new Date(
-            issue.createdAt?.toDate?.() || issue.createdAt
+            issue.createdAt?.toDate?.() || issue.createdAt,
           ).toLocaleString(),
-          where: `${issue.buildingId} ${issue.zone || ""}`,
+          where: `${issue.zoneId} ${issue.zone || ""}`,
           severity: `${issue.severity}/10`,
           impact: "Assessment pending",
         },

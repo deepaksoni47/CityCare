@@ -22,7 +22,7 @@ async function testHeatmapAPI() {
     console.log("-".repeat(60));
 
     const basicFilters: HeatmapFilters = {
-      organizationId: "test-org-123",
+      cityId: "test-org-123",
     };
 
     const basicConfig: HeatmapConfig = {
@@ -36,14 +36,14 @@ async function testHeatmapAPI() {
       console.log(`✅ Total features: ${basicData.features.length}`);
       console.log(`✅ Total issues: ${basicData.metadata.totalIssues}`);
       console.log(
-        `✅ Time decay factor: ${basicData.metadata.timeDecayFactor}`
+        `✅ Time decay factor: ${basicData.metadata.timeDecayFactor}`,
       );
       console.log(
-        `✅ Date range: ${basicData.metadata.dateRange.start} to ${basicData.metadata.dateRange.end}`
+        `✅ Date range: ${basicData.metadata.dateRange.start} to ${basicData.metadata.dateRange.end}`,
       );
     } catch (error) {
       console.log(
-        `⚠️  No data found (expected for test): ${error instanceof Error ? error.message : "Unknown error"}`
+        `⚠️  No data found (expected for test): ${error instanceof Error ? error.message : "Unknown error"}`,
       );
     }
 
@@ -52,7 +52,7 @@ async function testHeatmapAPI() {
     console.log("-".repeat(60));
 
     const priorityFilters: HeatmapFilters = {
-      organizationId: "test-org-123",
+      cityId: "test-org-123",
       priorities: [IssuePriority.CRITICAL, IssuePriority.HIGH],
     };
 
@@ -65,29 +65,29 @@ async function testHeatmapAPI() {
     try {
       const priorityData = await getHeatmapData(
         priorityFilters,
-        priorityConfig
+        priorityConfig,
       );
       console.log(`✅ Total features: ${priorityData.features.length}`);
       console.log(`✅ Total issues: ${priorityData.metadata.totalIssues}`);
       console.log(
-        `✅ Severity weight enabled: ${priorityData.metadata.severityWeightEnabled}`
+        `✅ Severity weight enabled: ${priorityData.metadata.severityWeightEnabled}`,
       );
 
       if (priorityData.features.length > 0) {
         const sample = priorityData.features[0];
         console.log(
-          `✅ Sample point weight: ${sample.properties.weight.toFixed(3)}`
+          `✅ Sample point weight: ${sample.properties.weight.toFixed(3)}`,
         );
         console.log(
-          `✅ Sample point intensity: ${sample.properties.intensity}`
+          `✅ Sample point intensity: ${sample.properties.intensity}`,
         );
         console.log(
-          `✅ Sample critical count: ${sample.properties.criticalCount}`
+          `✅ Sample critical count: ${sample.properties.criticalCount}`,
         );
       }
     } catch (error) {
       console.log(
-        `⚠️  No data found (expected for test): ${error instanceof Error ? error.message : "Unknown error"}`
+        `⚠️  No data found (expected for test): ${error instanceof Error ? error.message : "Unknown error"}`,
       );
     }
 
@@ -96,7 +96,7 @@ async function testHeatmapAPI() {
     console.log("-".repeat(60));
 
     const clusterFilters: HeatmapFilters = {
-      organizationId: "test-org-123",
+      cityId: "test-org-123",
     };
 
     const clusterConfig: HeatmapConfig = {
@@ -114,7 +114,7 @@ async function testHeatmapAPI() {
       console.log(`✅ Cluster radius: ${clusterData.metadata.clusterRadius}m`);
     } catch (error) {
       console.log(
-        `⚠️  No data found (expected for test): ${error instanceof Error ? error.message : "Unknown error"}`
+        `⚠️  No data found (expected for test): ${error instanceof Error ? error.message : "Unknown error"}`,
       );
     }
 
@@ -123,7 +123,7 @@ async function testHeatmapAPI() {
     console.log("-".repeat(60));
 
     const gridFilters: HeatmapFilters = {
-      organizationId: "test-org-123",
+      cityId: "test-org-123",
     };
 
     const gridConfig: HeatmapConfig = {
@@ -140,7 +140,7 @@ async function testHeatmapAPI() {
       console.log(`✅ Grid size: ${gridConfig.gridSize}m`);
     } catch (error) {
       console.log(
-        `⚠️  No data found (expected for test): ${error instanceof Error ? error.message : "Unknown error"}`
+        `⚠️  No data found (expected for test): ${error instanceof Error ? error.message : "Unknown error"}`,
       );
     }
 
@@ -149,7 +149,7 @@ async function testHeatmapAPI() {
     console.log("-".repeat(60));
 
     const statsFilters: HeatmapFilters = {
-      organizationId: "test-org-123",
+      cityId: "test-org-123",
     };
 
     const statsConfig: HeatmapConfig = {
@@ -164,7 +164,7 @@ async function testHeatmapAPI() {
       console.log(`✅ Total issues: ${stats.totalIssues}`);
       console.log(`✅ Average weight: ${stats.avgWeight.toFixed(3)}`);
       console.log(
-        `✅ Weight range: ${stats.minWeight.toFixed(3)} - ${stats.maxWeight.toFixed(3)}`
+        `✅ Weight range: ${stats.minWeight.toFixed(3)} - ${stats.maxWeight.toFixed(3)}`,
       );
       console.log(`✅ Priority distribution:`);
       console.log(`   - Critical: ${stats.weightDistribution.critical}`);
@@ -178,13 +178,13 @@ async function testHeatmapAPI() {
       console.log(`   - West: ${stats.geographicBounds.west.toFixed(4)}`);
       console.log(`✅ Time decay stats:`);
       console.log(
-        `   - Average age: ${stats.timeDecayStats.avgAge.toFixed(1)} hours`
+        `   - Average age: ${stats.timeDecayStats.avgAge.toFixed(1)} hours`,
       );
       console.log(`   - Oldest: ${stats.timeDecayStats.oldestIssue}`);
       console.log(`   - Newest: ${stats.timeDecayStats.newestIssue}`);
     } catch (error) {
       console.log(
-        `⚠️  No data found (expected for test): ${error instanceof Error ? error.message : "Unknown error"}`
+        `⚠️  No data found (expected for test): ${error instanceof Error ? error.message : "Unknown error"}`,
       );
     }
 
@@ -203,7 +203,7 @@ async function testHeatmapAPI() {
       try {
         const data = await getHeatmapData(statsFilters, testConfig);
         console.log(
-          `✅ Decay factor ${factor}: ${data.features.length} features`
+          `✅ Decay factor ${factor}: ${data.features.length} features`,
         );
       } catch (error) {
         console.log(`⚠️  Decay factor ${factor}: No data`);
@@ -225,7 +225,7 @@ async function testHeatmapAPI() {
       try {
         const data = await getHeatmapData(statsFilters, testConfig);
         console.log(
-          `✅ Severity multiplier ${multiplier}: ${data.features.length} features`
+          `✅ Severity multiplier ${multiplier}: ${data.features.length} features`,
         );
       } catch (error) {
         console.log(`⚠️  Severity multiplier ${multiplier}: No data`);
@@ -236,7 +236,7 @@ async function testHeatmapAPI() {
     console.log("✅ All heatmap API tests completed!");
     console.log("=".repeat(60));
     console.log(
-      "\n💡 Note: Some tests may show 'No data found' if database is empty."
+      "\n💡 Note: Some tests may show 'No data found' if database is empty.",
     );
     console.log("   This is expected for a fresh installation.\n");
   } catch (error) {

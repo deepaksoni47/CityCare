@@ -16,9 +16,9 @@ export enum WebSocketEvent {
   STATS_UPDATED = "stats:updated",
 
   // Client → Server
-  SUBSCRIBE_ORGANIZATION = "subscribe:organization",
+  SUBSCRIBE_CITY = "subscribe:city",
   SUBSCRIBE_CAMPUS = "subscribe:campus",
-  SUBSCRIBE_BUILDING = "subscribe:building",
+  SUBSCRIBE_ZONE = "subscribe:zone",
   SUBSCRIBE_HEATMAP = "subscribe:heatmap",
   UNSUBSCRIBE = "unsubscribe",
 
@@ -35,16 +35,16 @@ export interface IssueUpdatePayload {
   issue: Issue;
   action: "created" | "updated" | "resolved" | "deleted" | "assigned";
   timestamp: Date;
-  organizationId: string;
+  cityId: string;
   campusId?: string;
-  buildingId?: string;
+  zoneId?: string;
   affectedUsers?: string[];
 }
 
 export interface HeatmapUpdatePayload {
-  organizationId: string;
+  cityId: string;
   campusId?: string;
-  buildingId?: string;
+  zoneId?: string;
   timestamp: Date;
   changeType: "issue_added" | "issue_updated" | "issue_resolved";
   affectedArea?: {
@@ -55,7 +55,7 @@ export interface HeatmapUpdatePayload {
 }
 
 export interface StatsUpdatePayload {
-  organizationId: string;
+  cityId: string;
   campusId?: string;
   stats: {
     totalIssues: number;
@@ -78,7 +78,7 @@ export class WebSocketService {
     this.io = new SocketIOServer(httpServer, {
       cors: {
         origin: process.env.ALLOWED_ORIGINS?.split(",").map((o) =>
-          o.trim()
+          o.trim(),
         ) || ["http://localhost:3000", "https://ciis-innovex.vercel.app"],
         methods: ["GET", "POST"],
         credentials: true,
@@ -108,7 +108,7 @@ export class WebSocketService {
   public static getInstance(): WebSocketService {
     if (!WebSocketService.instance) {
       throw new Error(
-        "WebSocket service not initialized. Call initialize() first."
+        "WebSocket service not initialized. Call initialize() first.",
       );
     }
     return WebSocketService.instance;
@@ -141,52 +141,45 @@ export class WebSocketService {
             });
             socket.disconnect();
           }
-        }
+        },
       );
 
-      // Subscribe to organization updates
-      socket.on(
-        WebSocketEvent.SUBSCRIBE_ORGANIZATION,
-        (data: { organizationId: string }) => {
-          socket.join(`org:${data.organizationId}`);
-          console.log(
-            `📡 ${socket.id} subscribed to org:${data.organizationId}`
-          );
-        }
-      );
+      // Subscribe to city updates
+      socket.on(WebSocketEvent.SUBSCRIBE_CITY, (data: { cityId: string }) => {
+        socket.join(`city:${data.cityId}`);
+        console.log(`📡 ${socket.id} subscribed to city:${data.cityId}`);
+      });
 
       // Subscribe to campus updates
       socket.on(
         WebSocketEvent.SUBSCRIBE_CAMPUS,
-        (data: { organizationId: string; campusId: string }) => {
-          socket.join(`org:${data.organizationId}`);
+        (data: { cityId: string; campusId: string }) => {
+          socket.join(`city:${data.cityId}`);
           socket.join(`campus:${data.campusId}`);
           console.log(`📡 ${socket.id} subscribed to campus:${data.campusId}`);
-        }
+        },
       );
 
-      // Subscribe to building updates
+      // Subscribe to zone updates
       socket.on(
-        WebSocketEvent.SUBSCRIBE_BUILDING,
-        (data: { organizationId: string; buildingId: string }) => {
-          socket.join(`org:${data.organizationId}`);
-          socket.join(`building:${data.buildingId}`);
-          console.log(
-            `📡 ${socket.id} subscribed to building:${data.buildingId}`
-          );
-        }
+        WebSocketEvent.SUBSCRIBE_ZONE,
+        (data: { cityId: string; zoneId: string }) => {
+          socket.join(`city:${data.cityId}`);
+          socket.join(`zone:${data.zoneId}`);
+          console.log(`📡 ${socket.id} subscribed to zone:${data.zoneId}`);
+        },
       );
 
       // Subscribe to heatmap updates
       socket.on(
         WebSocketEvent.SUBSCRIBE_HEATMAP,
-        (data: { organizationId: string; campusId?: string }) => {
+        (data: { cityId: string; campusId?: string }) => {
           const room = data.campusId
-            ? `heatmap:${data.organizationId}:${data.campusId}`
-            : `heatmap:${data.organizationId}`;
+            ? `heatmap:${data.cityId}:${data.campusId}`
+            : `heatmap:${data.cityId}`;
           socket.join(room);
           console.log(`📡 ${socket.id} subscribed to ${room}`);
-        }
+        },
       );
 
       // Unsubscribe from all rooms
@@ -210,14 +203,14 @@ export class WebSocketService {
    * Emit issue created event
    */
   public emitIssueCreated(payload: IssueUpdatePayload): void {
-    const rooms: string[] = [`org:${payload.organizationId}`];
+    const rooms: string[] = [`city:${payload.cityId}`];
 
     if (payload.campusId) {
       rooms.push(`campus:${payload.campusId}`);
     }
 
-    if (payload.buildingId) {
-      rooms.push(`building:${payload.buildingId}`);
+    if (payload.zoneId) {
+      rooms.push(`zone:${payload.zoneId}`);
     }
 
     rooms.forEach((room) => {
@@ -231,14 +224,14 @@ export class WebSocketService {
    * Emit issue updated event
    */
   public emitIssueUpdated(payload: IssueUpdatePayload): void {
-    const rooms: string[] = [`org:${payload.organizationId}`];
+    const rooms: string[] = [`city:${payload.cityId}`];
 
     if (payload.campusId) {
       rooms.push(`campus:${payload.campusId}`);
     }
 
-    if (payload.buildingId) {
-      rooms.push(`building:${payload.buildingId}`);
+    if (payload.zoneId) {
+      rooms.push(`zone:${payload.zoneId}`);
     }
 
     rooms.forEach((room) => {
@@ -252,14 +245,14 @@ export class WebSocketService {
    * Emit issue resolved event
    */
   public emitIssueResolved(payload: IssueUpdatePayload): void {
-    const rooms: string[] = [`org:${payload.organizationId}`];
+    const rooms: string[] = [`city:${payload.cityId}`];
 
     if (payload.campusId) {
       rooms.push(`campus:${payload.campusId}`);
     }
 
-    if (payload.buildingId) {
-      rooms.push(`building:${payload.buildingId}`);
+    if (payload.zoneId) {
+      rooms.push(`zone:${payload.zoneId}`);
     }
 
     rooms.forEach((room) => {
@@ -273,14 +266,14 @@ export class WebSocketService {
    * Emit issue deleted event
    */
   public emitIssueDeleted(payload: IssueUpdatePayload): void {
-    const rooms: string[] = [`org:${payload.organizationId}`];
+    const rooms: string[] = [`city:${payload.cityId}`];
 
     if (payload.campusId) {
       rooms.push(`campus:${payload.campusId}`);
     }
 
-    if (payload.buildingId) {
-      rooms.push(`building:${payload.buildingId}`);
+    if (payload.zoneId) {
+      rooms.push(`zone:${payload.zoneId}`);
     }
 
     rooms.forEach((room) => {
@@ -294,14 +287,14 @@ export class WebSocketService {
    * Emit issue assigned event
    */
   public emitIssueAssigned(payload: IssueUpdatePayload): void {
-    const rooms: string[] = [`org:${payload.organizationId}`];
+    const rooms: string[] = [`city:${payload.cityId}`];
 
     if (payload.campusId) {
       rooms.push(`campus:${payload.campusId}`);
     }
 
-    if (payload.buildingId) {
-      rooms.push(`building:${payload.buildingId}`);
+    if (payload.zoneId) {
+      rooms.push(`zone:${payload.zoneId}`);
     }
 
     // Notify assigned user
@@ -325,8 +318,8 @@ export class WebSocketService {
    */
   public emitHeatmapUpdated(payload: HeatmapUpdatePayload): void {
     const room = payload.campusId
-      ? `heatmap:${payload.organizationId}:${payload.campusId}`
-      : `heatmap:${payload.organizationId}`;
+      ? `heatmap:${payload.cityId}:${payload.campusId}`
+      : `heatmap:${payload.cityId}`;
 
     this.io.to(room).emit(WebSocketEvent.HEATMAP_UPDATED, payload);
     console.log(`📤 Emitted heatmap:updated to ${room}`);
@@ -337,8 +330,8 @@ export class WebSocketService {
    */
   public emitStatsUpdated(payload: StatsUpdatePayload): void {
     const room = payload.campusId
-      ? `org:${payload.organizationId}:stats:${payload.campusId}`
-      : `org:${payload.organizationId}:stats`;
+      ? `city:${payload.cityId}:stats:${payload.campusId}`
+      : `city:${payload.cityId}:stats`;
 
     this.io.to(room).emit(WebSocketEvent.STATS_UPDATED, payload);
     console.log(`📤 Emitted stats:updated to ${room}`);

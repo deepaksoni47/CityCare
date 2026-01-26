@@ -8,16 +8,16 @@ import { UserRole } from "../../types";
  */
 export async function getDashboardOverview(req: Request, res: Response) {
   try {
-    const { organizationId } = req.user!;
+    const { cityId } = req.user!;
 
-    if (!organizationId) {
+    if (!cityId) {
       return res.status(400).json({
         error: "Bad request",
-        message: "Organization ID is required",
+        message: "City ID is required",
       });
     }
 
-    const overview = await adminService.getDashboardOverview(organizationId);
+    const overview = await adminService.getDashboardOverview(cityId);
 
     res.json({
       success: true,
@@ -41,12 +41,12 @@ export async function getDashboardOverview(req: Request, res: Response) {
  */
 export async function getAllUsers(req: Request, res: Response) {
   try {
-    const { organizationId } = req.user!;
+    const { cityId } = req.user!;
 
-    if (!organizationId) {
+    if (!cityId) {
       return res.status(400).json({
         error: "Bad request",
-        message: "Organization ID is required",
+        message: "City ID is required",
       });
     }
 
@@ -60,7 +60,7 @@ export async function getAllUsers(req: Request, res: Response) {
       sortOrder = "desc",
     } = req.query;
 
-    const result = await adminService.getAllUsers(organizationId, {
+    const result = await adminService.getAllUsers(cityId, {
       role: role as UserRole,
       isActive:
         isActive === "true" ? true : isActive === "false" ? false : undefined,
@@ -102,7 +102,9 @@ export async function getUserById(req: Request, res: Response) {
     console.error("Error fetching user:", error);
     res
       .status(
-        error instanceof Error && error.message === "User not found" ? 404 : 500
+        error instanceof Error && error.message === "User not found"
+          ? 404
+          : 500,
       )
       .json({
         error:
@@ -135,7 +137,9 @@ export async function updateUser(req: Request, res: Response) {
     console.error("Error updating user:", error);
     res
       .status(
-        error instanceof Error && error.message === "User not found" ? 404 : 500
+        error instanceof Error && error.message === "User not found"
+          ? 404
+          : 500,
       )
       .json({
         error:
@@ -174,7 +178,9 @@ export async function deleteUser(req: Request, res: Response) {
     console.error("Error deleting user:", error);
     res
       .status(
-        error instanceof Error && error.message === "User not found" ? 404 : 500
+        error instanceof Error && error.message === "User not found"
+          ? 404
+          : 500,
       )
       .json({
         error:
@@ -214,7 +220,9 @@ export async function toggleUserStatus(req: Request, res: Response) {
     console.error("Error toggling user status:", error);
     res
       .status(
-        error instanceof Error && error.message === "User not found" ? 404 : 500
+        error instanceof Error && error.message === "User not found"
+          ? 404
+          : 500,
       )
       .json({
         error:
@@ -235,12 +243,12 @@ export async function toggleUserStatus(req: Request, res: Response) {
  */
 export async function getAllIssues(req: Request, res: Response) {
   try {
-    const { organizationId } = req.user!;
+    const { cityId } = req.user!;
 
-    if (!organizationId) {
+    if (!cityId) {
       return res.status(400).json({
         error: "Bad request",
-        message: "Organization ID is required",
+        message: "City ID is required",
       });
     }
 
@@ -248,7 +256,7 @@ export async function getAllIssues(req: Request, res: Response) {
       status,
       category,
       severity,
-      buildingId,
+      zoneId,
       reportedBy,
       assignedTo,
       search,
@@ -260,11 +268,11 @@ export async function getAllIssues(req: Request, res: Response) {
       sortOrder = "desc",
     } = req.query;
 
-    const result = await adminService.getAllIssues(organizationId, {
+    const result = await adminService.getAllIssues(cityId, {
       status: status as string,
       category: category as string,
       severity: severity ? parseInt(severity as string) : undefined,
-      buildingId: buildingId as string,
+      zoneId: zoneId as string,
       reportedBy: reportedBy as string,
       assignedTo: assignedTo as string,
       search: search as string,
@@ -308,7 +316,9 @@ export async function getUserStats(req: Request, res: Response) {
     console.error("Error fetching user stats:", error);
     res
       .status(
-        error instanceof Error && error.message === "User not found" ? 404 : 500
+        error instanceof Error && error.message === "User not found"
+          ? 404
+          : 500,
       )
       .json({
         error:
@@ -329,21 +339,21 @@ export async function getUserStats(req: Request, res: Response) {
  */
 export async function getSystemAnalytics(req: Request, res: Response) {
   try {
-    const { organizationId } = req.user!;
+    const { cityId } = req.user!;
 
-    if (!organizationId) {
+    if (!cityId) {
       return res.status(400).json({
         error: "Bad request",
-        message: "Organization ID is required",
+        message: "City ID is required",
       });
     }
 
     const { startDate, endDate } = req.query;
 
     const analytics = await adminService.getSystemAnalytics(
-      organizationId,
+      cityId,
       startDate ? new Date(startDate as string) : undefined,
-      endDate ? new Date(endDate as string) : undefined
+      endDate ? new Date(endDate as string) : undefined,
     );
 
     res.json({
@@ -430,33 +440,33 @@ export async function bulkUpdateUsers(req: Request, res: Response) {
  */
 export async function exportUsers(req: Request, res: Response) {
   try {
-    const { organizationId } = req.user!;
+    const { cityId } = req.user!;
 
-    if (!organizationId) {
+    if (!cityId) {
       return res.status(400).json({
         error: "Bad request",
-        message: "Organization ID is required",
+        message: "City ID is required",
       });
     }
 
     const { format = "json" } = req.query;
 
     const data = await adminService.exportUsers(
-      organizationId,
-      format as "json" | "csv"
+      cityId,
+      format as "json" | "csv",
     );
 
     if (format === "csv") {
       res.setHeader("Content-Type", "text/csv");
       res.setHeader(
         "Content-Disposition",
-        `attachment; filename=users_${Date.now()}.csv`
+        `attachment; filename=users_${Date.now()}.csv`,
       );
     } else {
       res.setHeader("Content-Type", "application/json");
       res.setHeader(
         "Content-Disposition",
-        `attachment; filename=users_${Date.now()}.json`
+        `attachment; filename=users_${Date.now()}.json`,
       );
     }
 
@@ -477,37 +487,37 @@ export async function exportUsers(req: Request, res: Response) {
  */
 export async function exportIssues(req: Request, res: Response) {
   try {
-    const { organizationId } = req.user!;
+    const { cityId } = req.user!;
 
-    if (!organizationId) {
+    if (!cityId) {
       return res.status(400).json({
         error: "Bad request",
-        message: "Organization ID is required",
+        message: "City ID is required",
       });
     }
 
     const { format = "json", status, category } = req.query;
 
     const data = await adminService.exportIssues(
-      organizationId,
+      cityId,
       format as "json" | "csv",
       {
         status: status as string,
         category: category as string,
-      }
+      },
     );
 
     if (format === "csv") {
       res.setHeader("Content-Type", "text/csv");
       res.setHeader(
         "Content-Disposition",
-        `attachment; filename=issues_${Date.now()}.csv`
+        `attachment; filename=issues_${Date.now()}.csv`,
       );
     } else {
       res.setHeader("Content-Type", "application/json");
       res.setHeader(
         "Content-Disposition",
-        `attachment; filename=issues_${Date.now()}.json`
+        `attachment; filename=issues_${Date.now()}.json`,
       );
     }
 

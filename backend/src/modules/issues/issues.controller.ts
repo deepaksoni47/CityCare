@@ -25,9 +25,9 @@ export async function createIssue(req: Request, res: Response) {
     }
 
     const {
-      organizationId,
-      buildingId,
-      departmentId,
+      cityId,
+      zoneId,
+      agencyId,
       roomId,
       title,
       description,
@@ -42,11 +42,10 @@ export async function createIssue(req: Request, res: Response) {
     } = req.body;
 
     // Validation
-    if (!organizationId || !buildingId || !title || !description) {
+    if (!cityId || !zoneId || !title || !description) {
       return res.status(400).json({
         error: "Missing parameters",
-        message:
-          "organizationId, buildingId, title, and description are required",
+        message: "cityId, zoneId, title, and description are required",
       });
     }
 
@@ -60,13 +59,13 @@ export async function createIssue(req: Request, res: Response) {
     // Create GeoPoint
     const location = new firestore.GeoPoint(
       parseFloat(latitude),
-      parseFloat(longitude)
+      parseFloat(longitude),
     );
 
     const issueData = {
-      organizationId,
-      buildingId,
-      departmentId,
+      cityId,
+      zoneId,
+      agencyId,
       roomId,
       title,
       description,
@@ -82,7 +81,7 @@ export async function createIssue(req: Request, res: Response) {
     const issue = await issuesService.createIssue(
       issueData,
       userId,
-      userRole as UserRole
+      userRole as UserRole,
     );
 
     res.status(201).json({
@@ -152,9 +151,9 @@ export async function getIssues(req: Request, res: Response) {
     }
 
     const {
-      organizationId,
-      buildingId,
-      departmentId,
+      cityId,
+      zoneId,
+      agencyId,
       roomId,
       category,
       status,
@@ -167,19 +166,19 @@ export async function getIssues(req: Request, res: Response) {
       offset,
     } = req.query;
 
-    if (!organizationId) {
+    if (!cityId) {
       return res.status(400).json({
         error: "Missing parameter",
-        message: "organizationId is required",
+        message: "cityId is required",
       });
     }
 
     const filters: any = {
-      organizationId: organizationId as string,
+      cityId: cityId as string,
     };
 
-    if (buildingId) filters.buildingId = buildingId as string;
-    if (departmentId) filters.departmentId = departmentId as string;
+    if (zoneId) filters.zoneId = zoneId as string;
+    if (agencyId) filters.agencyId = agencyId as string;
     if (roomId) filters.roomId = roomId as string;
     if (category) filters.category = category as IssueCategory;
     if (status) filters.status = status as IssueStatus;
@@ -241,7 +240,7 @@ export async function updateIssue(req: Request, res: Response) {
     delete updates.id;
     delete updates.createdAt;
     delete updates.reportedBy;
-    delete updates.organizationId;
+    delete updates.cityId;
 
     const issue = await issuesService.updateIssue(id, updates, userId);
 
@@ -297,7 +296,7 @@ export async function resolveIssue(req: Request, res: Response) {
       userId,
       resolutionComment,
       actualCost,
-      actualDuration
+      actualDuration,
     );
 
     res.json({
@@ -468,12 +467,12 @@ export async function uploadImage(req: Request, res: Response) {
       });
     }
 
-    const { organizationId, issueId } = req.body;
+    const { cityId, issueId } = req.body;
 
-    if (!organizationId) {
+    if (!cityId) {
       return res.status(400).json({
         error: "Missing parameters",
-        message: "organizationId is required",
+        message: "cityId is required",
       });
     }
 
@@ -490,9 +489,9 @@ export async function uploadImage(req: Request, res: Response) {
       issuesService.uploadIssueImage(
         file.buffer,
         `${Date.now()}_${file.originalname.replace(/\s+/g, "_")}`,
-        organizationId,
-        issueId
-      )
+        cityId,
+        issueId,
+      ),
     );
 
     const urls = await Promise.all(uploadPromises);
@@ -519,22 +518,22 @@ export async function uploadImage(req: Request, res: Response) {
  */
 export async function getNearbyIssues(req: Request, res: Response) {
   try {
-    const { organizationId, latitude, longitude, radius } = req.query;
+    const { cityId, latitude, longitude, radius } = req.query;
 
-    if (!organizationId || !latitude || !longitude) {
+    if (!cityId || !latitude || !longitude) {
       return res.status(400).json({
         error: "Missing parameters",
-        message: "organizationId, latitude, and longitude are required",
+        message: "cityId, latitude, and longitude are required",
       });
     }
 
     const radiusKm = radius ? parseFloat(radius as string) : 1.0;
 
     const issues = await issuesService.getIssuesByProximity(
-      organizationId as string,
+      cityId as string,
       parseFloat(latitude as string),
       parseFloat(longitude as string),
-      radiusKm
+      radiusKm,
     );
 
     res.json({
@@ -563,20 +562,20 @@ export async function getNearbyIssues(req: Request, res: Response) {
  */
 export async function getHighPriorityIssues(req: Request, res: Response) {
   try {
-    const { organizationId, limit } = req.query;
+    const { cityId, limit } = req.query;
 
-    if (!organizationId) {
+    if (!cityId) {
       return res.status(400).json({
         error: "Missing parameter",
-        message: "organizationId is required",
+        message: "cityId is required",
       });
     }
 
     const limitNum = limit ? parseInt(limit as string) : 20;
 
     const issues = await issuesService.getHighPriorityIssues(
-      organizationId as string,
-      limitNum
+      cityId as string,
+      limitNum,
     );
 
     res.json({
@@ -602,16 +601,16 @@ export async function getHighPriorityIssues(req: Request, res: Response) {
  */
 export async function getIssueStats(req: Request, res: Response) {
   try {
-    const { organizationId } = req.query;
+    const { cityId } = req.query;
 
-    if (!organizationId) {
+    if (!cityId) {
       return res.status(400).json({
         error: "Missing parameter",
-        message: "organizationId is required",
+        message: "cityId is required",
       });
     }
 
-    const stats = await issuesService.getIssueStats(organizationId as string);
+    const stats = await issuesService.getIssueStats(cityId as string);
 
     res.json({
       success: true,

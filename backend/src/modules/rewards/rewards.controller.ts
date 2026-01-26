@@ -186,21 +186,21 @@ export async function getBadge(req: Request, res: Response) {
  */
 export async function getLeaderboard(req: Request, res: Response) {
   try {
-    const organizationId = req.query.organizationId as string;
+    const cityId = req.query.cityId as string;
     const period =
       (req.query.period as "all_time" | "monthly" | "weekly") || "all_time";
     const limit = parseInt(req.query.limit as string) || 100;
 
-    if (!organizationId) {
+    if (!cityId) {
       return res.status(400).json({
         success: false,
         error: "Bad request",
-        message: "organizationId is required",
+        message: "cityId is required",
       });
     }
 
     const leaderboard = await rewardsService.getLeaderboard(
-      organizationId,
+      cityId,
       period,
       limit
     );
@@ -240,11 +240,11 @@ export async function awardPoints(req: Request, res: Response) {
       });
     }
 
-    const organizationId = req.user?.organizationId || "unknown";
+    const cityId = req.user?.cityId || "unknown";
 
     await rewardsService.awardPoints(
       userId,
-      organizationId,
+      cityId,
       points,
       "admin_bonus",
       description
@@ -271,11 +271,11 @@ export async function awardPoints(req: Request, res: Response) {
 export async function checkBadges(req: Request, res: Response) {
   try {
     const { id: userId } = req.params;
-    const organizationId = req.user?.organizationId || "unknown";
+    const cityId = req.user?.cityId || "unknown";
 
     const newBadges = await rewardsService.checkAndAwardBadges(
       userId,
-      organizationId
+      cityId
     );
 
     res.status(200).json({

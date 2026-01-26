@@ -16,7 +16,7 @@ export async function registerUser(data: {
   name: string;
   cityId: string;
   role?: string;
-  departmentId?: string;
+  agencyId?: string;
 }) {
   try {
     // Check if email already exists
@@ -38,8 +38,8 @@ export async function registerUser(data: {
       name: data.name,
       cityId: new mongoose.Types.ObjectId(data.cityId),
       role: data.role || "citizen",
-      departmentId: data.departmentId
-        ? new mongoose.Types.ObjectId(data.departmentId)
+      agencyId: data.agencyId
+        ? new mongoose.Types.ObjectId(data.agencyId)
         : undefined,
       isActive: true,
       isVerified: !!data.password, // Verified if registered with password
@@ -155,10 +155,7 @@ export async function refreshAccessToken(refreshToken: string) {
  */
 export async function getUserProfile(userId: string) {
   try {
-    const user = await User.findById(userId).populate([
-      "organizationId",
-      "departmentId",
-    ]);
+    const user = await User.findById(userId).populate(["cityId", "agencyId"]);
 
     if (!user) {
       throw new Error("User not found");
@@ -170,7 +167,7 @@ export async function getUserProfile(userId: string) {
       name: user.name,
       role: user.role,
       cityId: user.cityId,
-      departmentId: user.departmentId,
+      agencyId: user.agencyId,
       phone: user.phone,
       permissions: user.permissions,
       preferences: user.preferences,

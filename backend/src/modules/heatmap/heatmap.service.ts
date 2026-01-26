@@ -110,9 +110,9 @@ export interface HeatmapStats {
  * Heatmap filter options
  */
 export interface HeatmapFilters {
-  organizationId: string;
+  cityId: string;
   campusId?: string;
-  buildingIds?: string[];
+  zoneIds?: string[];
   categories?: string[];
   priorities?: IssuePriority[];
   statuses?: IssueStatus[];
@@ -160,12 +160,12 @@ export async function getHeatmapData(
   // We'll filter the rest in memory
   let query = firestore
     .collection("issues")
-    .where("organizationId", "==", filters.organizationId);
+    .where("cityId", "==", filters.cityId);
 
   // Only apply date range filters at database level (most important for performance)
-  // This requires a simple composite index: organizationId + createdAt
+  // This requires a simple composite index: cityId + createdAt
   if (filters.startDate && filters.endDate) {
-    // Use date range query (requires index: organizationId, createdAt)
+    // Use date range query (requires index: cityId, createdAt)
     query = query
       .where(
         "createdAt",
@@ -211,7 +211,7 @@ export async function getHeatmapData(
         console.warn("   Create index at:", indexUrl);
       } else {
         console.warn(
-          "   Required index: issues collection, fields: organizationId (Ascending), createdAt (Ascending)",
+          "   Required index: issues collection, fields: cityId (Ascending), createdAt (Ascending)",
         );
         console.warn(
           "   Create at: https://console.firebase.google.com/project/ciis-2882b/firestore/indexes",
@@ -224,7 +224,7 @@ export async function getHeatmapData(
       );
       const fallbackQuery = firestore
         .collection("issues")
-        .where("organizationId", "==", filters.organizationId)
+        .where("cityId", "==", filters.cityId)
         .limit(10000);
 
       snapshot = await fallbackQuery.get();
@@ -264,12 +264,12 @@ export async function getHeatmapData(
     console.log(`   After campusId filter: ${issues.length} issues`);
   }
 
-  if (filters.buildingIds && filters.buildingIds.length > 0) {
+  if (filters.zoneIds && filters.zoneIds.length > 0) {
     issues = issues.filter(
       (issue) =>
-        issue.buildingId && filters.buildingIds!.includes(issue.buildingId),
+        issue.zoneId && filters.zoneIds!.includes(issue.zoneId),
     );
-    console.log(`   After buildingIds filter: ${issues.length} issues`);
+    console.log(`   After zoneIds filter: ${issues.length} issues`);
   }
 
   if (filters.categories && filters.categories.length > 0) {

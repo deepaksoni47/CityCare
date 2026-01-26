@@ -7,7 +7,7 @@ export interface AuthUser {
   userId: string;
   email?: string;
   role?: string;
-  organizationId?: string;
+  cityId?: string;
 }
 
 // Extend Express Request type
@@ -76,7 +76,7 @@ export async function authenticateUser(
       userId: user._id.toString(),
       email: user.email,
       role: user.role,
-      organizationId: user.organizationId.toString(),
+      cityId: user.cityId.toString(),
     } as AuthUser;
 
     next();

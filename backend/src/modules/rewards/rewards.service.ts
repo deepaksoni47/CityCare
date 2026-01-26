@@ -196,7 +196,7 @@ export async function getBadgeAchievers(
  * Get leaderboard
  */
 export async function getLeaderboard(
-  organizationId: string,
+  cityId: string,
   period: "all_time" | "monthly" | "weekly" = "all_time",
   limit: number = 100
 ): Promise<LeaderboardEntry[]> {
@@ -204,7 +204,7 @@ export async function getLeaderboard(
     // Try to get cached leaderboard
     const leaderboardSnapshot = await db
       .collection(COLLECTIONS.LEADERBOARD)
-      .where("organizationId", "==", organizationId)
+      .where("cityId", "==", cityId)
       .where("period", "==", period)
       .orderBy("rank")
       .limit(limit)
@@ -218,11 +218,11 @@ export async function getLeaderboard(
     }
 
     // If no cached leaderboard, generate it
-    return await generateLeaderboard(organizationId, period, limit);
+    return await generateLeaderboard(cityId, period, limit);
   } catch (error) {
     console.error("Error getting leaderboard:", error);
     // Fallback to live calculation
-    return await generateLeaderboard(organizationId, period, limit);
+    return await generateLeaderboard(cityId, period, limit);
   }
 }
 
@@ -230,24 +230,24 @@ export async function getLeaderboard(
  * Generate leaderboard from user data
  */
 async function generateLeaderboard(
-  organizationId: string,
+  cityId: string,
   period: "all_time" | "monthly" | "weekly",
   limit: number
 ): Promise<LeaderboardEntry[]> {
   try {
     console.log(
-      `Generating leaderboard for org: ${organizationId}, period: ${period}`
+      `Generating leaderboard for org: ${cityId}, period: ${period}`
     );
 
     // Get all users in the organization
     const usersSnapshot = await db
       .collection(COLLECTIONS.USERS)
-      .where("organizationId", "==", organizationId)
+      .where("cityId", "==", cityId)
       .get();
 
     console.log(`Found ${usersSnapshot.size} users in organization`);
     if (usersSnapshot.empty) {
-      console.log(`No users found for organization: ${organizationId}`);
+      console.log(`No users found for organization: ${cityId}`);
     }
 
     // Filter out inactive users and sort by reward points
@@ -277,7 +277,7 @@ async function generateLeaderboard(
       return {
         id: `${period}_${userData.id}`,
         userId: userData.id,
-        organizationId,
+        cityId,
         userName: userData.name || userData.email || "Unknown User",
         userRole: userData.role || "student",
         rewardPoints: userData.rewardPoints || 0,
@@ -304,7 +304,7 @@ async function generateLeaderboard(
  */
 export async function awardPoints(
   userId: string,
-  organizationId: string,
+  cityId: string,
   points: number,
   type: string,
   description: string,
@@ -337,7 +337,7 @@ export async function awardPoints(
       transaction.set(transactionRef, {
         id: transactionRef.id,
         userId,
-        organizationId,
+        cityId,
         type,
         points,
         relatedEntityId,
@@ -348,7 +348,7 @@ export async function awardPoints(
     });
 
     // Check for new badges
-    await checkAndAwardBadges(userId, organizationId);
+    await checkAndAwardBadges(userId, cityId);
   } catch (error) {
     console.error("Error awarding points:", error);
     throw error;
@@ -360,7 +360,7 @@ export async function awardPoints(
  */
 export async function checkAndAwardBadges(
   userId: string,
-  organizationId: string
+  cityId: string
 ): Promise<Badge[]> {
   try {
     const userDoc = await db.collection(COLLECTIONS.USERS).doc(userId).get();
@@ -414,7 +414,7 @@ export async function checkAndAwardBadges(
 
       if (meetscriteriaeria) {
         // Award badge
-        await awardBadge(userId, organizationId, badge);
+        await awardBadge(userId, cityId, badge);
         newlyEarnedBadges.push(badge);
       }
     }
@@ -431,7 +431,7 @@ export async function checkAndAwardBadges(
  */
 async function awardBadge(
   userId: string,
-  organizationId: string,
+  cityId: string,
   badge: Badge
 ): Promise<void> {
   try {
@@ -457,7 +457,7 @@ async function awardBadge(
         id: userBadgeRef.id,
         userId,
         badgeId: badge.id,
-        organizationId,
+        cityId,
         earnedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
 
@@ -468,7 +468,7 @@ async function awardBadge(
       transaction.set(transactionRef, {
         id: transactionRef.id,
         userId,
-        organizationId,
+        cityId,
         type: "badge_earned",
         points: badge.pointsAwarded,
         relatedEntityId: badge.id,

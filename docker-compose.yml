@@ -1,10 +1,10 @@
 services:
-  # Backend API Service (Node.js + Express + Firebase)
+  # Backend API Service (Node.js + Express + MongoDB)
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile.dev
-    container_name: campuscare-backend
+    container_name: citycare-backend
     restart: unless-stopped
     environment:
       NODE_ENV: development
@@ -26,7 +26,7 @@ services:
       - ./backend/src:/app/src
       - backend_node_modules:/app/node_modules
     networks:
-      - campuscare-network
+      - citycare-network
     command: npm run dev
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
@@ -34,12 +34,12 @@ services:
       timeout: 10s
       retries: 3
 
-  # Frontend Development Server (Next.js + Leaflet + Firebase SDK)
+  # Frontend Development Server (Next.js + Leaflet)
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile.dev
-    container_name: campuscare-frontend
+    container_name: citycare-frontend
     restart: unless-stopped
     environment:
       # Backend API
@@ -58,7 +58,7 @@ services:
       - ./frontend/public:/app/public
       - frontend_node_modules:/app/node_modules
     networks:
-      - campuscare-network
+      - citycare-network
     command: npm run dev
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000"]
@@ -67,7 +67,7 @@ services:
       retries: 3
 
 networks:
-  campuscare-network:
+  citycare-network:
     driver: bridge
 
 volumes:

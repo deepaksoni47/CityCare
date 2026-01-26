@@ -2,17 +2,17 @@ import { Request, Response } from "express";
 import * as analyticsService from "./analytics.service";
 
 /**
- * Get issues per building over time
- * GET /api/analytics/issues-per-building
+ * Get issues per zone over time
+ * GET /api/analytics/issues-per-zone
  */
-export async function getIssuesPerBuilding(req: Request, res: Response) {
+export async function getIssuesPerZone(req: Request, res: Response) {
   try {
-    const { organizationId, startDate, endDate, groupBy } = req.query;
+    const { cityId, startDate, endDate, groupBy } = req.query;
 
-    if (!organizationId) {
+    if (!cityId) {
       return res.status(400).json({
         error: "Missing parameter",
-        message: "organizationId is required",
+        message: "cityId is required",
       });
     }
 
@@ -26,11 +26,11 @@ export async function getIssuesPerBuilding(req: Request, res: Response) {
       ? (groupBy as "day" | "week" | "month")
       : "day";
 
-    const data = await analyticsService.getIssuesPerBuildingOverTime(
-      organizationId as string,
+    const data = await analyticsService.getIssuesPerZoneOverTime(
+      cityId as string,
       start,
       end,
-      validGroupBy
+      validGroupBy,
     );
 
     res.json({
@@ -43,9 +43,9 @@ export async function getIssuesPerBuilding(req: Request, res: Response) {
       },
     });
   } catch (error) {
-    console.error("Error getting issues per building:", error);
+    console.error("Error getting issues per zone:", error);
     res.status(500).json({
-      error: "Failed to get issues per building",
+      error: "Failed to get issues per zone",
       message: error instanceof Error ? error.message : "Unknown error",
     });
   }
@@ -57,12 +57,12 @@ export async function getIssuesPerBuilding(req: Request, res: Response) {
  */
 export async function getCommonIssueTypes(req: Request, res: Response) {
   try {
-    const { organizationId, startDate, endDate, buildingId, limit } = req.query;
+    const { cityId, startDate, endDate, zoneId, limit } = req.query;
 
-    if (!organizationId) {
+    if (!cityId) {
       return res.status(400).json({
         error: "Missing parameter",
-        message: "organizationId is required",
+        message: "cityId is required",
       });
     }
 
@@ -71,11 +71,11 @@ export async function getCommonIssueTypes(req: Request, res: Response) {
     const parsedLimit = limit ? parseInt(limit as string, 10) : 10;
 
     const data = await analyticsService.getMostCommonIssueTypes(
-      organizationId as string,
+      cityId as string,
       start,
       end,
-      buildingId as string | undefined,
-      parsedLimit
+      zoneId as string | undefined,
+      parsedLimit,
     );
 
     res.json({
@@ -84,7 +84,7 @@ export async function getCommonIssueTypes(req: Request, res: Response) {
       metadata: {
         startDate: start?.toISOString(),
         endDate: end?.toISOString(),
-        buildingId,
+        zoneId,
         limit: parsedLimit,
       },
     });
@@ -103,31 +103,30 @@ export async function getCommonIssueTypes(req: Request, res: Response) {
  */
 export async function getResolutionTimes(req: Request, res: Response) {
   try {
-    const { organizationId, startDate, endDate, buildingId, groupBy } =
-      req.query;
+    const { cityId, startDate, endDate, zoneId, groupBy } = req.query;
 
-    if (!organizationId) {
+    if (!cityId) {
       return res.status(400).json({
         error: "Missing parameter",
-        message: "organizationId is required",
+        message: "cityId is required",
       });
     }
 
     const start = startDate ? new Date(startDate as string) : undefined;
     const end = endDate ? new Date(endDate as string) : undefined;
 
-    const validGroupBy = ["category", "building", "priority"].includes(
-      groupBy as string
+    const validGroupBy = ["category", "zone", "priority"].includes(
+      groupBy as string,
     )
-      ? (groupBy as "category" | "building" | "priority")
+      ? (groupBy as "category" | "zone" | "priority")
       : undefined;
 
     const data = await analyticsService.getResolutionTimeAverages(
-      organizationId as string,
+      cityId as string,
       start,
       end,
-      buildingId as string | undefined,
-      validGroupBy
+      zoneId as string | undefined,
+      validGroupBy,
     );
 
     res.json({
@@ -136,7 +135,7 @@ export async function getResolutionTimes(req: Request, res: Response) {
       metadata: {
         startDate: start?.toISOString(),
         endDate: end?.toISOString(),
-        buildingId,
+        zoneId,
         groupBy: validGroupBy,
       },
     });
@@ -155,12 +154,12 @@ export async function getResolutionTimes(req: Request, res: Response) {
  */
 export async function getComprehensiveTrends(req: Request, res: Response) {
   try {
-    const { organizationId, startDate, endDate, groupBy } = req.query;
+    const { cityId, startDate, endDate, groupBy } = req.query;
 
-    if (!organizationId) {
+    if (!cityId) {
       return res.status(400).json({
         error: "Missing parameter",
-        message: "organizationId is required",
+        message: "cityId is required",
       });
     }
 
@@ -175,10 +174,10 @@ export async function getComprehensiveTrends(req: Request, res: Response) {
       : "day";
 
     const data = await analyticsService.getComprehensiveTrends(
-      organizationId as string,
+      cityId as string,
       start,
       end,
-      validGroupBy
+      validGroupBy,
     );
 
     res.json({
@@ -205,12 +204,12 @@ export async function getComprehensiveTrends(req: Request, res: Response) {
  */
 export async function getDashboardAnalytics(req: Request, res: Response) {
   try {
-    const { organizationId, startDate, endDate, buildingId } = req.query;
+    const { cityId, startDate, endDate, zoneId } = req.query;
 
-    if (!organizationId) {
+    if (!cityId) {
       return res.status(400).json({
         error: "Missing parameter",
-        message: "organizationId is required",
+        message: "cityId is required",
       });
     }
 
@@ -222,43 +221,43 @@ export async function getDashboardAnalytics(req: Request, res: Response) {
 
     // Fetch all analytics in parallel
     const [
-      issuesPerBuilding,
+      issuesPerZone,
       commonIssueTypes,
       resolutionTimes,
       comprehensiveTrends,
     ] = await Promise.all([
-      analyticsService.getIssuesPerBuildingOverTime(
-        organizationId as string,
+      analyticsService.getIssuesPerZoneOverTime(
+        cityId as string,
         start,
         end,
-        "day"
+        "day",
       ),
       analyticsService.getMostCommonIssueTypes(
-        organizationId as string,
+        cityId as string,
         start,
         end,
-        buildingId as string | undefined,
-        10
+        zoneId as string | undefined,
+        10,
       ),
       analyticsService.getResolutionTimeAverages(
-        organizationId as string,
+        cityId as string,
         start,
         end,
-        buildingId as string | undefined,
-        "category"
+        zoneId as string | undefined,
+        "category",
       ),
       analyticsService.getComprehensiveTrends(
-        organizationId as string,
+        cityId as string,
         start,
         end,
-        "day"
+        "day",
       ),
     ]);
 
     res.json({
       success: true,
       data: {
-        issuesPerBuilding,
+        issuesPerZone,
         commonIssueTypes,
         resolutionTimes,
         trends: comprehensiveTrends,
@@ -266,7 +265,7 @@ export async function getDashboardAnalytics(req: Request, res: Response) {
       metadata: {
         startDate: start.toISOString(),
         endDate: end.toISOString(),
-        buildingId,
+        zoneId,
       },
     });
   } catch (error) {
@@ -284,13 +283,13 @@ export async function getDashboardAnalytics(req: Request, res: Response) {
  */
 export async function getRecurringIssues(req: Request, res: Response) {
   try {
-    const { organizationId, timeWindowDays, minOccurrences, locationRadius } =
+    const { cityId, timeWindowDays, minOccurrences, locationRadius } =
       req.query;
 
-    if (!organizationId) {
+    if (!cityId) {
       return res.status(400).json({
         error: "Missing parameter",
-        message: "organizationId is required",
+        message: "cityId is required",
       });
     }
 
@@ -307,10 +306,10 @@ export async function getRecurringIssues(req: Request, res: Response) {
       : undefined;
 
     const data = await analyticsService.detectRecurringIssues(
-      organizationId as string,
+      cityId as string,
       parsedTimeWindow,
       parsedMinOccurrences,
-      parsedLocationRadius
+      parsedLocationRadius,
     );
 
     res.json({
@@ -337,13 +336,12 @@ export async function getRecurringIssues(req: Request, res: Response) {
  */
 export async function getAdminMetrics(req: Request, res: Response) {
   try {
-    const { organizationId, timeWindowDays, comparisonTimeWindowDays } =
-      req.query;
+    const { cityId, timeWindowDays, comparisonTimeWindowDays } = req.query;
 
-    if (!organizationId) {
+    if (!cityId) {
       return res.status(400).json({
         error: "Missing parameter",
-        message: "organizationId is required",
+        message: "cityId is required",
       });
     }
 
@@ -356,9 +354,9 @@ export async function getAdminMetrics(req: Request, res: Response) {
       : undefined;
 
     const data = await analyticsService.getAdminMetrics(
-      organizationId as string,
+      cityId as string,
       parsedTimeWindow,
-      parsedComparisonWindow
+      parsedComparisonWindow,
     );
 
     res.json({
@@ -385,19 +383,19 @@ export async function getAdminMetrics(req: Request, res: Response) {
  */
 export async function exportAnalytics(req: Request, res: Response) {
   try {
-    const { organizationId, type, startDate, endDate, format } = req.query;
+    const { cityId, type, startDate, endDate, format } = req.query;
 
-    if (!organizationId) {
+    if (!cityId) {
       return res.status(400).json({
         error: "Missing parameter",
-        message: "organizationId is required",
+        message: "cityId is required",
       });
     }
 
     if (!type) {
       return res.status(400).json({
         error: "Missing parameter",
-        message: "type is required (issues, mttr, buildings, summary)",
+        message: "type is required (issues, mttr, zones, summary)",
       });
     }
 
@@ -407,12 +405,12 @@ export async function exportAnalytics(req: Request, res: Response) {
       ? new Date(startDate as string)
       : new Date(end.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-    const exportType = type as "issues" | "mttr" | "buildings" | "summary";
+    const exportType = type as "issues" | "mttr" | "zones" | "summary";
     const csvData = await analyticsService.exportAnalyticsToCSV(
-      organizationId as string,
+      cityId as string,
       exportType,
       start,
-      end
+      end,
     );
 
     // Set headers for file download
@@ -432,7 +430,7 @@ export async function exportAnalytics(req: Request, res: Response) {
       res.setHeader("Content-Type", "text/csv");
       res.setHeader(
         "Content-Disposition",
-        `attachment; filename="${filename}"`
+        `attachment; filename="${filename}"`,
       );
       res.send(csvData);
     }
@@ -451,20 +449,20 @@ export async function exportAnalytics(req: Request, res: Response) {
  */
 export async function getSnapshotReport(req: Request, res: Response) {
   try {
-    const { organizationId, type } = req.query;
+    const { cityId, type } = req.query;
 
-    if (!organizationId) {
+    if (!cityId) {
       return res.status(400).json({
         error: "Missing parameter",
-        message: "organizationId is required",
+        message: "cityId is required",
       });
     }
 
     const snapshotType = type === "weekly" ? "weekly" : "daily";
 
     const report = await analyticsService.generateSnapshotReport(
-      organizationId as string,
-      snapshotType
+      cityId as string,
+      snapshotType,
     );
 
     res.json({

@@ -28,7 +28,7 @@ export async function verifyIdToken(
  */
 export async function getOrCreateUser(
   firebaseUser: admin.auth.DecodedIdToken,
-  organizationId: string,
+  cityId: string,
   role?: UserRole,
 ): Promise<{ user: User; isNewUser: boolean }> {
   const db = getFirestore();
@@ -48,7 +48,7 @@ export async function getOrCreateUser(
 
   // Create new user
   const newUser: Omit<User, "id"> = {
-    organizationId,
+    cityId,
     email: firebaseUser.email || "",
     name: firebaseUser.name || firebaseUser.email?.split("@")[0] || "User",
     role: role || UserRole.STUDENT,
@@ -135,7 +135,7 @@ export async function createUserWithEmail(
   email: string,
   password: string,
   name: string,
-  organizationId: string,
+  cityId: string,
   role?: UserRole,
 ): Promise<{ user: User; token: string }> {
   const auth = getAuth();
@@ -152,7 +152,7 @@ export async function createUserWithEmail(
 
     // Create user profile in Firestore
     const newUser: Omit<User, "id"> = {
-      organizationId,
+      cityId,
       email,
       name,
       role: role || UserRole.STUDENT,
@@ -338,7 +338,7 @@ export async function updateUserProfile(
   const userRef = db.collection("users").doc(userId);
 
   // Don't allow updating sensitive fields
-  const { id, organizationId, createdAt, ...safeUpdates } = updates;
+  const { id, cityId, createdAt, ...safeUpdates } = updates;
 
   await userRef.update({
     ...safeUpdates,
@@ -353,13 +353,13 @@ export async function updateUserProfile(
  * Get users by organization
  */
 export async function getUsersByOrganization(
-  organizationId: string,
+  cityId: string,
   role?: UserRole,
 ): Promise<User[]> {
   const db = getFirestore();
   let query = db
     .collection("users")
-    .where("organizationId", "==", organizationId)
+    .where("cityId", "==", cityId)
     .where("isActive", "==", true);
 
   if (role) {

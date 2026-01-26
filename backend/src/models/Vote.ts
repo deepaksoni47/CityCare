@@ -6,7 +6,7 @@ import mongoose, { Schema, Document, Types } from "mongoose";
  */
 export interface IVote extends Document {
   _id: mongoose.Types.ObjectId;
-  organizationId: Types.ObjectId;
+  cityId: Types.ObjectId;
   issueId: Types.ObjectId;
   userId: Types.ObjectId;
   voteType: "upvote" | "downvote";
@@ -19,10 +19,10 @@ export interface IVote extends Document {
  */
 const VoteSchema = new Schema<IVote>(
   {
-    organizationId: {
+    cityId: {
       type: Schema.Types.ObjectId,
-      ref: "Organization",
-      required: [true, "Organization ID is required"],
+      ref: "City",
+      required: [true, "City ID is required"],
       index: true,
     },
     issueId: {
@@ -49,10 +49,7 @@ const VoteSchema = new Schema<IVote>(
 );
 
 // Prevent duplicate votes from same user on same issue
-VoteSchema.index(
-  { organizationId: 1, issueId: 1, userId: 1 },
-  { unique: true },
-);
+VoteSchema.index({ cityId: 1, issueId: 1, userId: 1 }, { unique: true });
 
 // Index for counting votes per issue
 VoteSchema.index({ issueId: 1, voteType: 1 });

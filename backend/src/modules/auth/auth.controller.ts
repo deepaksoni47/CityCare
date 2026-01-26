@@ -9,7 +9,7 @@ import * as emailService from "../../services/email.service";
  */
 export async function loginWithGoogle(req: Request, res: Response) {
   try {
-    const { idToken, organizationId, role } = req.body;
+    const { idToken, cityId, role } = req.body;
 
     if (!idToken) {
       return res.status(400).json({
@@ -18,10 +18,10 @@ export async function loginWithGoogle(req: Request, res: Response) {
       });
     }
 
-    if (!organizationId) {
+    if (!cityId) {
       return res.status(400).json({
         error: "Missing parameter",
-        message: "organizationId is required",
+        message: "cityId is required",
       });
     }
 
@@ -31,7 +31,7 @@ export async function loginWithGoogle(req: Request, res: Response) {
     // Get or create user in Firestore
     const { user, isNewUser } = await authService.getOrCreateUser(
       decodedToken,
-      organizationId,
+      cityId,
       role as UserRole
     );
 
@@ -50,8 +50,8 @@ export async function loginWithGoogle(req: Request, res: Response) {
           email: user.email,
           name: user.name,
           role: user.role,
-          organizationId: user.organizationId,
-          departmentId: user.departmentId,
+          cityId: user.cityId,
+          agencyId: user.agencyId,
           permissions: user.permissions,
         },
         token: idToken, // Client can reuse this token
@@ -75,13 +75,13 @@ export async function loginWithGoogle(req: Request, res: Response) {
  */
 export async function registerWithEmail(req: Request, res: Response) {
   try {
-    const { email, password, name, organizationId, role } = req.body;
+    const { email, password, name, cityId, role } = req.body;
 
     // Validate required fields
-    if (!email || !password || !name || !organizationId) {
+    if (!email || !password || !name || !cityId) {
       return res.status(400).json({
         error: "Missing parameters",
-        message: "email, password, name, and organizationId are required",
+        message: "email, password, name, and cityId are required",
       });
     }
 
@@ -98,7 +98,7 @@ export async function registerWithEmail(req: Request, res: Response) {
       email,
       password,
       name,
-      organizationId,
+      cityId,
       role as UserRole
     );
 
@@ -115,8 +115,8 @@ export async function registerWithEmail(req: Request, res: Response) {
           email: user.email,
           name: user.name,
           role: user.role,
-          organizationId: user.organizationId,
-          departmentId: user.departmentId,
+          cityId: user.cityId,
+          agencyId: user.agencyId,
           permissions: user.permissions,
         },
         token,
@@ -164,8 +164,8 @@ export async function loginWithEmail(req: Request, res: Response) {
           email: user.email,
           name: user.name,
           role: user.role,
-          organizationId: user.organizationId,
-          departmentId: user.departmentId,
+          cityId: user.cityId,
+          agencyId: user.agencyId,
           permissions: user.permissions,
         },
         token,
@@ -213,8 +213,8 @@ export async function getCurrentUser(req: Request, res: Response) {
         email: user.email,
         name: user.name,
         role: user.role,
-        organizationId: user.organizationId,
-        departmentId: user.departmentId,
+        cityId: user.cityId,
+        agencyId: user.agencyId,
         phone: user.phone,
         permissions: user.permissions,
         preferences: user.preferences,
@@ -284,11 +284,11 @@ export async function updateProfile(req: Request, res: Response) {
  */
 export async function getOrganizationUsers(req: Request, res: Response) {
   try {
-    const { organizationId } = req.params;
+    const { cityId } = req.params;
     const { role } = req.query;
 
     const users = await authService.getUsersByOrganization(
-      organizationId,
+      cityId,
       role as UserRole
     );
 
@@ -299,7 +299,7 @@ export async function getOrganizationUsers(req: Request, res: Response) {
         email: user.email,
         name: user.name,
         role: user.role,
-        departmentId: user.departmentId,
+        agencyId: user.agencyId,
         isActive: user.isActive,
         lastLogin: user.lastLogin,
         createdAt: user.createdAt,

@@ -33,7 +33,7 @@ export async function createIssue(
     category: (issueData.category as IssueCategory) || IssueCategory.OTHER,
     severity: issueData.severity,
     description: issueData.description,
-    buildingId: issueData.buildingId,
+    zoneId: issueData.zoneId,
     roomId: issueData.roomId,
     occupancy: issueData.occupancy,
     reportedAt: new Date(),
@@ -82,16 +82,16 @@ export async function createIssue(
       issue,
       action: "created",
       timestamp: new Date(),
-      organizationId: issue.organizationId,
+      cityId: issue.cityId,
       campusId: issue.campusId,
-      buildingId: issue.buildingId,
+      zoneId: issue.zoneId,
     });
 
     // Trigger heatmap update
     wsService.emitHeatmapUpdated({
-      organizationId: issue.organizationId,
+      cityId: issue.cityId,
       campusId: issue.campusId,
-      buildingId: issue.buildingId,
+      zoneId: issue.zoneId,
       timestamp: new Date(),
       changeType: "issue_added",
       affectedArea: issue.location
@@ -106,9 +106,9 @@ export async function createIssue(
     // SSE broadcast
     const sseService = SSEService.getInstance();
     sseService.sendIssueUpdate(
-      issue.organizationId,
+      issue.cityId,
       issue.campusId,
-      issue.buildingId,
+      issue.zoneId,
       "issue:created",
       { issue, timestamp: new Date() },
     );
@@ -122,7 +122,7 @@ export async function createIssue(
     rewardsService
       .awardPoints(
         userId,
-        issue.organizationId as string,
+        issue.cityId as string,
         pointsForIssue,
         "issue_created",
         "Reported an issue",
@@ -165,9 +165,9 @@ export async function getIssueById(issueId: string): Promise<Issue | null> {
  * Get all issues with filters
  */
 export async function getIssues(filters: {
-  organizationId: string;
-  buildingId?: string;
-  departmentId?: string;
+  cityId: string;
+  zoneId?: string;
+  agencyId?: string;
   roomId?: string;
   category?: IssueCategory;
   status?: IssueStatus;
@@ -181,14 +181,14 @@ export async function getIssues(filters: {
 }): Promise<{ issues: Issue[]; total: number }> {
   let query: any = db
     .collection("issues")
-    .where("organizationId", "==", filters.organizationId);
+    .where("cityId", "==", filters.cityId);
 
   // Apply filters
-  if (filters.buildingId) {
-    query = query.where("buildingId", "==", filters.buildingId);
+  if (filters.zoneId) {
+    query = query.where("zoneId", "==", filters.zoneId);
   }
-  if (filters.departmentId) {
-    query = query.where("departmentId", "==", filters.departmentId);
+  if (filters.agencyId) {
+    query = query.where("agencyId", "==", filters.agencyId);
   }
   if (filters.roomId) {
     query = query.where("roomId", "==", filters.roomId);
@@ -234,8 +234,8 @@ export async function getIssues(filters: {
     const hasCompositeFilter =
       filters.reportedBy ||
       filters.assignedTo ||
-      filters.buildingId ||
-      filters.departmentId ||
+      filters.zoneId ||
+      filters.agencyId ||
       filters.roomId;
 
     if (!hasCompositeFilter) {
@@ -337,17 +337,17 @@ export async function updateIssue(
       issue: updatedIssue,
       action: "updated",
       timestamp: new Date(),
-      organizationId: updatedIssue.organizationId,
+      cityId: updatedIssue.cityId,
       campusId: updatedIssue.campusId,
-      buildingId: updatedIssue.buildingId,
+      zoneId: updatedIssue.zoneId,
     });
 
     // Trigger heatmap update if location/priority changed
     if (updates.location || updates.priority || updates.severity) {
       wsService.emitHeatmapUpdated({
-        organizationId: updatedIssue.organizationId,
+        cityId: updatedIssue.cityId,
         campusId: updatedIssue.campusId,
-        buildingId: updatedIssue.buildingId,
+        zoneId: updatedIssue.zoneId,
         timestamp: new Date(),
         changeType: "issue_updated",
       });
@@ -355,9 +355,9 @@ export async function updateIssue(
 
     const sseService = SSEService.getInstance();
     sseService.sendIssueUpdate(
-      updatedIssue.organizationId,
+      updatedIssue.cityId,
       updatedIssue.campusId,
-      updatedIssue.buildingId,
+      updatedIssue.zoneId,
       "issue:updated",
       { issue: updatedIssue, timestamp: new Date() },
     );
@@ -422,25 +422,25 @@ export async function resolveIssue(
       issue: resolvedIssue,
       action: "resolved",
       timestamp: new Date(),
-      organizationId: resolvedIssue.organizationId,
+      cityId: resolvedIssue.cityId,
       campusId: resolvedIssue.campusId,
-      buildingId: resolvedIssue.buildingId,
+      zoneId: resolvedIssue.zoneId,
     });
 
     // Update heatmap (issue resolved)
     wsService.emitHeatmapUpdated({
-      organizationId: resolvedIssue.organizationId,
+      cityId: resolvedIssue.cityId,
       campusId: resolvedIssue.campusId,
-      buildingId: resolvedIssue.buildingId,
+      zoneId: resolvedIssue.zoneId,
       timestamp: new Date(),
       changeType: "issue_resolved",
     });
 
     const sseService = SSEService.getInstance();
     sseService.sendIssueUpdate(
-      resolvedIssue.organizationId,
+      resolvedIssue.cityId,
       resolvedIssue.campusId,
-      resolvedIssue.buildingId,
+      resolvedIssue.zoneId,
       "issue:resolved",
       { issue: resolvedIssue, timestamp: new Date() },
     );
@@ -517,17 +517,17 @@ export async function assignIssue(
       issue: assignedIssue,
       action: "assigned",
       timestamp: new Date(),
-      organizationId: assignedIssue.organizationId,
+      cityId: assignedIssue.cityId,
       campusId: assignedIssue.campusId,
-      buildingId: assignedIssue.buildingId,
+      zoneId: assignedIssue.zoneId,
       affectedUsers: [assignedToUserId],
     });
 
     const sseService = SSEService.getInstance();
     sseService.sendIssueUpdate(
-      assignedIssue.organizationId,
+      assignedIssue.cityId,
       assignedIssue.campusId,
-      assignedIssue.buildingId,
+      assignedIssue.zoneId,
       "issue:assigned",
       {
         issue: assignedIssue,
@@ -599,25 +599,25 @@ export async function deleteIssue(
       issue: { ...issue, id: issueId, status: IssueStatus.CLOSED },
       action: "deleted",
       timestamp: new Date(),
-      organizationId: issue.organizationId,
+      cityId: issue.cityId,
       campusId: issue.campusId,
-      buildingId: issue.buildingId,
+      zoneId: issue.zoneId,
     });
 
     // Update heatmap
     wsService.emitHeatmapUpdated({
-      organizationId: issue.organizationId,
+      cityId: issue.cityId,
       campusId: issue.campusId,
-      buildingId: issue.buildingId,
+      zoneId: issue.zoneId,
       timestamp: new Date(),
       changeType: "issue_resolved",
     });
 
     const sseService = SSEService.getInstance();
     sseService.sendIssueUpdate(
-      issue.organizationId,
+      issue.cityId,
       issue.campusId,
-      issue.buildingId,
+      issue.zoneId,
       "issue:deleted",
       { issueId, timestamp: new Date() },
     );
@@ -650,14 +650,14 @@ export async function getIssueHistory(
 export async function uploadIssueImage(
   file: Buffer,
   fileName: string,
-  organizationId: string,
+  cityId: string,
   issueId?: string,
 ): Promise<string> {
   try {
     // Create folder path in Cloudinary
     const folder = issueId
-      ? `ciis/issues/${organizationId}/${issueId}`
-      : `ciis/issues/${organizationId}/temp`;
+      ? `ciis/issues/${cityId}/${issueId}`
+      : `ciis/issues/${cityId}/temp`;
 
     // Remove file extension and timestamp for cleaner public_id
     const cleanFileName = fileName.replace(/\.[^/.]+$/, "");
@@ -677,7 +677,7 @@ export async function uploadIssueImage(
  * Get issues by geographic proximity
  */
 export async function getIssuesByProximity(
-  organizationId: string,
+  cityId: string,
   centerLat: number,
   centerLng: number,
   radiusKm: number,
@@ -686,7 +686,7 @@ export async function getIssuesByProximity(
   // We need to get all issues and filter in memory
   const allIssues = await db
     .collection("issues")
-    .where("organizationId", "==", organizationId)
+    .where("cityId", "==", cityId)
     .where("status", "!=", IssueStatus.CLOSED)
     .get();
 
@@ -713,7 +713,7 @@ export async function getIssuesByProximity(
  * Get high-priority issues for a campus
  */
 export async function getHighPriorityIssues(
-  organizationId: string,
+  cityId: string,
   limit: number = 20,
 ): Promise<Issue[]> {
   // Query for high-priority open issues with a limit to prevent quota exhaustion
@@ -721,7 +721,7 @@ export async function getHighPriorityIssues(
 
   const snapshot = await db
     .collection("issues")
-    .where("organizationId", "==", organizationId)
+    .where("cityId", "==", cityId)
     .where("status", "in", [IssueStatus.OPEN, IssueStatus.IN_PROGRESS])
     .where("priority", "in", [IssuePriority.HIGH, IssuePriority.CRITICAL])
     .orderBy("aiRiskScore", "desc")
@@ -739,7 +739,7 @@ export async function getHighPriorityIssues(
 /**
  * Get issue statistics for a campus
  */
-export async function getIssueStats(organizationId: string): Promise<{
+export async function getIssueStats(cityId: string): Promise<{
   total: number;
   open: number;
   inProgress: number;
@@ -751,7 +751,7 @@ export async function getIssueStats(organizationId: string): Promise<{
   // Add limit to prevent quota exhaustion
   const allIssues = await db
     .collection("issues")
-    .where("organizationId", "==", organizationId)
+    .where("cityId", "==", cityId)
     .limit(10000)
     .get();
 
