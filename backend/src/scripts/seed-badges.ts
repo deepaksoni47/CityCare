@@ -1,21 +1,78 @@
-import "../env";
-import { getFirestore, COLLECTIONS } from "../config/firebase";
-import admin from "firebase-admin";
+import * as dotenv from "dotenv";
+import path from "path";
+import mongoose, { Schema } from "mongoose";
+import { initializeMongoDB, closeMongoConnection } from "../config/mongodb";
 
-const db = getFirestore();
+// Load environment variables from repo root
+dotenv.config({ path: path.join(__dirname, "../../../.env") });
+
+interface BadgeDefinition {
+  _id: string; // stable id
+  name: string;
+  description: string;
+  icon?: string;
+  category: "reporter" | "voter" | "resolver" | "community";
+  criteria: {
+    type:
+      | "issues_reported"
+      | "votes_cast"
+      | "issues_resolved"
+      | "helpful_votes_received";
+    threshold: number;
+    description: string;
+    categories?: string[];
+  };
+  pointsAwarded: number;
+  rarity: "common" | "rare" | "epic";
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const BadgeDefinitionSchema = new Schema<BadgeDefinition>(
+  {
+    _id: { type: String, required: true },
+    name: { type: String, required: true },
+    description: { type: String, required: true },
+    icon: { type: String },
+    category: {
+      type: String,
+      enum: ["reporter", "voter", "resolver", "community"],
+      required: true,
+      index: true,
+    },
+    criteria: { type: Schema.Types.Mixed, required: true },
+    pointsAwarded: { type: Number, default: 0 },
+    rarity: {
+      type: String,
+      enum: ["common", "rare", "epic"],
+      default: "common",
+    },
+    isActive: { type: Boolean, default: true },
+  },
+  { timestamps: true },
+);
+
+const BadgeDefinitionModel =
+  mongoose.models.BadgeDefinition ||
+  mongoose.model<BadgeDefinition>(
+    "BadgeDefinition",
+    BadgeDefinitionSchema,
+    "badge_definitions",
+  );
 
 /**
- * Seed initial badge definitions
+ * Seed city-themed badge definitions into MongoDB
  */
 async function seedBadges() {
-  console.log("🏆 Seeding initial badges...\n");
+  console.warn("🏆 Seeding city-themed Hinglish badges to MongoDB...\n");
 
-  const badges = [
+  const badges: BadgeDefinition[] = [
     // REPORTER BADGES
     {
-      id: "first_reporter",
-      name: "First Reporter",
-      description: "Report your first infrastructure issue",
+      _id: "pehla_report",
+      name: "Pehla Report",
+      description: "Apni pehli shikayat darj karo",
       icon: "🎯",
       category: "reporter",
       criteria: {
@@ -26,11 +83,13 @@ async function seedBadges() {
       pointsAwarded: 10,
       rarity: "common",
       isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     },
     {
-      id: "active_reporter",
-      name: "Active Reporter",
-      description: "Report 10 infrastructure issues",
+      _id: "shehar_reporter",
+      name: "Shehar Reporter",
+      description: "10 city issues register karo",
       icon: "📝",
       category: "reporter",
       criteria: {
@@ -38,61 +97,52 @@ async function seedBadges() {
         threshold: 10,
         description: "Report 10 issues",
       },
-      pointsAwarded: 50,
+      pointsAwarded: 60,
       rarity: "common",
       isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     },
     {
-      id: "issue_hunter",
-      name: "Issue Hunter",
-      description: "Report 50 infrastructure issues",
-      icon: "🔍",
+      _id: "city_yodha",
+      name: "City Yodha",
+      description: "25 tezz reports se shehar jagao",
+      icon: "🛡️",
       category: "reporter",
       criteria: {
         type: "issues_reported",
-        threshold: 50,
-        description: "Report 50 issues",
+        threshold: 25,
+        description: "Report 25 issues",
       },
-      pointsAwarded: 200,
+      pointsAwarded: 180,
       rarity: "rare",
       isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     },
     {
-      id: "infrastructure_guardian",
-      name: "Infrastructure Guardian",
-      description: "Report 100 infrastructure issues",
-      icon: "🛡️",
+      _id: "metro_sentinel",
+      name: "Metro Sentinel",
+      description: "100 reports – shehar suraksha squad",
+      icon: "🏙️",
       category: "reporter",
       criteria: {
         type: "issues_reported",
         threshold: 100,
         description: "Report 100 issues",
       },
-      pointsAwarded: 500,
+      pointsAwarded: 650,
       rarity: "epic",
       isActive: true,
-    },
-    {
-      id: "campus_legend",
-      name: "Campus Legend",
-      description: "Report 250 infrastructure issues",
-      icon: "👑",
-      category: "reporter",
-      criteria: {
-        type: "issues_reported",
-        threshold: 250,
-        description: "Report 250 issues",
-      },
-      pointsAwarded: 1000,
-      rarity: "legendary",
-      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     },
 
     // VOTER BADGES
     {
-      id: "first_vote",
-      name: "First Vote",
-      description: "Cast your first vote on an issue",
+      _id: "pehla_vote",
+      name: "Pehla Vote",
+      description: "Pehli baar vote karke priority set karo",
       icon: "🗳️",
       category: "voter",
       criteria: {
@@ -103,288 +153,207 @@ async function seedBadges() {
       pointsAwarded: 5,
       rarity: "common",
       isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     },
     {
-      id: "engaged_citizen",
-      name: "Engaged Citizen",
-      description: "Cast 25 votes to help prioritize issues",
-      icon: "🎖️",
+      _id: "gully_influencer",
+      name: "Gully Influencer",
+      description: "25 votes – galli ka mood set karo",
+      icon: "📢",
       category: "voter",
       criteria: {
         type: "votes_cast",
         threshold: 25,
         description: "Vote on 25 issues",
       },
-      pointsAwarded: 75,
+      pointsAwarded: 90,
       rarity: "common",
       isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     },
     {
-      id: "community_voice",
-      name: "Community Voice",
-      description: "Cast 100 votes to help prioritize issues",
-      icon: "📢",
+      _id: "awaaz_ka_captain",
+      name: "Awaaz Ka Captain",
+      description: "75 votes – shehar ki priority ghumao",
+      icon: "🧭",
       category: "voter",
       criteria: {
         type: "votes_cast",
-        threshold: 100,
-        description: "Vote on 100 issues",
+        threshold: 75,
+        description: "Vote on 75 issues",
       },
-      pointsAwarded: 150,
+      pointsAwarded: 220,
       rarity: "rare",
       isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     },
     {
-      id: "democracy_champion",
-      name: "Democracy Champion",
-      description: "Cast 500 votes to shape campus priorities",
-      icon: "🏛️",
+      _id: "janata_speaker",
+      name: "Janata Speaker",
+      description: "200 votes – sabki awaaz tumse",
+      icon: "📣",
       category: "voter",
       criteria: {
         type: "votes_cast",
-        threshold: 500,
-        description: "Vote on 500 issues",
-      },
-      pointsAwarded: 400,
-      rarity: "epic",
-      isActive: true,
-    },
-
-    // POPULAR REPORTER BADGES
-    {
-      id: "heard",
-      name: "Heard",
-      description: "Receive 5 votes on your reported issues",
-      icon: "👂",
-      category: "reporter",
-      criteria: {
-        type: "votes_received",
-        threshold: 5,
-        description: "Get 5 votes total",
-      },
-      pointsAwarded: 25,
-      rarity: "common",
-      isActive: true,
-    },
-    {
-      id: "crowd_favorite",
-      name: "Crowd Favorite",
-      description: "Receive 50 votes on your reported issues",
-      icon: "⭐",
-      category: "reporter",
-      criteria: {
-        type: "votes_received",
-        threshold: 50,
-        description: "Get 50 votes total",
-      },
-      pointsAwarded: 250,
-      rarity: "epic",
-      isActive: true,
-    },
-    {
-      id: "viral_reporter",
-      name: "Viral Reporter",
-      description: "Receive 200 votes on your reported issues",
-      icon: "🔥",
-      category: "reporter",
-      criteria: {
-        type: "votes_received",
         threshold: 200,
-        description: "Get 200 votes total",
+        description: "Vote on 200 issues",
       },
-      pointsAwarded: 750,
-      rarity: "legendary",
-      isActive: true,
-    },
-
-    // HELPFUL REPORTER BADGES
-    {
-      id: "quick_reporter",
-      name: "Quick Reporter",
-      description: "Have 5 issues resolved within 24 hours",
-      icon: "⚡",
-      category: "reporter",
-      criteria: {
-        type: "helpful_reports",
-        threshold: 5,
-        description: "5 issues resolved quickly",
-      },
-      pointsAwarded: 100,
-      rarity: "rare",
-      isActive: true,
-    },
-    {
-      id: "impact_maker",
-      name: "Impact Maker",
-      description: "Have 25 issues resolved within 24 hours",
-      icon: "💎",
-      category: "reporter",
-      criteria: {
-        type: "helpful_reports",
-        threshold: 25,
-        description: "25 issues resolved quickly",
-      },
-      pointsAwarded: 350,
+      pointsAwarded: 500,
       rarity: "epic",
       isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     },
 
-    // RESOLVER BADGES (for facility managers)
+    // RESOLVER BADGES
     {
-      id: "problem_solver",
-      name: "Problem Solver",
-      description: "Resolve your first issue",
-      icon: "🔧",
+      _id: "fixer_bhai",
+      name: "Fixer Bhai",
+      description: "Pehla issue solve karne ka credit",
+      icon: "🛠️",
       category: "resolver",
       criteria: {
         type: "issues_resolved",
         threshold: 1,
         description: "Resolve 1 issue",
       },
-      pointsAwarded: 20,
+      pointsAwarded: 15,
       rarity: "common",
       isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     },
     {
-      id: "fix_master",
-      name: "Fix Master",
-      description: "Resolve 50 infrastructure issues",
-      icon: "🛠️",
+      _id: "nukkad_ninja",
+      name: "Nukkad Ninja",
+      description: "15 fixes – gali ka superhero",
+      icon: "🥷",
       category: "resolver",
       criteria: {
         type: "issues_resolved",
-        threshold: 50,
-        description: "Resolve 50 issues",
+        threshold: 15,
+        description: "Resolve 15 issues",
       },
-      pointsAwarded: 300,
-      rarity: "rare",
+      pointsAwarded: 160,
+      rarity: "common",
       isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     },
     {
-      id: "maintenance_hero",
-      name: "Maintenance Hero",
-      description: "Resolve 200 infrastructure issues",
-      icon: "🦸",
+      _id: "shehar_sudharak",
+      name: "Shehar Sudharak",
+      description: "60 fixes – maintenance ka malik",
+      icon: "⚡",
+      category: "resolver",
+      criteria: {
+        type: "issues_resolved",
+        threshold: 60,
+        description: "Resolve 60 issues",
+      },
+      pointsAwarded: 420,
+      rarity: "rare",
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      _id: "city_samrat",
+      name: "City Samrat",
+      description: "200 fixes – shehar tumhare hawale",
+      icon: "👑",
       category: "resolver",
       criteria: {
         type: "issues_resolved",
         threshold: 200,
         description: "Resolve 200 issues",
       },
-      pointsAwarded: 800,
-      rarity: "legendary",
-      isActive: true,
-    },
-
-    // POINT MILESTONE BADGES
-    {
-      id: "bronze_achiever",
-      name: "Bronze Achiever",
-      description: "Earn 500 reward points",
-      icon: "🥉",
-      category: "community",
-      criteria: {
-        type: "points_earned",
-        threshold: 500,
-        description: "Earn 500 points",
-      },
-      pointsAwarded: 50,
-      rarity: "common",
-      isActive: true,
-    },
-    {
-      id: "silver_achiever",
-      name: "Silver Achiever",
-      description: "Earn 2000 reward points",
-      icon: "🥈",
-      category: "community",
-      criteria: {
-        type: "points_earned",
-        threshold: 2000,
-        description: "Earn 2000 points",
-      },
-      pointsAwarded: 200,
-      rarity: "rare",
-      isActive: true,
-    },
-    {
-      id: "gold_achiever",
-      name: "Gold Achiever",
-      description: "Earn 5000 reward points",
-      icon: "🥇",
-      category: "community",
-      criteria: {
-        type: "points_earned",
-        threshold: 5000,
-        description: "Earn 5000 points",
-      },
-      pointsAwarded: 500,
+      pointsAwarded: 900,
       rarity: "epic",
       isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     },
+
+    // COMMUNITY BADGES
     {
-      id: "platinum_achiever",
-      name: "Platinum Achiever",
-      description: "Earn 10000 reward points",
-      icon: "💫",
+      _id: "feedback_king",
+      name: "Feedback King",
+      description: "10 helpful votes – log tum par bharosa karte hain",
+      icon: "💡",
       category: "community",
       criteria: {
-        type: "points_earned",
-        threshold: 10000,
-        description: "Earn 10000 points",
+        type: "helpful_votes_received",
+        threshold: 10,
+        description: "Receive 10 helpful votes",
       },
-      pointsAwarded: 1000,
-      rarity: "legendary",
+      pointsAwarded: 60,
+      rarity: "common",
       isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      _id: "chowk_champion",
+      name: "Chowk Champion",
+      description: "40 helpful votes – sabka guide",
+      icon: "🧭",
+      category: "community",
+      criteria: {
+        type: "helpful_votes_received",
+        threshold: 40,
+        description: "Receive 40 helpful votes",
+      },
+      pointsAwarded: 180,
+      rarity: "common",
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      _id: "mohalla_mentor",
+      name: "Mohalla Mentor",
+      description: "120 helpful votes – asli community hero",
+      icon: "🤝",
+      category: "community",
+      criteria: {
+        type: "helpful_votes_received",
+        threshold: 120,
+        description: "Receive 120 helpful votes",
+      },
+      pointsAwarded: 520,
+      rarity: "epic",
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     },
   ];
 
+  await BadgeDefinitionModel.deleteMany({});
+  await BadgeDefinitionModel.insertMany(badges);
+
+  console.warn(`✅ Seeded ${badges.length} city-themed badges into MongoDB`);
+}
+
+async function main() {
   try {
-    const batch = db.batch();
+    if (!process.env.MONGODB_URI) {
+      console.error("MONGODB_URI is not set. Please add it to your .env file.");
+      process.exit(1);
+    }
 
-    badges.forEach((badge) => {
-      const ref = db.collection(COLLECTIONS.BADGES).doc(badge.id);
-      batch.set(ref, {
-        ...badge,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
-    });
-
-    await batch.commit();
-    console.log(`✅ Successfully seeded ${badges.length} badges\n`);
-
-    // Display summary
-    const summary = badges.reduce(
-      (acc, badge) => {
-        acc[badge.category] = (acc[badge.category] || 0) + 1;
-        return acc;
-      },
-      {} as Record<string, number>
-    );
-
-    console.log("📊 Badge Summary by Category:");
-    Object.entries(summary).forEach(([category, count]) => {
-      console.log(`   ${category}: ${count} badges`);
-    });
-
-    console.log("\n🎯 Rarity Distribution:");
-    const rarities = badges.reduce(
-      (acc, badge) => {
-        acc[badge.rarity] = (acc[badge.rarity] || 0) + 1;
-        return acc;
-      },
-      {} as Record<string, number>
-    );
-
-    Object.entries(rarities).forEach(([rarity, count]) => {
-      console.log(`   ${rarity}: ${count} badges`);
-    });
-
-    process.exit(0);
+    await initializeMongoDB();
+    await seedBadges();
+    console.warn("🎉 Badge definitions seeding completed successfully");
   } catch (error) {
     console.error("❌ Error seeding badges:", error);
-    process.exit(1);
+    process.exitCode = 1;
+  } finally {
+    await closeMongoConnection();
   }
 }
 
-seedBadges();
+main();
