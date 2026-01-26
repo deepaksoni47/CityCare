@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import { Issue } from "../../models/Issue";
 import { Zone } from "../../models/Zone";
-import { City } from "../../models/City";
 import mongoose from "mongoose";
 
 /**
@@ -10,7 +9,7 @@ import mongoose from "mongoose";
  */
 export async function createNewIssue(req: Request, res: Response) {
   try {
-    const userId = req.userData?._id || req.user?.uid;
+    const userId = req.userData?.id || req.user?.userId;
     const userRole = req.userData?.role;
     const userCityId = req.userData?.cityId;
 
@@ -203,6 +202,13 @@ export async function getIssueById(req: Request, res: Response) {
     const { issueId } = req.params;
     const userCityId = req.userData?.cityId;
 
+    if (!userCityId) {
+      return res.status(401).json({
+        error: "Unauthorized",
+        message: "User city ID not found",
+      });
+    }
+
     if (!mongoose.Types.ObjectId.isValid(issueId)) {
       return res.status(400).json({
         error: "Validation error",
@@ -255,9 +261,8 @@ export async function getIssueById(req: Request, res: Response) {
 export async function updateIssue(req: Request, res: Response) {
   try {
     const { issueId } = req.params;
-    const userId = req.userData?._id;
+    const userId = req.userData?.id;
     const userRole = req.userData?.role;
-    const userCityId = req.userData?.cityId;
 
     if (!mongoose.Types.ObjectId.isValid(issueId)) {
       return res.status(400).json({
@@ -279,7 +284,7 @@ export async function updateIssue(req: Request, res: Response) {
     const canUpdate =
       issue.reportedBy.toString() === userId ||
       userRole === "admin" ||
-      userRole === "manager";
+      userRole === "facility_manager";
 
     if (!canUpdate) {
       return res.status(403).json({
@@ -327,7 +332,7 @@ export async function updateIssue(req: Request, res: Response) {
 export async function resolveIssue(req: Request, res: Response) {
   try {
     const { issueId } = req.params;
-    const userId = req.userData?._id;
+    const userId = req.userData?.id;
     const userRole = req.userData?.role;
     const { resolutionNotes } = req.body;
 
@@ -339,7 +344,9 @@ export async function resolveIssue(req: Request, res: Response) {
     }
 
     const canResolve =
-      userRole === "officer" || userRole === "manager" || userRole === "admin";
+      userRole === "staff" ||
+      userRole === "facility_manager" ||
+      userRole === "admin";
 
     if (!canResolve) {
       return res.status(403).json({
@@ -395,7 +402,7 @@ export async function resolveIssue(req: Request, res: Response) {
 export async function deleteIssue(req: Request, res: Response) {
   try {
     const { issueId } = req.params;
-    const userId = req.userData?._id;
+    const userId = req.userData?.id;
     const userRole = req.userData?.role;
 
     if (!mongoose.Types.ObjectId.isValid(issueId)) {
@@ -418,7 +425,7 @@ export async function deleteIssue(req: Request, res: Response) {
     const canDelete =
       issue.reportedBy.toString() === userId ||
       userRole === "admin" ||
-      userRole === "manager";
+      userRole === "facility_manager";
 
     if (!canDelete) {
       return res.status(403).json({
@@ -560,7 +567,9 @@ export async function getIssueStats(req: Request, res: Response) {
 /**
  * Helper function to calculate priority based on severity
  */
-function calculatePriority(severity: number): string {
+function calculatePriority(
+  severity: number,
+): "low" | "medium" | "high" | "critical" {
   if (severity >= 8) return "critical";
   if (severity >= 6) return "high";
   if (severity >= 4) return "medium";

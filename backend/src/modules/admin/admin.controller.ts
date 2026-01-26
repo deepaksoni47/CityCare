@@ -159,7 +159,7 @@ export async function updateUser(req: Request, res: Response) {
 export async function deleteUser(req: Request, res: Response) {
   try {
     const { userId } = req.params;
-    const { uid: adminId } = req.user!;
+    const { userId: adminId } = req.user!;
 
     if (userId === adminId) {
       return res.status(400).json({
@@ -200,7 +200,7 @@ export async function deleteUser(req: Request, res: Response) {
 export async function toggleUserStatus(req: Request, res: Response) {
   try {
     const { userId } = req.params;
-    const { uid: adminId } = req.user!;
+    const { userId: adminId } = req.user!;
 
     if (userId === adminId) {
       return res.status(400).json({

@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import * as oauthService from "../../services/oauth.service";
-import { generateAccessToken, generateRefreshToken } from "../../utils/jwt";
 
 /**
  * Get Google OAuth authorization URL

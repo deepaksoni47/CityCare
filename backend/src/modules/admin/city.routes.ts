@@ -1,11 +1,8 @@
 import { Router } from "express";
 import * as cityController from "./city.controller";
-import { authenticate, authorize } from "../auth/auth.middleware";
+import { authenticate } from "../auth/auth.middleware";
 import { handleValidationErrors } from "../../middlewares/validation.middleware";
-import {
-  authRateLimiter,
-  apiRateLimiter,
-} from "../../middlewares/rateLimiter.middleware";
+import { apiRateLimiter } from "../../middlewares/rateLimiter.middleware";
 import { body } from "express-validator";
 
 const router = Router();

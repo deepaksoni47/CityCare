@@ -1,9 +1,7 @@
-import { firestore } from "firebase-admin";
-import { getFirestore } from "../../config/firebase";
-import { getAuth } from "../../config/firebase";
+import { User as UserModel } from "../../models/User";
+import { Issue as IssueModel } from "../../models/Issue";
+import { Vote as VoteModel } from "../../models/Vote";
 import { User, Issue, UserRole, IssueStatus } from "../../types";
-
-const db = getFirestore();
 
 interface UserFilters {
   role?: UserRole;
@@ -36,14 +34,11 @@ interface IssueFilters {
  */
 export async function getDashboardOverview(cityId: string) {
   // Get user counts
-  const usersSnapshot = await db
-    .collection("users")
-    .where("cityId", "==", cityId)
-    .get();
+  const usersData = await UserModel.find({ cityId }).lean();
 
-  const users = usersSnapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
+  const users = usersData.map((doc: any) => ({
+    id: doc._id.toString(),
+    ...doc,
   })) as User[];
 
   const userStats = {
@@ -60,14 +55,11 @@ export async function getDashboardOverview(cityId: string) {
   };
 
   // Get issue counts
-  const issuesSnapshot = await db
-    .collection("issues")
-    .where("cityId", "==", cityId)
-    .get();
+  const issuesData = await IssueModel.find({ cityId }).lean();
 
-  const issues = issuesSnapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
+  const issues = issuesData.map((doc: any) => ({
+    id: doc._id.toString(),
+    ...doc,
   })) as Issue[];
 
   const issueStats = {
@@ -89,16 +81,16 @@ export async function getDashboardOverview(cityId: string) {
   // Get recent activity
   const recentIssues = issues
     .sort((a, b) => {
-      const dateA = a.createdAt?.toDate?.() || new Date(a.createdAt as any);
-      const dateB = b.createdAt?.toDate?.() || new Date(b.createdAt as any);
+      const dateA = new Date(a.createdAt as any);
+      const dateB = new Date(b.createdAt as any);
       return dateB.getTime() - dateA.getTime();
     })
     .slice(0, 10);
 
   const recentUsers = users
     .sort((a, b) => {
-      const dateA = a.createdAt?.toDate?.() || new Date(a.createdAt as any);
-      const dateB = b.createdAt?.toDate?.() || new Date(b.createdAt as any);
+      const dateA = new Date(a.createdAt as any);
+      const dateB = new Date(b.createdAt as any);
       return dateB.getTime() - dateA.getTime();
     })
     .slice(0, 10);
@@ -157,20 +149,20 @@ export async function getAllUsers(cityId: string, filters: UserFilters) {
     sortOrder = "desc",
   } = filters;
 
-  let query = db.collection("users").where("cityId", "==", cityId);
+  const queryObj: any = { cityId };
 
   if (role) {
-    query = query.where("role", "==", role) as any;
+    queryObj.role = role;
   }
 
   if (isActive !== undefined) {
-    query = query.where("isActive", "==", isActive) as any;
+    queryObj.isActive = isActive;
   }
 
-  const snapshot = await query.get();
-  let users = snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
+  const usersData = await UserModel.find(queryObj).lean();
+  let users = usersData.map((doc: any) => ({
+    id: doc._id.toString(),
+    ...doc,
   })) as User[];
 
   // Client-side search filter
@@ -188,8 +180,8 @@ export async function getAllUsers(cityId: string, filters: UserFilters) {
     let aVal: any = a[sortBy as keyof User];
     let bVal: any = b[sortBy as keyof User];
 
-    if (aVal?.toDate) aVal = aVal.toDate();
-    if (bVal?.toDate) bVal = bVal.toDate();
+    if (aVal?.toDate) aVal = aVal;
+    if (bVal?.toDate) bVal = bVal;
 
     if (sortOrder === "asc") {
       return aVal > bVal ? 1 : -1;
@@ -218,23 +210,23 @@ export async function getAllUsers(cityId: string, filters: UserFilters) {
  * Get user by ID with full details
  */
 export async function getUserById(userId: string) {
-  const userDoc = await db.collection("users").doc(userId).get();
+  const userDoc = await UserModel.findById(userId).lean();
 
-  if (!userDoc.exists) {
+  if (!userDoc) {
     throw new Error("User not found");
   }
 
-  const user = { id: userDoc.id, ...userDoc.data() } as User;
+  const user = {
+    id: (userDoc as any)._id.toString(),
+    ...userDoc,
+  } as unknown as User;
 
   // Get user's issues
-  const issuesSnapshot = await db
-    .collection("issues")
-    .where("reportedBy", "==", userId)
-    .get();
+  const issuesData = await IssueModel.find({ reportedBy: userId }).lean();
 
-  const issues = issuesSnapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
+  const issues = issuesData.map((doc: any) => ({
+    id: doc._id.toString(),
+    ...doc,
   }));
 
   return {
@@ -248,71 +240,72 @@ export async function getUserById(userId: string) {
  * Update user details
  */
 export async function updateUser(userId: string, updates: Partial<User>) {
-  const userRef = db.collection("users").doc(userId);
-  const userDoc = await userRef.get();
+  const userDoc = await UserModel.findById(userId).lean();
 
-  if (!userDoc.exists) {
+  if (!userDoc) {
     throw new Error("User not found");
   }
 
   // Remove fields that shouldn't be updated directly
   const { id, createdAt, statistics, ...allowedUpdates } = updates as any;
 
-  const updateData = {
-    ...allowedUpdates,
-    updatedAt: firestore.FieldValue.serverTimestamp(),
-  };
+  const updatedDoc = await UserModel.findByIdAndUpdate(
+    userId,
+    {
+      ...allowedUpdates,
+      updatedAt: new Date(),
+    },
+    { new: true },
+  ).lean();
 
-  await userRef.update(updateData);
-
-  const updatedDoc = await userRef.get();
-  return { id: updatedDoc.id, ...updatedDoc.data() } as User;
+  return {
+    id: (updatedDoc as any)._id.toString(),
+    ...updatedDoc,
+  } as unknown as User;
 }
 
 /**
  * Delete user
  */
 export async function deleteUser(userId: string) {
-  const userRef = db.collection("users").doc(userId);
-  const userDoc = await userRef.get();
+  const userDoc = await UserModel.findById(userId).lean();
 
-  if (!userDoc.exists) {
+  if (!userDoc) {
     throw new Error("User not found");
   }
 
-  // Delete user from Firestore
-  await userRef.delete();
+  // Delete user from MongoDB
+  await UserModel.findByIdAndDelete(userId);
 
-  // Delete user from Firebase Auth
-  try {
-    const auth = getAuth();
-    await auth.deleteUser(userId);
-  } catch (error) {
-    console.error("Error deleting user from Firebase Auth:", error);
-    // Continue even if auth deletion fails
-  }
+  // Note: Firebase Auth deletion should be handled via separate admin API
+  // if integration is needed
 }
 
 /**
  * Toggle user active status
  */
 export async function toggleUserStatus(userId: string) {
-  const userRef = db.collection("users").doc(userId);
-  const userDoc = await userRef.get();
+  const userDoc = await UserModel.findById(userId).lean();
 
-  if (!userDoc.exists) {
+  if (!userDoc) {
     throw new Error("User not found");
   }
 
-  const currentStatus = userDoc.data()!.isActive;
+  const currentStatus = (userDoc as any).isActive;
 
-  await userRef.update({
-    isActive: !currentStatus,
-    updatedAt: firestore.FieldValue.serverTimestamp(),
-  });
+  const updatedDoc = await UserModel.findByIdAndUpdate(
+    userId,
+    {
+      isActive: !currentStatus,
+      updatedAt: new Date(),
+    },
+    { new: true },
+  ).lean();
 
-  const updatedDoc = await userRef.get();
-  return { id: updatedDoc.id, ...updatedDoc.data() } as User;
+  return {
+    id: (updatedDoc as any)._id.toString(),
+    ...updatedDoc,
+  } as unknown as User;
 }
 
 /**
@@ -335,48 +328,38 @@ export async function getAllIssues(cityId: string, filters: IssueFilters) {
     sortOrder = "desc",
   } = filters;
 
-  let query = db.collection("issues").where("cityId", "==", cityId);
+  const queryObj: any = { cityId };
 
   if (status) {
-    query = query.where("status", "==", status) as any;
+    queryObj.status = status;
   }
 
   if (category) {
-    query = query.where("category", "==", category) as any;
+    queryObj.category = category;
   }
 
   if (zoneId) {
-    query = query.where("zoneId", "==", zoneId) as any;
+    queryObj.zoneId = zoneId;
   }
 
   if (reportedBy) {
-    query = query.where("reportedBy", "==", reportedBy) as any;
+    queryObj.reportedBy = reportedBy;
   }
 
   if (assignedTo) {
-    query = query.where("assignedTo", "==", assignedTo) as any;
+    queryObj.assignedTo = assignedTo;
   }
 
-  if (startDate) {
-    query = query.where(
-      "createdAt",
-      ">=",
-      firestore.Timestamp.fromDate(startDate),
-    ) as any;
+  if (startDate || endDate) {
+    queryObj.createdAt = {};
+    if (startDate) queryObj.createdAt.$gte = startDate;
+    if (endDate) queryObj.createdAt.$lte = endDate;
   }
 
-  if (endDate) {
-    query = query.where(
-      "createdAt",
-      "<=",
-      firestore.Timestamp.fromDate(endDate),
-    ) as any;
-  }
-
-  const snapshot = await query.get();
-  let issues = snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
+  const issuesData = await IssueModel.find(queryObj).lean();
+  let issues = issuesData.map((doc: any) => ({
+    id: doc._id.toString(),
+    ...doc,
   })) as Issue[];
 
   // Client-side filters
@@ -398,8 +381,8 @@ export async function getAllIssues(cityId: string, filters: IssueFilters) {
     let aVal: any = a[sortBy as keyof Issue];
     let bVal: any = b[sortBy as keyof Issue];
 
-    if (aVal?.toDate) aVal = aVal.toDate();
-    if (bVal?.toDate) bVal = bVal.toDate();
+    if (aVal?.toDate) aVal = aVal;
+    if (bVal?.toDate) bVal = bVal;
 
     if (sortOrder === "asc") {
       return aVal > bVal ? 1 : -1;
@@ -417,12 +400,9 @@ export async function getAllIssues(cityId: string, filters: IssueFilters) {
   const issuesWithReporter = await Promise.all(
     paginatedIssues.map(async (issue) => {
       try {
-        const reporterDoc = await db
-          .collection("users")
-          .doc(issue.reportedBy)
-          .get();
-        const reporterName = reporterDoc.exists
-          ? reporterDoc.data()!.name
+        const reporterDoc = await UserModel.findById(issue.reportedBy).lean();
+        const reporterName = reporterDoc
+          ? (reporterDoc as any).name
           : "Unknown";
         return {
           ...issue,
@@ -452,23 +432,20 @@ export async function getAllIssues(cityId: string, filters: IssueFilters) {
  * Get user statistics and activity
  */
 export async function getUserStatistics(userId: string) {
-  const userDoc = await db.collection("users").doc(userId).get();
+  const userDoc = await UserModel.findById(userId).lean();
 
-  if (!userDoc.exists) {
+  if (!userDoc) {
     throw new Error("User not found");
   }
 
-  const user = userDoc.data() as User;
+  const user = userDoc as unknown as User;
 
   // Get user's issues
-  const issuesSnapshot = await db
-    .collection("issues")
-    .where("reportedBy", "==", userId)
-    .get();
+  const issuesData = await IssueModel.find({ reportedBy: userId }).lean();
 
-  const issues = issuesSnapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
+  const issues = issuesData.map((doc: any) => ({
+    id: doc._id.toString(),
+    ...doc,
   })) as Issue[];
 
   // Calculate statistics
@@ -494,10 +471,7 @@ export async function getUserStatistics(userId: string) {
       : 0;
 
   // Get voting activity
-  const votingSnapshot = await db
-    .collection("issue_votes")
-    .where("userId", "==", userId)
-    .get();
+  const votingData = await VoteModel.find({ userId }).lean();
 
   return {
     user: {
@@ -517,7 +491,7 @@ export async function getUserStatistics(userId: string) {
       avgSeverity: Math.round(avgSeverity * 10) / 10,
     },
     votingActivity: {
-      totalVotes: votingSnapshot.size,
+      totalVotes: votingData.length,
     },
   };
 }
@@ -530,28 +504,18 @@ export async function getSystemAnalytics(
   startDate?: Date,
   endDate?: Date,
 ) {
-  let issuesQuery = db.collection("issues").where("cityId", "==", cityId);
+  const queryObj: any = { cityId };
 
-  if (startDate) {
-    issuesQuery = issuesQuery.where(
-      "createdAt",
-      ">=",
-      firestore.Timestamp.fromDate(startDate),
-    ) as any;
+  if (startDate || endDate) {
+    queryObj.createdAt = {};
+    if (startDate) queryObj.createdAt.$gte = startDate;
+    if (endDate) queryObj.createdAt.$lte = endDate;
   }
 
-  if (endDate) {
-    issuesQuery = issuesQuery.where(
-      "createdAt",
-      "<=",
-      firestore.Timestamp.fromDate(endDate),
-    ) as any;
-  }
-
-  const issuesSnapshot = await issuesQuery.get();
-  const issues = issuesSnapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
+  const issuesData = await IssueModel.find(queryObj).lean();
+  const issues = issuesData.map((doc: any) => ({
+    id: doc._id.toString(),
+    ...doc,
   })) as Issue[];
 
   // Issues trend over time
@@ -593,7 +557,7 @@ export async function getSystemAnalytics(
     issuesTrend,
     resolutionTrend,
     categoryDistribution,
-    buildingDistribution,
+    zoneDistribution,
     severityDistribution,
     avgResolutionTime: calculateAvgResolutionTime(resolvedIssues),
     totalIssues: issues.length,
@@ -613,39 +577,43 @@ export async function getUserActivity(
   const { page = 1, limit = 50 } = options;
 
   // Get user's issues
-  const issuesSnapshot = await db
-    .collection("issues")
-    .where("reportedBy", "==", userId)
-    .orderBy("createdAt", "desc")
+  const issuesData = await IssueModel.find({ reportedBy: userId })
+    .sort({ createdAt: -1 })
     .limit(limit)
-    .get();
+    .lean();
 
-  const issues = issuesSnapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
+  const issues = issuesData.map((doc: any) => ({
+    id: doc._id.toString(),
+    ...doc,
     activityType: "issue_reported",
   }));
 
   // Get user's votes
-  const votesSnapshot = await db
-    .collection("issue_votes")
-    .where("userId", "==", userId)
-    .orderBy("votedAt", "desc")
+  const votesData = await VoteModel.find({ userId })
+    .sort({ votedAt: -1 })
     .limit(limit)
-    .get();
+    .lean();
 
-  const votes = votesSnapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
+  const votes = votesData.map((doc: any) => ({
+    id: doc._id.toString(),
+    ...doc,
     activityType: "vote_cast",
   }));
 
   // Combine and sort by timestamp
   const activity = [...issues, ...votes].sort((a: any, b: any) => {
     const dateA =
-      a.createdAt?.toDate?.() || a.votedAt?.toDate?.() || new Date(0);
+      a.createdAt instanceof Date
+        ? a.createdAt
+        : a.votedAt instanceof Date
+          ? a.votedAt
+          : new Date(0);
     const dateB =
-      b.createdAt?.toDate?.() || b.votedAt?.toDate?.() || new Date(0);
+      b.createdAt instanceof Date
+        ? b.createdAt
+        : b.votedAt instanceof Date
+          ? b.votedAt
+          : new Date(0);
     return dateB.getTime() - dateA.getTime();
   });
 
@@ -673,23 +641,21 @@ export async function bulkUpdateUsers(
 ) {
   const { id, createdAt, statistics, ...allowedUpdates } = updates as any;
 
-  const batch = db.batch();
   let successCount = 0;
   const errors: Array<{ userId: string; error: string }> = [];
 
   for (const userId of userIds) {
     try {
-      const userRef = db.collection("users").doc(userId);
-      const userDoc = await userRef.get();
+      const userDoc = await UserModel.findById(userId).lean();
 
-      if (!userDoc.exists) {
+      if (!userDoc) {
         errors.push({ userId, error: "User not found" });
         continue;
       }
 
-      batch.update(userRef, {
+      await UserModel.findByIdAndUpdate(userId, {
         ...allowedUpdates,
-        updatedAt: firestore.FieldValue.serverTimestamp(),
+        updatedAt: new Date(),
       });
 
       successCount++;
@@ -700,8 +666,6 @@ export async function bulkUpdateUsers(
       });
     }
   }
-
-  await batch.commit();
 
   return {
     successCount,
@@ -714,24 +678,21 @@ export async function bulkUpdateUsers(
  * Export users data
  */
 export async function exportUsers(cityId: string, format: "json" | "csv") {
-  const snapshot = await db
-    .collection("users")
-    .where("cityId", "==", cityId)
-    .get();
+  const usersData = await UserModel.find({ cityId }).lean();
 
-  const users = snapshot.docs.map((doc) => {
-    const data = doc.data();
+  const users = usersData.map((doc: any) => {
     return {
-      id: doc.id,
-      name: data.name,
-      email: data.email,
-      role: data.role,
-      isActive: data.isActive,
-      rewardPoints: data.rewardPoints,
-      level: data.level,
-      issuesReported: data.statistics?.issuesReported || 0,
-      issuesResolved: data.statistics?.issuesResolved || 0,
-      createdAt: data.createdAt?.toDate?.()?.toISOString() || "",
+      id: doc._id.toString(),
+      name: doc.name,
+      email: doc.email,
+      role: doc.role,
+      isActive: doc.isActive,
+      rewardPoints: doc.rewardPoints,
+      level: doc.level,
+      issuesReported: doc.statistics?.issuesReported || 0,
+      issuesResolved: doc.statistics?.issuesResolved || 0,
+      createdAt:
+        doc.createdAt instanceof Date ? doc.createdAt.toISOString() : "",
     };
   });
 
@@ -750,34 +711,35 @@ export async function exportIssues(
   format: "json" | "csv",
   filters?: { status?: string; category?: string },
 ) {
-  let query = db.collection("issues").where("cityId", "==", cityId);
+  const queryObj: any = { cityId };
 
   if (filters?.status) {
-    query = query.where("status", "==", filters.status) as any;
+    queryObj.status = filters.status;
   }
 
   if (filters?.category) {
-    query = query.where("category", "==", filters.category) as any;
+    queryObj.category = filters.category;
   }
 
-  const snapshot = await query.get();
+  const issuesData = await IssueModel.find(queryObj).lean();
 
-  const issues = snapshot.docs.map((doc) => {
-    const data = doc.data();
+  const issues = issuesData.map((doc: any) => {
     return {
-      id: doc.id,
-      title: data.title,
-      description: data.description,
-      category: data.category,
-      status: data.status,
-      severity: data.severity,
-      priority: data.priority,
-      zoneId: data.zoneId,
-      reportedBy: data.reportedBy,
-      assignedTo: data.assignedTo || "",
-      voteCount: data.voteCount || 0,
-      createdAt: data.createdAt?.toDate?.()?.toISOString() || "",
-      updatedAt: data.updatedAt?.toDate?.()?.toISOString() || "",
+      id: doc._id.toString(),
+      title: doc.title,
+      description: doc.description,
+      category: doc.category,
+      status: doc.status,
+      severity: doc.severity,
+      priority: doc.priority,
+      zoneId: doc.zoneId,
+      reportedBy: doc.reportedBy,
+      assignedTo: doc.assignedTo || "",
+      voteCount: doc.voteCount || 0,
+      createdAt:
+        doc.createdAt instanceof Date ? doc.createdAt.toISOString() : "",
+      updatedAt:
+        doc.updatedAt instanceof Date ? doc.updatedAt.toISOString() : "",
     };
   });
 
@@ -799,9 +761,13 @@ function calculateAvgResolutionTime(issues: Issue[]): number {
 
   const totalTime = resolvedIssues.reduce((sum, issue) => {
     const created =
-      issue.createdAt?.toDate?.() || new Date(issue.createdAt as any);
+      issue.createdAt instanceof Date
+        ? issue.createdAt
+        : new Date(issue.createdAt as any);
     const resolved =
-      issue.updatedAt?.toDate?.() || new Date(issue.updatedAt as any);
+      issue.updatedAt instanceof Date
+        ? issue.updatedAt
+        : new Date(issue.updatedAt as any);
     return sum + (resolved.getTime() - created.getTime());
   }, 0);
 
@@ -818,7 +784,10 @@ function calculateTrend(
   const trendMap: Record<string, number> = {};
 
   items.forEach((item) => {
-    const date = item[dateField]?.toDate?.() || new Date(item[dateField]);
+    const date =
+      item[dateField] instanceof Date
+        ? item[dateField]
+        : new Date(item[dateField]);
     const dateStr = date.toISOString().split("T")[0];
     trendMap[dateStr] = (trendMap[dateStr] || 0) + 1;
   });

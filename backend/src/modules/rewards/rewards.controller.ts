@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import * as rewardsService from "./rewards.service";
-import admin from "firebase-admin";
 
 /**
  * Get user's reward profile
@@ -9,7 +8,7 @@ import admin from "firebase-admin";
 export async function getUserRewards(req: Request, res: Response) {
   try {
     const { id: userId } = req.params;
-    const requesterId = req.user?.uid;
+    const requesterId = req.user?.userId;
 
     // Users can only view their own rewards unless admin
     if (userId !== requesterId && req.user?.role !== "admin") {
@@ -42,7 +41,7 @@ export async function getUserRewards(req: Request, res: Response) {
  */
 export async function getMyRewards(req: Request, res: Response) {
   try {
-    const userId = req.user?.uid;
+    const userId = req.user?.userId;
 
     if (!userId) {
       return res.status(401).json({
@@ -75,7 +74,7 @@ export async function getMyRewards(req: Request, res: Response) {
 export async function getUserTransactions(req: Request, res: Response) {
   try {
     const { id: userId } = req.params;
-    const requesterId = req.user?.uid;
+    const requesterId = req.user?.userId;
     const limit = parseInt(req.query.limit as string) || 50;
 
     // Users can only view their own transactions unless admin
@@ -89,7 +88,7 @@ export async function getUserTransactions(req: Request, res: Response) {
 
     const transactions = await rewardsService.getUserTransactions(
       userId,
-      limit
+      limit,
     );
 
     res.status(200).json({
@@ -156,7 +155,7 @@ export async function getBadge(req: Request, res: Response) {
     let achievers: Array<{
       userId: string;
       userName: string;
-      earnedAt: admin.firestore.Timestamp;
+      earnedAt: Date;
     }> = [];
     if (includeAchievers) {
       achievers = await rewardsService.getBadgeAchievers(badgeId, 20);
@@ -202,7 +201,7 @@ export async function getLeaderboard(req: Request, res: Response) {
     const leaderboard = await rewardsService.getLeaderboard(
       cityId,
       period,
-      limit
+      limit,
     );
 
     res.status(200).json({
@@ -247,7 +246,7 @@ export async function awardPoints(req: Request, res: Response) {
       cityId,
       points,
       "admin_bonus",
-      description
+      description,
     );
 
     res.status(200).json({
@@ -271,12 +270,7 @@ export async function awardPoints(req: Request, res: Response) {
 export async function checkBadges(req: Request, res: Response) {
   try {
     const { id: userId } = req.params;
-    const cityId = req.user?.cityId || "unknown";
-
-    const newBadges = await rewardsService.checkAndAwardBadges(
-      userId,
-      cityId
-    );
+    const newBadges = await rewardsService.checkAndAwardBadges(userId);
 
     res.status(200).json({
       success: true,

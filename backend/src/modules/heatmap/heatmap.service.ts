@@ -1,9 +1,6 @@
-import { getFirestore } from "../../config/firebase";
-import { Issue, IssueStatus, IssuePriority } from "../../types";
+import { Issue as IssueModel } from "../../models/Issue";
+import { Issue as IssueType, IssueStatus, IssuePriority } from "../../types";
 import { calculateDistance } from "../issues/issues.service";
-import { firestore as adminFirestore } from "firebase-admin";
-
-const firestore = getFirestore();
 
 /**
  * GeoJSON Feature for heatmap point
@@ -57,7 +54,7 @@ export interface HeatmapGeoJSON {
 interface HeatmapPoint {
   latitude: number;
   longitude: number;
-  issues: Issue[];
+  issues: IssueType[];
   weight: number;
   intensity: number;
 }
@@ -156,102 +153,44 @@ export async function getHeatmapData(
     );
   }
 
-  // Build query with minimal filters to avoid index requirements
-  // We'll filter the rest in memory
-  let query = firestore
-    .collection("issues")
-    .where("cityId", "==", filters.cityId);
+  // Build MongoDB query with minimal filters
+  let query: any = { cityId: filters.cityId };
 
-  // Only apply date range filters at database level (most important for performance)
-  // This requires a simple composite index: cityId + createdAt
-  if (filters.startDate && filters.endDate) {
-    // Use date range query (requires index: cityId, createdAt)
-    query = query
-      .where(
-        "createdAt",
-        ">=",
-        adminFirestore.Timestamp.fromDate(filters.startDate),
-      )
-      .where(
-        "createdAt",
-        "<=",
-        adminFirestore.Timestamp.fromDate(filters.endDate),
-      );
-  } else if (filters.startDate) {
-    query = query.where(
-      "createdAt",
-      ">=",
-      adminFirestore.Timestamp.fromDate(filters.startDate),
-    );
-  } else if (filters.endDate) {
-    query = query.where(
-      "createdAt",
-      "<=",
-      adminFirestore.Timestamp.fromDate(filters.endDate),
-    );
-  }
-
-  // Add limit to prevent quota exhaustion
-  query = query.limit(10000);
-
-  // Fetch all matching issues
-  let snapshot;
-  try {
-    snapshot = await query.get();
-  } catch (error: any) {
-    // Handle Firestore index errors
-    if (error?.code === 9 || error?.message?.includes("index")) {
-      const indexUrl = error?.message?.match(
-        /https:\/\/console\.firebase\.google\.com[^\s]+/,
-      )?.[0];
-
-      console.warn("⚠️  Firestore index required for optimal performance.");
-      console.warn("   Error:", error.message);
-      if (indexUrl) {
-        console.warn("   Create index at:", indexUrl);
-      } else {
-        console.warn(
-          "   Required index: issues collection, fields: cityId (Ascending), createdAt (Ascending)",
-        );
-        console.warn(
-          "   Create at: https://console.firebase.google.com/project/ciis-2882b/firestore/indexes",
-        );
-      }
-
-      // Fallback: Query without date range and filter in memory with limit
-      console.warn(
-        "   Falling back to in-memory date filtering (slower but works without index)",
-      );
-      const fallbackQuery = firestore
-        .collection("issues")
-        .where("cityId", "==", filters.cityId)
-        .limit(10000);
-
-      snapshot = await fallbackQuery.get();
-    } else {
-      throw error;
+  // Add date range filters
+  if (filters.startDate || filters.endDate) {
+    query.createdAt = {};
+    if (filters.startDate) {
+      query.createdAt.$gte = filters.startDate;
+    }
+    if (filters.endDate) {
+      query.createdAt.$lte = filters.endDate;
     }
   }
 
-  let issues: Issue[] = snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as Issue[];
-
-  // Apply date filters in memory if we used fallback query
-  // (This happens if the index doesn't exist and we fall back to basic query)
-  if (filters.startDate || filters.endDate) {
-    issues = issues.filter((issue) => {
-      if (!issue.createdAt) return false;
-
-      const issueDate = (issue.createdAt as adminFirestore.Timestamp).toDate();
-
-      if (filters.startDate && issueDate < filters.startDate) return false;
-      if (filters.endDate && issueDate > filters.endDate) return false;
-
-      return true;
-    });
+  // Fetch all matching issues with limit
+  let issues: IssueType[] = [];
+  try {
+    issues = (await IssueModel.find(query)
+      .limit(10000)
+      .lean()) as unknown as IssueType[];
+  } catch (error: any) {
+    console.error("❌ Error fetching heatmap data from MongoDB:", error);
+    throw new Error("Failed to fetch heatmap data");
   }
+
+  // Apply additional filters in memory
+  issues = issues.filter((issue) => {
+    // Date filtering (backup in case it wasn't in query)
+    if (
+      filters.startDate &&
+      issue.createdAt &&
+      issue.createdAt < filters.startDate
+    )
+      return false;
+    if (filters.endDate && issue.createdAt && issue.createdAt > filters.endDate)
+      return false;
+    return true;
+  });
 
   // Apply remaining filters in memory (avoids complex index requirements)
   console.log(`🔍 Heatmap filter - Initial issues: ${issues.length}`);
@@ -266,8 +205,7 @@ export async function getHeatmapData(
 
   if (filters.zoneIds && filters.zoneIds.length > 0) {
     issues = issues.filter(
-      (issue) =>
-        issue.zoneId && filters.zoneIds!.includes(issue.zoneId),
+      (issue) => issue.zoneId && filters.zoneIds!.includes(issue.zoneId),
     );
     console.log(`   After zoneIds filter: ${issues.length} issues`);
   }
@@ -317,7 +255,7 @@ export async function getHeatmapData(
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - filters.maxAge);
     issues = issues.filter((issue) => {
-      const createdAt = issue.createdAt.toDate();
+      const createdAt = issue.createdAt;
       return createdAt >= cutoffDate;
     });
     console.log(`   After maxAge filter: ${issues.length} issues`);
@@ -360,7 +298,7 @@ export async function getHeatmapData(
  * Aggregate issues by location (group nearby issues)
  */
 function aggregateByLocation(
-  issues: Issue[],
+  issues: IssueType[],
   gridSize: number = 50, // meters
 ): HeatmapPoint[] {
   const points: HeatmapPoint[] = [];
@@ -376,7 +314,7 @@ function aggregateByLocation(
     }
 
     // Find nearby issues within grid size
-    const nearbyIssues: Issue[] = [issue];
+    const nearbyIssues: IssueType[] = [issue];
     processed.add(issue.id);
 
     for (const otherIssue of issues) {
@@ -435,7 +373,7 @@ function applyTimeDecay(
     let totalDecayWeight = 0;
 
     for (const issue of point.issues) {
-      const age = now.getTime() - issue.createdAt.toDate().getTime();
+      const age = now.getTime() - issue.createdAt.getTime();
       const normalizedAge = Math.min(age / maxAge, 1); // 0 to 1
 
       // Exponential decay: weight = e^(-decayFactor * age)
@@ -640,7 +578,7 @@ function formatAsGeoJSON(
   const features: HeatmapFeature[] = points.map((point) => {
     const priorities = point.issues.map((i) => i.priority);
     const categories = [...new Set(point.issues.map((i) => i.category))];
-    const reportedDates = point.issues.map((i) => i.createdAt.toDate());
+    const reportedDates = point.issues.map((i) => i.createdAt);
     const avgSeverity =
       point.issues.reduce((sum, i) => sum + i.severity, 0) /
       point.issues.length;

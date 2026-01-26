@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { User } from "../models/User";
-import { extractToken, verifyAccessToken, JWTPayload } from "../utils/jwt";
+import { extractToken, verifyAccessToken } from "../utils/jwt";
 
 // Custom user type for authenticated requests
 export interface AuthUser {

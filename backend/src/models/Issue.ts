@@ -1,6 +1,11 @@
 import mongoose, { Schema, Document, Types } from "mongoose";
 
 /**
+ * Issue Status Type
+ */
+export type IssueStatus = "open" | "in_progress" | "resolved" | "closed";
+
+/**
  * Issue Document Interface
  * Represents infrastructure issues reported by citizens
  */
@@ -56,6 +61,10 @@ export interface IIssue extends Document {
   aiPredictedRecurrence?: boolean;
   aiRecommendations?: string[];
   aiSummary?: string;
+
+  // Resolution tracking
+  resolvedBy?: Types.ObjectId;
+  resolutionNotes?: string;
 
   // Timestamps
   createdAt: Date;
@@ -225,6 +234,16 @@ const IssueSchema = new Schema<IIssue>(
     },
     aiSummary: {
       type: String,
+    },
+
+    // Resolution tracking
+    resolvedBy: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+    },
+    resolutionNotes: {
+      type: String,
+      maxlength: 1000,
     },
 
     // Timestamp

@@ -1,8 +1,6 @@
-import { getFirestore, COLLECTIONS } from "../../config/firebase";
-import { Issue } from "../../types";
-import admin from "firebase-admin";
-
-const db = getFirestore();
+import { Issue as IssueModel } from "../../models/Issue";
+import { Vote as VoteModel } from "../../models/Vote";
+import { User as UserModel } from "../../models/User";
 
 /**
  * Cast a vote on an issue
@@ -10,14 +8,13 @@ const db = getFirestore();
 export async function voteOnIssue(
   issueId: string,
   userId: string,
-  cityId: string
+  cityId: string,
 ): Promise<{ success: boolean; message: string; voteCount: number }> {
   try {
     // Check if issue exists
-    const issueRef = db.collection(COLLECTIONS.ISSUES).doc(issueId);
-    const issueDoc = await issueRef.get();
+    const issueDoc = await IssueModel.findById(issueId).lean();
 
-    if (!issueDoc.exists) {
+    if (!issueDoc) {
       return {
         success: false,
         message: "Issue not found",
@@ -25,7 +22,7 @@ export async function voteOnIssue(
       };
     }
 
-    const issue = issueDoc.data() as Issue;
+    const issue = issueDoc as any;
 
     // Prevent voting on own issues
     if (issue.reportedBy === userId) {
@@ -55,57 +52,35 @@ export async function voteOnIssue(
       };
     }
 
-    // Use transaction to ensure consistency
-    const result = await db.runTransaction(async (transaction) => {
-      // Re-read issue in transaction
-      const freshIssueDoc = await transaction.get(issueRef);
-      if (!freshIssueDoc.exists) {
-        throw new Error("Issue not found");
-      }
+    // Update issue with vote
+    const newVoteCount = (issue.voteCount || 0) + 1;
+    const newVotedBy = [...votedBy, userId];
 
-      const freshIssue = freshIssueDoc.data() as Issue;
-      const freshVotedBy = freshIssue.votedBy || [];
-
-      // Double-check vote hasn't been added by another transaction
-      if (freshVotedBy.includes(userId)) {
-        throw new Error("Vote already cast");
-      }
-
-      const newVoteCount = (freshIssue.voteCount || 0) + 1;
-      const newVotedBy = [...freshVotedBy, userId];
-
-      // Update issue with vote
-      transaction.update(issueRef, {
-        voteCount: newVoteCount,
-        votedBy: newVotedBy,
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
-
-      // Create vote record
-      const voteRef = db.collection(COLLECTIONS.VOTES).doc();
-      transaction.set(voteRef, {
-        id: voteRef.id,
-        issueId,
-        userId,
-        cityId,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
-
-      return newVoteCount;
+    await IssueModel.findByIdAndUpdate(issueId, {
+      voteCount: newVoteCount,
+      votedBy: newVotedBy,
+      updatedAt: new Date(),
     });
 
+    // Create vote record
+    await new VoteModel({
+      issueId,
+      userId,
+      cityId,
+      createdAt: new Date(),
+    }).save();
+
+    const result = newVoteCount;
+
     // Award points to voter (async, don't wait)
-    awardVotingPoints(userId, issueId, cityId, "vote_cast").catch(
-      (err) => console.error("Error awarding vote points:", err)
+    awardVotingPoints(userId, issueId, cityId, "vote_cast").catch((err) =>
+      console.error("Error awarding vote points:", err),
     );
 
     // Award points to issue reporter (async, don't wait)
-    awardVotingPoints(
-      issue.reportedBy,
-      issueId,
-      cityId,
-      "vote_received"
-    ).catch((err) => console.error("Error awarding reporter points:", err));
+    awardVotingPoints(issue.reportedBy, issueId, cityId, "vote_received").catch(
+      (err) => console.error("Error awarding reporter points:", err),
+    );
 
     return {
       success: true,
@@ -127,14 +102,13 @@ export async function voteOnIssue(
  */
 export async function unvoteOnIssue(
   issueId: string,
-  userId: string
+  userId: string,
 ): Promise<{ success: boolean; message: string; voteCount: number }> {
   try {
     // Check if issue exists
-    const issueRef = db.collection(COLLECTIONS.ISSUES).doc(issueId);
-    const issueDoc = await issueRef.get();
+    const issueDoc = await IssueModel.findById(issueId).lean();
 
-    if (!issueDoc.exists) {
+    if (!issueDoc) {
       return {
         success: false,
         message: "Issue not found",
@@ -142,7 +116,7 @@ export async function unvoteOnIssue(
       };
     }
 
-    const issue = issueDoc.data() as Issue;
+    const issue = issueDoc as any;
 
     // Check if user has voted
     const votedBy = issue.votedBy || [];
@@ -154,51 +128,23 @@ export async function unvoteOnIssue(
       };
     }
 
-    // Use transaction to ensure consistency
-    const result = await db.runTransaction(async (transaction) => {
-      // Re-read issue in transaction
-      const freshIssueDoc = await transaction.get(issueRef);
-      if (!freshIssueDoc.exists) {
-        throw new Error("Issue not found");
-      }
+    // Update issue
+    const newVoteCount = Math.max(0, (issue.voteCount || 0) - 1);
+    const newVotedBy = votedBy.filter((id: string) => id !== userId);
 
-      const freshIssue = freshIssueDoc.data() as Issue;
-      const freshVotedBy = freshIssue.votedBy || [];
-
-      // Double-check vote exists
-      if (!freshVotedBy.includes(userId)) {
-        throw new Error("Vote not found");
-      }
-
-      const newVoteCount = Math.max(0, (freshIssue.voteCount || 0) - 1);
-      const newVotedBy = freshVotedBy.filter((id) => id !== userId);
-
-      // Update issue
-      transaction.update(issueRef, {
-        voteCount: newVoteCount,
-        votedBy: newVotedBy,
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
-
-      // Delete vote record
-      const voteQuery = await db
-        .collection(COLLECTIONS.VOTES)
-        .where("issueId", "==", issueId)
-        .where("userId", "==", userId)
-        .limit(1)
-        .get();
-
-      if (!voteQuery.empty) {
-        transaction.delete(voteQuery.docs[0].ref);
-      }
-
-      return newVoteCount;
+    await IssueModel.findByIdAndUpdate(issueId, {
+      voteCount: newVoteCount,
+      votedBy: newVotedBy,
+      updatedAt: new Date(),
     });
+
+    // Delete vote record
+    await VoteModel.deleteOne({ issueId, userId });
 
     return {
       success: true,
       message: "Vote removed successfully",
-      voteCount: result,
+      voteCount: newVoteCount,
     };
   } catch (error: any) {
     console.error("Error unvoting on issue:", error);
@@ -215,22 +161,17 @@ export async function unvoteOnIssue(
  */
 export async function getIssueVotes(issueId: string): Promise<{
   voteCount: number;
-  voters: Array<{ userId: string; votedAt: admin.firestore.Timestamp }>;
+  voters: Array<{ userId: string; votedAt: Date }>;
 }> {
   try {
-    const votesSnapshot = await db
-      .collection(COLLECTIONS.VOTES)
-      .where("issueId", "==", issueId)
-      .orderBy("createdAt", "desc")
-      .get();
+    const votes = await VoteModel.find({ issueId })
+      .sort({ createdAt: -1 })
+      .lean();
 
-    const voters = votesSnapshot.docs.map((doc) => {
-      const data = doc.data();
-      return {
-        userId: data.userId,
-        votedAt: data.createdAt,
-      };
-    });
+    const voters = votes.map((vote: any) => ({
+      userId: vote.userId.toString(),
+      votedAt: vote.createdAt,
+    }));
 
     return {
       voteCount: voters.length,
@@ -250,12 +191,9 @@ export async function getIssueVotes(issueId: string): Promise<{
  */
 export async function getUserVotes(userId: string): Promise<string[]> {
   try {
-    const votesSnapshot = await db
-      .collection(COLLECTIONS.VOTES)
-      .where("userId", "==", userId)
-      .get();
+    const votes = await VoteModel.find({ userId }).lean();
 
-    return votesSnapshot.docs.map((doc) => doc.data().issueId);
+    return votes.map((vote: any) => vote.issueId.toString());
   } catch (error) {
     console.error("Error getting user votes:", error);
     return [];
@@ -267,17 +205,12 @@ export async function getUserVotes(userId: string): Promise<string[]> {
  */
 export async function hasUserVoted(
   issueId: string,
-  userId: string
+  userId: string,
 ): Promise<boolean> {
   try {
-    const voteQuery = await db
-      .collection(COLLECTIONS.VOTES)
-      .where("issueId", "==", issueId)
-      .where("userId", "==", userId)
-      .limit(1)
-      .get();
+    const vote = await VoteModel.findOne({ issueId, userId }).lean();
 
-    return !voteQuery.empty;
+    return !!vote;
   } catch (error) {
     console.error("Error checking vote:", error);
     return false;
@@ -289,60 +222,40 @@ export async function hasUserVoted(
  */
 async function awardVotingPoints(
   userId: string,
-  issueId: string,
+  _issueId: string,
   cityId: string,
-  type: "vote_cast" | "vote_received"
+  type: "vote_cast" | "vote_received",
 ): Promise<void> {
   const points = type === "vote_cast" ? 2 : 5;
 
   try {
-    const userRef = db.collection(COLLECTIONS.USERS).doc(userId);
+    const userDoc = await UserModel.findById(userId).lean();
+    if (!userDoc) return;
 
-    await db.runTransaction(async (transaction) => {
-      const userDoc = await transaction.get(userRef);
-      if (!userDoc.exists) return;
+    const userData = userDoc as any;
+    const currentPoints = userData.rewardPoints || 0;
+    const currentStats = userData.statistics || {};
 
-      const userData = userDoc.data();
-      const currentPoints = userData?.rewardPoints || 0;
-      const currentStats = userData?.statistics || {};
-
-      // Update points and statistics
-      transaction.update(userRef, {
-        rewardPoints: currentPoints + points,
-        level: calculateLevel(currentPoints + points),
-        "statistics.votesReceived":
-          type === "vote_received"
-            ? (currentStats.votesReceived || 0) + 1
-            : currentStats.votesReceived || 0,
-        "statistics.votesCast":
-          type === "vote_cast"
-            ? (currentStats.votesCast || 0) + 1
-            : currentStats.votesCast || 0,
-      });
-
-      // Create transaction record
-      const transactionRef = db
-        .collection(COLLECTIONS.REWARD_TRANSACTIONS)
-        .doc();
-      transaction.set(transactionRef, {
-        id: transactionRef.id,
-        userId,
-        cityId,
-        type,
-        points,
-        relatedEntityId: issueId,
-        relatedEntityType: "issue",
-        description:
-          type === "vote_cast"
-            ? "Voted on an issue"
-            : "Received a vote on your issue",
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
+    // Update points and statistics
+    await UserModel.findByIdAndUpdate(userId, {
+      rewardPoints: currentPoints + points,
+      level: calculateLevel(currentPoints + points),
+      "statistics.votesReceived":
+        type === "vote_received"
+          ? (currentStats.votesReceived || 0) + 1
+          : currentStats.votesReceived || 0,
+      "statistics.votesCast":
+        type === "vote_cast"
+          ? (currentStats.votesCast || 0) + 1
+          : currentStats.votesCast || 0,
     });
+
+    // Transaction record not implemented
+    console.warn("Reward transaction record not implemented");
 
     // Check for badge eligibility (don't wait)
     checkAndAwardBadges(userId, cityId).catch((err) =>
-      console.error("Error checking badges:", err)
+      console.error("Error checking badges:", err),
     );
   } catch (error) {
     console.error("Error awarding voting points:", error);
@@ -371,7 +284,7 @@ function calculateLevel(points: number): number {
  */
 async function checkAndAwardBadges(
   _userId: string,
-  _cityId: string
+  _cityId: string,
 ): Promise<void> {
   // This will be fully implemented in rewards.service.ts
   // For now, just a placeholder

@@ -248,7 +248,7 @@ export class SSEService {
         };
         const data = await getHeatmapData(filters, config);
         this.setCachedHeatmap(cityId, data, updateIntervalMs);
-        this.broadcastHeatmapUpdate(cityId, undefined, data);
+        this.broadcastHeatmapUpdate(cityId, data);
       } catch (err) {
         console.error("Error in heatmap updater for city", cityId, err);
       }

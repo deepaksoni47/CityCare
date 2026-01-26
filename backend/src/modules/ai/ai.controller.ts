@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import * as geminiService from "./gemini.service";
-import { getFirestore } from "../../config/firebase";
+import { Issue as IssueModel } from "../../models/Issue";
+import { Zone as ZoneModel } from "../../models/Zone";
 
 /**
  * Generate AI insights for all issues
@@ -19,16 +20,14 @@ export async function generateGeneralInsights(_req: Request, res: Response) {
       return res.json({ success: true, data: cachedInsights.data });
     }
 
-    const db = getFirestore();
-    const issuesSnapshot = await db
-      .collection("issues")
-      .orderBy("createdAt", "desc")
+    const issues = await IssueModel.find({})
+      .sort({ createdAt: -1 })
       .limit(50)
-      .get();
+      .lean();
 
-    const issues = issuesSnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
+    const issueData = issues.map((doc: any) => ({
+      id: doc._id.toString(),
+      ...doc,
     }));
 
     if (issues.length === 0) {
@@ -38,7 +37,7 @@ export async function generateGeneralInsights(_req: Request, res: Response) {
       });
     }
 
-    const insights = await geminiService.analyzeIssuePatterns(issues);
+    const insights = await geminiService.analyzeIssuePatterns(issueData);
 
     const payload = {
       insights,
@@ -76,39 +75,35 @@ export async function generateZoneRisk(req: Request, res: Response) {
       });
     }
 
-    const db = getFirestore();
-
     // Get zone info
-    const zoneDoc = await db.collection("zones").doc(zoneId).get();
+    const zone = await ZoneModel.findById(zoneId).lean();
 
-    if (!zoneDoc.exists) {
+    if (!zone) {
       return res.status(404).json({
         error: "Zone not found",
         message: `Zone with ID ${zoneId} does not exist`,
       });
     }
 
-    const zone = zoneDoc.data();
-
     // Get recent issues for this zone (last 30 days) with limit
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const issuesSnapshot = await db
-      .collection("issues")
-      .where("zoneId", "==", zoneId)
-      .where("createdAt", ">=", thirtyDaysAgo)
+    const recentIssues = await IssueModel.find({
+      zoneId: zoneId,
+      createdAt: { $gte: thirtyDaysAgo },
+    })
       .limit(1000)
-      .get();
+      .lean();
 
-    const recentIssues = issuesSnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
+    const issueData = recentIssues.map((doc: any) => ({
+      id: doc._id.toString(),
+      ...doc,
     }));
 
     const riskAssessment = await geminiService.generateRiskAssessment(
-      zone?.name || zoneId,
-      recentIssues,
+      (zone as any)?.name || zoneId,
+      issueData,
     );
 
     res.json({
@@ -144,25 +139,24 @@ export async function generateIssueSummary(req: Request, res: Response) {
       });
     }
 
-    const db = getFirestore();
-    const issueDoc = await db.collection("issues").doc(issueId).get();
+    const issue = await IssueModel.findById(issueId).lean();
 
-    if (!issueDoc.exists) {
+    if (!issue) {
       return res.status(404).json({
         error: "Issue not found",
         message: `Issue with ID ${issueId} does not exist`,
       });
     }
 
-    const issue = { id: issueDoc.id, ...issueDoc.data() };
-    const summary = await geminiService.generateIssueSummary(issue);
+    const issueData = { id: (issue as any)._id.toString(), ...issue };
+    const summary = await geminiService.generateIssueSummary(issueData);
 
     res.json({
       success: true,
       data: {
         issueId,
         summary,
-        originalIssue: issue,
+        originalIssue: issueData,
       },
     });
   } catch (error: any) {
@@ -464,36 +458,36 @@ export async function getIncidentReport(req: Request, res: Response) {
       });
     }
 
-    const db = getFirestore();
-    const issueDoc = await db.collection("issues").doc(issueId).get();
+    const issue = await IssueModel.findById(issueId).lean();
 
-    if (!issueDoc.exists) {
+    if (!issue) {
       return res.status(404).json({
         error: "Issue not found",
         message: `Issue with ID ${issueId} does not exist`,
       });
     }
 
-    const issue = { id: issueDoc.id, ...issueDoc.data() };
+    const issueData = { id: (issue as any)._id.toString(), ...issue };
 
     // Get related issues (same category and zone, last 90 days)
     const ninetyDaysAgo = new Date();
     ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
 
-    const relatedSnapshot = await db
-      .collection("issues")
-      .where("zoneId", "==", (issue as any).zoneId)
-      .where("category", "==", (issue as any).category)
-      .where("createdAt", ">=", ninetyDaysAgo)
-      .get();
+    const relatedIssues = await IssueModel.find({
+      zoneId: (issue as any).zoneId,
+      category: (issue as any).category,
+      createdAt: { $gte: ninetyDaysAgo },
+      _id: { $ne: issueId },
+    }).lean();
 
-    const relatedIssues = relatedSnapshot.docs
-      .map((doc) => ({ id: doc.id, ...doc.data() }))
-      .filter((i: any) => i.id !== issueId);
+    const relatedIssuesData = relatedIssues.map((doc: any) => ({
+      id: doc._id.toString(),
+      ...doc,
+    }));
 
     const report = await geminiService.generateIncidentReport(
-      issue,
-      relatedIssues,
+      issueData,
+      relatedIssuesData,
     );
 
     res.json({
@@ -501,7 +495,7 @@ export async function getIncidentReport(req: Request, res: Response) {
       data: {
         issueId,
         report,
-        relatedIssuesCount: relatedIssues.length,
+        relatedIssuesCount: relatedIssuesData.length,
         generatedAt: new Date().toISOString(),
       },
     });

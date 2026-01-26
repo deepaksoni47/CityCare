@@ -1,9 +1,30 @@
-import { getFirestore } from "firebase-admin/firestore";
-import { Issue, IssueStatus } from "../../types";
-import { firestore } from "firebase-admin";
-import { firestoreCache } from "../../utils/firestore-cache";
+import { IssueStatus } from "../../types";
+import { Issue as IssueModel } from "../../models/Issue";
+import { Zone as ZoneModel } from "../../models/Zone";
+import { Room as RoomModel } from "../../models/Room";
 
-const db = getFirestore();
+const zoneCache = new Map<string, { data: string; expiresAt: number }>();
+const roomCache = new Map<string, { data: any; expiresAt: number }>();
+
+// Simple in-memory cache helper
+function getCache<T>(cache: Map<string, any>, key: string): T | null {
+  const item = cache.get(key);
+  if (!item) return null;
+  if (item.expiresAt < Date.now()) {
+    cache.delete(key);
+    return null;
+  }
+  return item.data;
+}
+
+function setCache<T>(
+  cache: Map<string, any>,
+  key: string,
+  value: T,
+  ttlMs: number,
+): void {
+  cache.set(key, { data: value, expiresAt: Date.now() + ttlMs });
+}
 
 /**
  * Batch fetch zone names with caching
@@ -16,7 +37,7 @@ async function getZoneNames(
 
   // Check cache first
   for (const id of zoneIds) {
-    const cached = firestoreCache.get<string>(`zone:${id}`);
+    const cached = getCache<string>(zoneCache, `zone:${id}`);
     if (cached) {
       zoneNamesMap[id] = cached;
     } else {
@@ -24,18 +45,18 @@ async function getZoneNames(
     }
   }
 
-  // Batch fetch uncached zones
+  // Batch fetch uncached zones from MongoDB
   if (idsToFetch.length > 0) {
-    const zoneDocs = await Promise.all(
-      idsToFetch.map((id) => db.collection("zones").doc(id).get()),
+    const zoneDocs = await ZoneModel.find({ _id: { $in: idsToFetch } }).lean();
+    const zoneMap = new Map(
+      zoneDocs.map((doc: any) => [doc._id.toString(), doc]),
     );
 
-    for (let i = 0; i < idsToFetch.length; i++) {
-      const zoneId = idsToFetch[i];
-      const doc = zoneDocs[i];
-      const name = doc.exists ? doc.get("name") || zoneId : zoneId;
+    for (const zoneId of idsToFetch) {
+      const doc = zoneMap.get(zoneId);
+      const name = doc ? doc.name || zoneId : zoneId;
       zoneNamesMap[zoneId] = name;
-      firestoreCache.set(`zone:${zoneId}`, name, 10 * 60 * 1000); // 10 min TTL
+      setCache(zoneCache, `zone:${zoneId}`, name, 10 * 60 * 1000); // 10 min TTL
     }
   }
 
@@ -53,7 +74,8 @@ async function getRoomData(
 
   // Check cache first
   for (const id of roomIds) {
-    const cached = firestoreCache.get<{ floor: number; roomNumber: string }>(
+    const cached = getCache<{ floor: number; roomNumber: string }>(
+      roomCache,
       `room:${id}`,
     );
     if (cached) {
@@ -63,22 +85,16 @@ async function getRoomData(
     }
   }
 
-  // Batch fetch uncached rooms
+  // Batch fetch uncached rooms from MongoDB
   if (idsToFetch.length > 0) {
-    const roomDocs = await Promise.all(
-      idsToFetch.map((id) => db.collection("rooms").doc(id).get()),
-    );
+    const roomDocs = await RoomModel.find({ _id: { $in: idsToFetch } }).lean();
 
-    for (let i = 0; i < idsToFetch.length; i++) {
-      const roomId = idsToFetch[i];
-      const doc = roomDocs[i];
-      if (doc.exists) {
-        const data = doc.data();
-        if (data && data.floor !== undefined && data.roomNumber) {
-          const roomData = { floor: data.floor, roomNumber: data.roomNumber };
-          roomDataMap[roomId] = roomData;
-          firestoreCache.set(`room:${roomId}`, roomData, 10 * 60 * 1000);
-        }
+    for (const doc of roomDocs) {
+      const roomId = (doc as any)._id.toString();
+      if (doc.floor !== undefined && doc.roomNumber) {
+        const roomData = { floor: doc.floor, roomNumber: doc.roomNumber };
+        roomDataMap[roomId] = roomData;
+        setCache(roomCache, `room:${roomId}`, roomData, 10 * 60 * 1000);
       }
     }
   }
@@ -88,7 +104,7 @@ async function getRoomData(
 
 /**
  * Get issues per zone over time
- * OPTIMIZED: Uses limit(), field projection, and caching for zone names
+ * OPTIMIZED: Uses MongoDB query and caching for zone names
  */
 export async function getIssuesPerZoneOverTime(
   cityId: string,
@@ -105,20 +121,14 @@ export async function getIssuesPerZoneOverTime(
     }>;
   }>;
 }> {
-  // Fetch issues with field projection to reduce data transfer (limit to 5000 to avoid quota overload)
-  const issuesSnapshot = await db
-    .collection("issues")
-    .where("cityId", "==", cityId)
-    .where("createdAt", ">=", firestore.Timestamp.fromDate(startDate))
-    .where("createdAt", "<=", firestore.Timestamp.fromDate(endDate))
-    .orderBy("createdAt", "asc")
+  // Fetch issues from MongoDB (limit to 5000 to avoid overload)
+  const issues = (await IssueModel.find({
+    cityId,
+    createdAt: { $gte: startDate, $lte: endDate },
+  })
+    .sort({ createdAt: 1 })
     .limit(5000)
-    .get();
-
-  const issues = issuesSnapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as Issue[];
+    .lean()) as any[];
 
   // Get zone names with batch fetching and caching
   const zoneIds = [...new Set(issues.map((i) => i.zoneId))];
@@ -129,7 +139,10 @@ export async function getIssuesPerZoneOverTime(
 
   issues.forEach((issue) => {
     const zoneId = issue.zoneId;
-    const createdAt = issue.createdAt.toDate();
+    const createdAt =
+      issue.createdAt instanceof Date
+        ? issue.createdAt
+        : new Date(issue.createdAt);
     const period = formatPeriod(createdAt, groupBy);
 
     if (!zoneData[zoneId]) {
@@ -158,7 +171,7 @@ export async function getIssuesPerZoneOverTime(
 
 /**
  * Get most common issue types
- * OPTIMIZED: Uses limit() to cap results at 10000 issues
+ * OPTIMIZED: Uses MongoDB queries with limit
  */
 export async function getMostCommonIssueTypes(
   cityId: string,
@@ -177,40 +190,24 @@ export async function getMostCommonIssueTypes(
   }>;
   totalIssues: number;
 }> {
-  let query: firestore.Query = db
-    .collection("issues")
-    .where("cityId", "==", cityId);
+  const queryObj: any = { cityId };
 
   if (zoneId) {
-    query = query.where("zoneId", "==", zoneId);
+    queryObj.zoneId = zoneId;
   }
 
-  if (startDate) {
-    query = query.where(
-      "createdAt",
-      ">=",
-      firestore.Timestamp.fromDate(startDate),
-    );
+  if (startDate || endDate) {
+    queryObj.createdAt = {};
+    if (startDate) {
+      queryObj.createdAt.$gte = startDate;
+    }
+    if (endDate) {
+      queryObj.createdAt.$lte = endDate;
+    }
   }
 
-  if (endDate) {
-    query = query.where(
-      "createdAt",
-      "<=",
-      firestore.Timestamp.fromDate(endDate),
-    );
-  }
-
-  // Add limit to prevent quota overload (10,000 issues max per query)
-  query = query.limit(10000);
-
-  const issuesSnapshot = await query.get();
-  const issues = issuesSnapshot.docs.map(
-    (doc: firestore.QueryDocumentSnapshot) => ({
-      id: doc.id,
-      ...doc.data(),
-    }),
-  ) as Issue[];
+  // Fetch issues from MongoDB (10,000 issues max per query)
+  const issues = (await IssueModel.find(queryObj).limit(10000).lean()) as any[];
 
   const totalIssues = issues.length;
 
@@ -290,41 +287,27 @@ export async function getResolutionTimeAverages(
     maxResolutionHours: number;
   }>;
 }> {
-  let query: firestore.Query = db
-    .collection("issues")
-    .where("cityId", "==", cityId)
-    .where("status", "==", IssueStatus.RESOLVED);
+  const queryObj: any = {
+    cityId,
+    status: IssueStatus.RESOLVED,
+  };
 
   if (zoneId) {
-    query = query.where("zoneId", "==", zoneId);
+    queryObj.zoneId = zoneId;
   }
 
-  if (startDate) {
-    query = query.where(
-      "createdAt",
-      ">=",
-      firestore.Timestamp.fromDate(startDate),
-    );
+  if (startDate || endDate) {
+    queryObj.createdAt = {};
+    if (startDate) {
+      queryObj.createdAt.$gte = startDate;
+    }
+    if (endDate) {
+      queryObj.createdAt.$lte = endDate;
+    }
   }
 
-  if (endDate) {
-    query = query.where(
-      "createdAt",
-      "<=",
-      firestore.Timestamp.fromDate(endDate),
-    );
-  }
-
-  // Add limit to prevent quota overload
-  query = query.limit(10000);
-
-  const issuesSnapshot = await query.get();
-  const issues = issuesSnapshot.docs.map(
-    (doc: firestore.QueryDocumentSnapshot) => ({
-      id: doc.id,
-      ...doc.data(),
-    }),
-  ) as Issue[];
+  // Fetch issues from MongoDB (10,000 issues max per query)
+  const issues = (await IssueModel.find(queryObj).limit(10000).lean()) as any[];
 
   // Calculate resolution times
   const resolutionTimes: number[] = [];
@@ -332,9 +315,16 @@ export async function getResolutionTimeAverages(
 
   issues.forEach((issue) => {
     if (issue.resolvedAt && issue.createdAt) {
+      const resolvedAtTime =
+        issue.resolvedAt instanceof Date
+          ? issue.resolvedAt.getTime()
+          : new Date(issue.resolvedAt).getTime();
+      const createdAtTime =
+        issue.createdAt instanceof Date
+          ? issue.createdAt.getTime()
+          : new Date(issue.createdAt).getTime();
       const resolutionHours =
-        (issue.resolvedAt.toMillis() - issue.createdAt.toMillis()) /
-        (1000 * 60 * 60);
+        (resolvedAtTime - createdAtTime) / (1000 * 60 * 60);
 
       resolutionTimes.push(resolutionHours);
 
@@ -396,14 +386,8 @@ export async function getResolutionTimeAverages(
     const zoneNames: Record<string, string> = {};
     if (groupBy === "zone") {
       const zoneIds = Object.keys(groupedData);
-      for (const zoneId of zoneIds) {
-        const zoneDoc = await db.collection("zones").doc(zoneId).get();
-        if (zoneDoc.exists) {
-          zoneNames[zoneId] = zoneDoc.data()?.name || zoneId;
-        } else {
-          zoneNames[zoneId] = zoneId;
-        }
-      }
+      const zoneNames2 = await getZoneNames(zoneIds);
+      Object.assign(zoneNames, zoneNames2);
     }
 
     for (const [group, times] of Object.entries(groupedData)) {
@@ -433,7 +417,7 @@ export async function getResolutionTimeAverages(
 
 /**
  * Get comprehensive trend analysis
- * OPTIMIZED: Added limit() to cap query results
+ * OPTIMIZED: Uses MongoDB queries with limit
  */
 export async function getComprehensiveTrends(
   cityId: string,
@@ -450,30 +434,28 @@ export async function getComprehensiveTrends(
     categoryCounts: Record<string, number>;
   }>;
 }> {
-  const issuesSnapshot = await db
-    .collection("issues")
-    .where("cityId", "==", cityId)
-    .where("createdAt", ">=", firestore.Timestamp.fromDate(startDate))
-    .where("createdAt", "<=", firestore.Timestamp.fromDate(endDate))
-    .orderBy("createdAt", "asc")
+  const issues = (await IssueModel.find({
+    cityId,
+    createdAt: { $gte: startDate, $lte: endDate },
+  })
+    .sort({ createdAt: 1 })
     .limit(10000)
-    .get();
-
-  const issues = issuesSnapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as Issue[];
+    .lean()) as any[];
 
   // Group by period
   const periodData: Record<
     string,
     {
-      issues: Issue[];
+      issues: any[];
     }
   > = {};
 
   issues.forEach((issue) => {
-    const period = formatPeriod(issue.createdAt.toDate(), groupBy);
+    const createdAtDate =
+      issue.createdAt instanceof Date
+        ? issue.createdAt
+        : new Date(issue.createdAt);
+    const period = formatPeriod(createdAtDate, groupBy);
 
     if (!periodData[period]) {
       periodData[period] = { issues: [] };
@@ -563,20 +545,14 @@ export async function detectRecurringIssues(
     endDate.getTime() - timeWindowDays * 24 * 60 * 60 * 1000,
   );
 
-  // Fetch all issues in the time window with limit
-  const issuesSnapshot = await db
-    .collection("issues")
-    .where("cityId", "==", cityId)
-    .where("createdAt", ">=", firestore.Timestamp.fromDate(startDate))
-    .where("createdAt", "<=", firestore.Timestamp.fromDate(endDate))
-    .orderBy("createdAt", "desc")
+  // Fetch all issues in the time window with limit from MongoDB
+  const issues = (await IssueModel.find({
+    cityId,
+    createdAt: { $gte: startDate, $lte: endDate },
+  })
+    .sort({ createdAt: -1 })
     .limit(10000)
-    .get();
-
-  const issues = issuesSnapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as Issue[];
+    .lean()) as any[];
 
   // Batch fetch room data with caching
   const uniqueRoomIds = [
@@ -585,7 +561,7 @@ export async function detectRecurringIssues(
   const roomDataMap = await getRoomData(uniqueRoomIds);
 
   // Group issues by category and location
-  const issueGroups: Record<string, Issue[]> = {};
+  const issueGroups: Record<string, any[]> = {};
 
   issues.forEach((issue) => {
     // Get floor info from room if available
@@ -653,9 +629,17 @@ export async function detectRecurringIssues(
       const openIssuesCount = groupIssues.filter(
         (i) => i.status === IssueStatus.OPEN,
       ).length;
+
+      const firstCreatedTime =
+        firstIssue.createdAt instanceof Date
+          ? firstIssue.createdAt.getTime()
+          : new Date(firstIssue.createdAt).getTime();
+      const lastCreatedTime =
+        lastIssue.createdAt instanceof Date
+          ? lastIssue.createdAt.getTime()
+          : new Date(lastIssue.createdAt).getTime();
       const daysBetween =
-        (lastIssue.createdAt.toMillis() - firstIssue.createdAt.toMillis()) /
-        (1000 * 60 * 60 * 24);
+        (lastCreatedTime - firstCreatedTime) / (1000 * 60 * 60 * 24);
       const recurrenceFrequency =
         occurrences > 1 ? daysBetween / (occurrences - 1) : 0;
 
@@ -675,14 +659,23 @@ export async function detectRecurringIssues(
         zone,
         locationKey,
         occurrences,
-        firstOccurrence: firstIssue.createdAt.toDate().toISOString(),
-        lastOccurrence: lastIssue.createdAt.toDate().toISOString(),
+        firstOccurrence: (firstIssue.createdAt instanceof Date
+          ? firstIssue.createdAt
+          : new Date(firstIssue.createdAt)
+        ).toISOString(),
+        lastOccurrence: (lastIssue.createdAt instanceof Date
+          ? lastIssue.createdAt
+          : new Date(lastIssue.createdAt)
+        ).toISOString(),
         isRecurringRisk,
         issues: groupIssues.map((issue) => ({
-          issueId: issue.id,
+          issueId: issue._id?.toString() || issue.id,
           title: issue.title,
           status: issue.status,
-          createdAt: issue.createdAt.toDate().toISOString(),
+          createdAt: (issue.createdAt instanceof Date
+            ? issue.createdAt
+            : new Date(issue.createdAt)
+          ).toISOString(),
           severity: issue.severity || 0,
           location: issue.location
             ? {
@@ -793,29 +786,29 @@ export async function getAdminMetrics(
 
   // ========== MTTR Calculation ==========
 
-  // Fetch all resolved issues in the time window with limit
-  const resolvedIssuesSnapshot = await db
-    .collection("issues")
-    .where("cityId", "==", cityId)
-    .where("status", "==", IssueStatus.RESOLVED)
-    .where("resolvedAt", ">=", firestore.Timestamp.fromDate(startDate))
-    .where("resolvedAt", "<=", firestore.Timestamp.fromDate(endDate))
+  // Fetch all resolved issues in the time window with limit from MongoDB
+  const resolvedIssues = (await IssueModel.find({
+    cityId,
+    status: IssueStatus.RESOLVED,
+    resolvedAt: { $gte: startDate, $lte: endDate },
+  })
     .limit(10000)
-    .get();
-
-  const resolvedIssues = resolvedIssuesSnapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as Issue[];
+    .lean()) as any[];
 
   // Calculate resolution times
-  const resolutionTimes: Array<{ issue: Issue; hours: number }> = [];
+  const resolutionTimes: Array<{ issue: any; hours: number }> = [];
 
   resolvedIssues.forEach((issue) => {
     if (issue.resolvedAt && issue.createdAt) {
-      const hours =
-        (issue.resolvedAt.toMillis() - issue.createdAt.toMillis()) /
-        (1000 * 60 * 60);
+      const resolvedAtTime =
+        issue.resolvedAt instanceof Date
+          ? issue.resolvedAt.getTime()
+          : new Date(issue.resolvedAt).getTime();
+      const createdAtTime =
+        issue.createdAt instanceof Date
+          ? issue.createdAt.getTime()
+          : new Date(issue.createdAt).getTime();
+      const hours = (resolvedAtTime - createdAtTime) / (1000 * 60 * 60);
       resolutionTimes.push({ issue, hours });
     }
   });
@@ -896,7 +889,12 @@ export async function getAdminMetrics(
   // MTTR trend (weekly over the time window)
   const weeklyMTTR: Record<string, { total: number; count: number }> = {};
   resolutionTimes.forEach(({ issue, hours }) => {
-    const week = formatPeriod(issue.resolvedAt!.toDate(), "week");
+    const week = formatPeriod(
+      issue.resolvedAt instanceof Date
+        ? issue.resolvedAt
+        : new Date(issue.resolvedAt),
+      "week",
+    );
     if (!weeklyMTTR[week]) {
       weeklyMTTR[week] = { total: 0, count: 0 };
     }
@@ -913,22 +911,17 @@ export async function getAdminMetrics(
 
   // ========== High-Risk Zones ==========
 
-  // Fetch all open issues with limit
-  const openIssuesSnapshot = await db
-    .collection("issues")
-    .where("cityId", "==", cityId)
-    .where("status", "in", [IssueStatus.OPEN, IssueStatus.IN_PROGRESS])
+  // Fetch all open issues with limit from MongoDB
+  const openIssuesData = (await IssueModel.find({
+    cityId,
+    status: { $in: [IssueStatus.OPEN, IssueStatus.IN_PROGRESS] },
+  })
     .limit(10000)
-    .get();
-
-  const openIssues = openIssuesSnapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as Issue[];
+    .lean()) as any[];
 
   // Group issues by zone
-  const zoneIssues: Record<string, Issue[]> = {};
-  openIssues.forEach((issue) => {
+  const zoneIssues: Record<string, any[]> = {};
+  openIssuesData.forEach((issue) => {
     if (!zoneIssues[issue.zoneId]) {
       zoneIssues[issue.zoneId] = [];
     }
@@ -962,7 +955,11 @@ export async function getAdminMetrics(
       const now = new Date();
       const avgAge =
         issues.reduce((sum, i) => {
-          const age = now.getTime() - i.createdAt.toDate().getTime();
+          const age =
+            now.getTime() -
+            (i.createdAt instanceof Date
+              ? i.createdAt.getTime()
+              : new Date(i.createdAt).getTime());
           return sum + age / (1000 * 60 * 60 * 24); // Convert to days
         }, 0) / openCount;
 
@@ -1000,19 +997,13 @@ export async function getAdminMetrics(
 
   // ========== Issue Growth Rate ==========
 
-  // Fetch all issues in current period with limit
-  const currentIssuesSnapshot = await db
-    .collection("issues")
-    .where("cityId", "==", cityId)
-    .where("createdAt", ">=", firestore.Timestamp.fromDate(startDate))
-    .where("createdAt", "<=", firestore.Timestamp.fromDate(endDate))
+  // Fetch all issues in current period with limit from MongoDB
+  const currentIssues = (await IssueModel.find({
+    cityId,
+    createdAt: { $gte: startDate, $lte: endDate },
+  })
     .limit(10000)
-    .get();
-
-  const currentIssues = currentIssuesSnapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as Issue[];
+    .lean()) as any[];
 
   const currentPeriodStats = {
     total: currentIssues.length,
@@ -1032,18 +1023,12 @@ export async function getAdminMetrics(
       prevEndDate.getTime() - comparisonTimeWindowDays * 24 * 60 * 60 * 1000,
     );
 
-    const previousIssuesSnapshot = await db
-      .collection("issues")
-      .where("cityId", "==", cityId)
-      .where("createdAt", ">=", firestore.Timestamp.fromDate(prevStartDate))
-      .where("createdAt", "<=", firestore.Timestamp.fromDate(prevEndDate))
+    const previousIssues = (await IssueModel.find({
+      cityId,
+      createdAt: { $gte: prevStartDate, $lte: prevEndDate },
+    })
       .limit(10000)
-      .get();
-
-    const previousIssues = previousIssuesSnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    })) as Issue[];
+      .lean()) as any[];
 
     previousPeriodStats = {
       total: previousIssues.length,
@@ -1068,7 +1053,12 @@ export async function getAdminMetrics(
     { total: number; open: number; resolved: number }
   > = {};
   currentIssues.forEach((issue) => {
-    const day = formatPeriod(issue.createdAt.toDate(), "day");
+    const day = formatPeriod(
+      issue.createdAt instanceof Date
+        ? issue.createdAt
+        : new Date(issue.createdAt),
+      "day",
+    );
     if (!dailyTrend[day]) {
       dailyTrend[day] = { total: 0, open: 0, resolved: 0 };
     }
@@ -1188,18 +1178,12 @@ async function generateIssuesCSV(
   startDate: Date,
   endDate: Date,
 ): Promise<string> {
-  const issuesSnapshot = await db
-    .collection("issues")
-    .where("cityId", "==", cityId)
-    .where("createdAt", ">=", firestore.Timestamp.fromDate(startDate))
-    .where("createdAt", "<=", firestore.Timestamp.fromDate(endDate))
-    .orderBy("createdAt", "desc")
-    .get();
-
-  const issues = issuesSnapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as Issue[];
+  const issues = (await IssueModel.find({
+    cityId,
+    createdAt: { $gte: startDate, $lte: endDate },
+  })
+    .sort({ createdAt: -1 })
+    .lean()) as any[];
 
   // CSV Header
   const headers = [
@@ -1220,21 +1204,32 @@ async function generateIssuesCSV(
     const resolutionTime =
       issue.resolvedAt && issue.createdAt
         ? (
-            (issue.resolvedAt.toMillis() - issue.createdAt.toMillis()) /
+            ((issue.resolvedAt instanceof Date
+              ? issue.resolvedAt.getTime()
+              : new Date(issue.resolvedAt).getTime()) -
+              (issue.createdAt instanceof Date
+                ? issue.createdAt.getTime()
+                : new Date(issue.createdAt).getTime())) /
             (1000 * 60 * 60)
           ).toFixed(2)
         : "N/A";
 
     return [
-      issue.id,
+      issue._id?.toString() || issue.id,
       `"${issue.title.replace(/"/g, '""')}"`,
       issue.category,
       issue.status,
       issue.priority || "N/A",
       issue.severity || "N/A",
       issue.zoneId,
-      issue.createdAt.toDate().toISOString(),
-      issue.resolvedAt?.toDate().toISOString() || "N/A",
+      issue.createdAt instanceof Date
+        ? issue.createdAt.toISOString()
+        : new Date(issue.createdAt).toISOString(),
+      issue.resolvedAt
+        ? issue.resolvedAt instanceof Date
+          ? issue.resolvedAt.toISOString()
+          : new Date(issue.resolvedAt).toISOString()
+        : "N/A",
       resolutionTime,
       issue.reportedBy,
     ];
@@ -1475,31 +1470,17 @@ export async function generateSnapshotReport(
     startDate.getTime() - days * 24 * 60 * 60 * 1000,
   );
 
-  // Fetch current period issues
-  const currentIssuesSnapshot = await db
-    .collection("issues")
-    .where("cityId", "==", cityId)
-    .where("createdAt", ">=", firestore.Timestamp.fromDate(startDate))
-    .where("createdAt", "<=", firestore.Timestamp.fromDate(endDate))
-    .get();
+  // Fetch current period issues from MongoDB
+  const currentIssues = (await IssueModel.find({
+    cityId,
+    createdAt: { $gte: startDate, $lte: endDate },
+  }).lean()) as any[];
 
-  const currentIssues = currentIssuesSnapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as Issue[];
-
-  // Fetch previous period for comparison
-  const previousIssuesSnapshot = await db
-    .collection("issues")
-    .where("cityId", "==", cityId)
-    .where("createdAt", ">=", firestore.Timestamp.fromDate(comparisonStartDate))
-    .where("createdAt", "<", firestore.Timestamp.fromDate(startDate))
-    .get();
-
-  const previousIssues = previousIssuesSnapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as Issue[];
+  // Fetch previous period for comparison from MongoDB
+  const previousIssues = (await IssueModel.find({
+    cityId,
+    createdAt: { $gte: comparisonStartDate, $lt: startDate },
+  }).lean()) as any[];
 
   // Calculate summary statistics
   const totalIssues = currentIssues.length;
@@ -1526,9 +1507,15 @@ export async function generateSnapshotReport(
   const mttr =
     resolvedWithTime.length > 0
       ? resolvedWithTime.reduce((sum, i) => {
-          const time =
-            (i.resolvedAt!.toMillis() - i.createdAt.toMillis()) /
-            (1000 * 60 * 60);
+          const resolvedAtTime =
+            i.resolvedAt instanceof Date
+              ? i.resolvedAt.getTime()
+              : new Date(i.resolvedAt).getTime();
+          const createdAtTime =
+            i.createdAt instanceof Date
+              ? i.createdAt.getTime()
+              : new Date(i.createdAt).getTime();
+          const time = (resolvedAtTime - createdAtTime) / (1000 * 60 * 60);
           return sum + time;
         }, 0) / resolvedWithTime.length
       : 0;
@@ -1546,15 +1533,7 @@ export async function generateSnapshotReport(
   });
 
   const zoneIds = Object.keys(zoneCounts);
-  const zoneNames: Record<string, string> = {};
-  for (const zoneId of zoneIds) {
-    const zoneDoc = await db.collection("zones").doc(zoneId).get();
-    if (zoneDoc.exists) {
-      zoneNames[zoneId] = zoneDoc.data()?.name || zoneId;
-    } else {
-      zoneNames[zoneId] = zoneId;
-    }
-  }
+  const zoneNames = await getZoneNames(zoneIds);
 
   const topZones = Object.entries(zoneCounts)
     .map(([zoneId, data]) => ({
@@ -1593,9 +1572,15 @@ export async function generateSnapshotReport(
   const prevMTTR =
     prevResolvedWithTime.length > 0
       ? prevResolvedWithTime.reduce((sum, i) => {
-          const time =
-            (i.resolvedAt!.toMillis() - i.createdAt.toMillis()) /
-            (1000 * 60 * 60);
+          const resolvedAtTime =
+            i.resolvedAt instanceof Date
+              ? i.resolvedAt.getTime()
+              : new Date(i.resolvedAt).getTime();
+          const createdAtTime =
+            i.createdAt instanceof Date
+              ? i.createdAt.getTime()
+              : new Date(i.createdAt).getTime();
+          const time = (resolvedAtTime - createdAtTime) / (1000 * 60 * 60);
           return sum + time;
         }, 0) / prevResolvedWithTime.length
       : 0;

@@ -1,5 +1,5 @@
-import { firestore } from "firebase-admin";
-import { getFirestore } from "../../config/firebase";
+import { Issue as IssueModel } from "../../models/Issue";
+import { User as UserModel } from "../../models/User";
 import { uploadImageToCloudinary } from "../../config/cloudinary";
 import {
   Issue,
@@ -16,8 +16,6 @@ import { SSEService } from "../../services/sse.service";
 import * as emailService from "../../services/email.service";
 import * as rewardsService from "../rewards/rewards.service";
 
-const db = getFirestore();
-
 /**
  * Create a new issue
  */
@@ -26,8 +24,6 @@ export async function createIssue(
   userId: string,
   userRole: UserRole,
 ): Promise<Issue> {
-  const issuesRef = db.collection("issues");
-
   // Use priority engine for deterministic scoring
   const priorityInput: PriorityInput = {
     category: (issueData.category as IssueCategory) || IssueCategory.OTHER,
@@ -49,7 +45,7 @@ export async function createIssue(
 
   const priorityResult = priorityEngine.calculatePriority(priorityInput);
 
-  const newIssue: Partial<Issue> = {
+  const newIssue = new IssueModel({
     ...issueData,
     severity: priorityInput.severity || calculateSeverity(issueData.category),
     priority: priorityResult.priority,
@@ -57,12 +53,13 @@ export async function createIssue(
     status: IssueStatus.OPEN,
     reportedBy: userId,
     reportedByRole: userRole.toLowerCase() as any,
-    createdAt: firestore.Timestamp.now(),
-    updatedAt: firestore.Timestamp.now(),
-  };
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
 
-  const docRef = await issuesRef.add(newIssue);
-  const issue = { id: docRef.id, ...newIssue } as Issue;
+  const savedIssue = await newIssue.save();
+  const issue = savedIssue.toObject() as unknown as Issue;
+  issue.id = savedIssue._id.toString();
 
   // Log issue creation in history
   await createIssueHistory({
@@ -72,7 +69,7 @@ export async function createIssue(
     changedBy: userId,
     changeType: "status_change",
     comment: "Issue created",
-    changedAt: firestore.Timestamp.now(),
+    changedAt: new Date(),
   });
 
   // Emit real-time events
@@ -152,13 +149,13 @@ export async function createIssue(
  * Get issue by ID
  */
 export async function getIssueById(issueId: string): Promise<Issue | null> {
-  const issueDoc = await db.collection("issues").doc(issueId).get();
+  const issueDoc = await IssueModel.findById(issueId).lean();
 
-  if (!issueDoc.exists) {
+  if (!issueDoc) {
     return null;
   }
 
-  return { id: issueDoc.id, ...issueDoc.data() } as Issue;
+  return { id: issueDoc._id.toString(), ...issueDoc } as unknown as Issue;
 }
 
 /**
@@ -179,113 +176,64 @@ export async function getIssues(filters: {
   limit?: number;
   offset?: number;
 }): Promise<{ issues: Issue[]; total: number }> {
-  let query: any = db
-    .collection("issues")
-    .where("cityId", "==", filters.cityId);
+  let query: any = { cityId: filters.cityId };
 
   // Apply filters
   if (filters.zoneId) {
-    query = query.where("zoneId", "==", filters.zoneId);
+    query.zoneId = filters.zoneId;
   }
   if (filters.agencyId) {
-    query = query.where("agencyId", "==", filters.agencyId);
+    query.agencyId = filters.agencyId;
   }
   if (filters.roomId) {
-    query = query.where("roomId", "==", filters.roomId);
+    query.roomId = filters.roomId;
   }
   if (filters.category) {
-    query = query.where("category", "==", filters.category);
+    query.category = filters.category;
   }
   if (filters.status) {
-    query = query.where("status", "==", filters.status);
+    query.status = filters.status;
   }
   if (filters.priority) {
-    query = query.where("priority", "==", filters.priority);
+    query.priority = filters.priority;
   }
   if (filters.reportedBy) {
-    query = query.where("reportedBy", "==", filters.reportedBy);
+    query.reportedBy = filters.reportedBy;
   }
   if (filters.assignedTo) {
-    query = query.where("assignedTo", "==", filters.assignedTo);
+    query.assignedTo = filters.assignedTo;
   }
-  if (filters.startDate) {
-    query = query.where(
-      "createdAt",
-      ">=",
-      firestore.Timestamp.fromDate(filters.startDate),
-    );
-  }
-  if (filters.endDate) {
-    query = query.where(
-      "createdAt",
-      "<=",
-      firestore.Timestamp.fromDate(filters.endDate),
-    );
-  }
-
-  // If client requested a limit, try to apply server-side ordering and limit to reduce reads
-  // Note: When filtering by reportedBy, we can't use orderBy due to composite index requirements
-  let firestoreQuery: any = query;
-  let needsClientSideSorting = false;
-  const MAX_LIMIT = 500; // safety cap
-  const requestedLimit = Math.min(MAX_LIMIT, filters.limit || 0);
-  if (requestedLimit > 0) {
-    // Check if we have filters that would require composite indexes for ordering
-    const hasCompositeFilter =
-      filters.reportedBy ||
-      filters.assignedTo ||
-      filters.zoneId ||
-      filters.agencyId ||
-      filters.roomId;
-
-    if (!hasCompositeFilter) {
-      try {
-        firestoreQuery = query
-          .orderBy("createdAt", "desc")
-          .limit(requestedLimit + (filters.offset || 0));
-      } catch (err: any) {
-        console.warn(
-          "Could not apply server-side order/limit, falling back to full scan:",
-          err?.message || err,
-        );
-        firestoreQuery = query;
-        needsClientSideSorting = true;
-      }
-    } else {
-      // For composite queries, we'll sort client-side
-      firestoreQuery = query.limit(requestedLimit + (filters.offset || 0));
-      needsClientSideSorting = true;
+  if (filters.startDate || filters.endDate) {
+    query.createdAt = {};
+    if (filters.startDate) {
+      query.createdAt.$gte = filters.startDate;
+    }
+    if (filters.endDate) {
+      query.createdAt.$lte = filters.endDate;
     }
   }
 
-  // Fetch documents
-  const snapshot = await firestoreQuery.get();
+  // Count total matching documents
+  const total = await IssueModel.countDocuments(query);
 
-  // Map docs to issues
-  let issues: Issue[] = snapshot.docs.map((doc: any) => ({
-    id: doc.id,
-    ...doc.data(),
+  // Apply limit and offset
+  const limit = filters.limit || 100;
+  const offset = filters.offset || 0;
+
+  // Fetch documents with sorting
+  const issues = await IssueModel.find(query)
+    .sort({ createdAt: -1 })
+    .skip(offset)
+    .limit(limit)
+    .lean();
+
+  // Map to Issue type with id field
+  const mappedIssues: Issue[] = issues.map((doc: any) => ({
+    id: doc._id.toString(),
+    ...doc,
   }));
 
-  // Sort issues by createdAt descending if not already sorted server-side
-  if (!requestedLimit || needsClientSideSorting) {
-    issues.sort((a, b) => {
-      const aTime = (a.createdAt as any)?.seconds || 0;
-      const bTime = (b.createdAt as any)?.seconds || 0;
-      return bTime - aTime;
-    });
-  }
-
-  const total = issues.length;
-
-  // Apply pagination after sorting or server-side limit
-  if (filters.offset || filters.limit) {
-    const start = filters.offset || 0;
-    const end = filters.limit ? start + filters.limit : issues.length;
-    issues = issues.slice(start, end);
-  }
-
-  return { issues, total };
+  return { issues: mappedIssues, total };
 }
 
 /**
@@ -296,21 +244,20 @@ export async function updateIssue(
   updates: Partial<Issue>,
   userId: string,
 ): Promise<Issue> {
-  const issueRef = db.collection("issues").doc(issueId);
-  const issueDoc = await issueRef.get();
+  const issueDoc = await IssueModel.findById(issueId).lean();
 
-  if (!issueDoc.exists) {
+  if (!issueDoc) {
     throw new Error("Issue not found");
   }
 
-  const oldIssue = issueDoc.data() as Issue;
+  const oldIssue = issueDoc as unknown as Issue;
 
   const updatedData = {
     ...updates,
-    updatedAt: firestore.Timestamp.now(),
+    updatedAt: new Date(),
   };
 
-  await issueRef.update(updatedData);
+  await IssueModel.findByIdAndUpdate(issueId, updatedData);
 
   // Log changes in history
   for (const [field, newValue] of Object.entries(updates)) {
@@ -323,12 +270,12 @@ export async function updateIssue(
         newValue,
         changedBy: userId,
         changeType: "update",
-        changedAt: firestore.Timestamp.now(),
+        changedAt: new Date(),
       });
     }
   }
 
-  const updatedIssue = { ...oldIssue, ...updatedData, id: issueId } as Issue;
+  const updatedIssue = { ...oldIssue, ...updatedData, id: issueId } as unknown as Issue;
 
   // Emit real-time events
   try {
@@ -378,17 +325,16 @@ export async function resolveIssue(
   actualCost?: number,
   actualDuration?: number,
 ): Promise<Issue> {
-  const issueRef = db.collection("issues").doc(issueId);
-  const issueDoc = await issueRef.get();
+  const issueDoc = await IssueModel.findById(issueId).lean();
 
-  if (!issueDoc.exists) {
+  if (!issueDoc) {
     throw new Error("Issue not found");
   }
 
   const resolvedData: Partial<Issue> = {
     status: IssueStatus.RESOLVED,
-    resolvedAt: firestore.Timestamp.now(),
-    updatedAt: firestore.Timestamp.now(),
+    resolvedAt: new Date(),
+    updatedAt: new Date(),
   };
 
   if (actualCost !== undefined) {
@@ -398,7 +344,7 @@ export async function resolveIssue(
     resolvedData.actualDuration = actualDuration;
   }
 
-  await issueRef.update(resolvedData);
+  await IssueModel.findByIdAndUpdate(issueId, resolvedData);
 
   // Log resolution in history
   await createIssueHistory({
@@ -409,11 +355,11 @@ export async function resolveIssue(
     changedBy: userId,
     changeType: "resolution",
     comment: resolutionComment,
-    changedAt: firestore.Timestamp.now(),
+    changedAt: new Date(),
   });
 
-  const issue = issueDoc.data() as Issue;
-  const resolvedIssue = { ...issue, ...resolvedData, id: issueId } as Issue;
+  const issue = issueDoc as unknown as Issue;
+  const resolvedIssue = { ...issue, ...resolvedData, id: issueId } as unknown as Issue;
 
   // Emit real-time events
   try {
@@ -450,11 +396,15 @@ export async function resolveIssue(
 
   // Send email notification to the user who reported the issue (non-blocking)
   try {
-    const reporterRef = db.collection("users").doc(resolvedIssue.reportedBy);
-    const reporterDoc = await reporterRef.get();
+    const reporterDoc = await UserModel.findById(
+      resolvedIssue.reportedBy,
+    ).lean();
 
-    if (reporterDoc.exists) {
-      const reporter = { id: reporterDoc.id, ...reporterDoc.data() } as User;
+    if (reporterDoc) {
+      const reporter = {
+        id: reporterDoc._id.toString(),
+        ...reporterDoc,
+      } as unknown as User;
       emailService
         .sendIssueResolvedEmail(reporter, resolvedIssue, resolutionComment)
         .catch((error) => {
@@ -476,19 +426,18 @@ export async function assignIssue(
   assignedToUserId: string,
   assignedByUserId: string,
 ): Promise<Issue> {
-  const issueRef = db.collection("issues").doc(issueId);
-  const issueDoc = await issueRef.get();
+  const issueDoc = await IssueModel.findById(issueId).lean();
 
-  if (!issueDoc.exists) {
+  if (!issueDoc) {
     throw new Error("Issue not found");
   }
 
-  const oldIssue = issueDoc.data() as Issue;
+  const oldIssue = issueDoc as unknown as Issue;
 
-  await issueRef.update({
+  await IssueModel.findByIdAndUpdate(issueId, {
     assignedTo: assignedToUserId,
     status: IssueStatus.IN_PROGRESS,
-    updatedAt: firestore.Timestamp.now(),
+    updatedAt: new Date(),
   });
 
   // Log assignment in history
@@ -499,7 +448,7 @@ export async function assignIssue(
     newValue: assignedToUserId,
     changedBy: assignedByUserId,
     changeType: "assignment",
-    changedAt: firestore.Timestamp.now(),
+    changedAt: new Date(),
   });
 
   const assignedIssue = {
@@ -507,8 +456,8 @@ export async function assignIssue(
     id: issueId,
     assignedTo: assignedToUserId,
     status: IssueStatus.IN_PROGRESS,
-    updatedAt: firestore.Timestamp.now(),
-  } as Issue;
+    updatedAt: new Date(),
+  } as unknown as Issue;
 
   // Emit real-time events
   try {
@@ -549,39 +498,40 @@ export async function deleteIssue(
   issueId: string,
   userId: string,
 ): Promise<void> {
-  const issueRef = db.collection("issues").doc(issueId);
-  const issueDoc = await issueRef.get();
+  const issueDoc = await IssueModel.findById(issueId).lean();
 
-  if (!issueDoc.exists) {
+  if (!issueDoc) {
     throw new Error("Issue not found");
   }
 
-  await issueRef.update({
+  await IssueModel.findByIdAndUpdate(issueId, {
     status: IssueStatus.CLOSED,
-    updatedAt: firestore.Timestamp.now(),
+    updatedAt: new Date(),
   });
 
   // Log closure in history
   await createIssueHistory({
     issueId,
     fieldName: "status",
-    oldValue: issueDoc.data()!.status,
+    oldValue: issueDoc.status,
     newValue: IssueStatus.CLOSED,
     changedBy: userId,
     changeType: "status_change",
     comment: "Issue closed/deleted",
-    changedAt: firestore.Timestamp.now(),
+    changedAt: new Date(),
   });
 
-  const issue = issueDoc.data() as Issue;
+  const issue = issueDoc as unknown as Issue;
 
   // Send email notification to the user who reported the issue (non-blocking)
   try {
-    const reporterRef = db.collection("users").doc(issue.reportedBy);
-    const reporterDoc = await reporterRef.get();
+    const reporterDoc = await UserModel.findById(issue.reportedBy).lean();
 
-    if (reporterDoc.exists) {
-      const reporter = { id: reporterDoc.id, ...reporterDoc.data() } as User;
+    if (reporterDoc) {
+      const reporter = {
+        id: reporterDoc._id.toString(),
+        ...reporterDoc,
+      } as unknown as User;
       emailService
         .sendIssueDeletedEmail(reporter, { ...issue, id: issueId })
         .catch((error) => {
@@ -632,15 +582,17 @@ export async function deleteIssue(
 export async function getIssueHistory(
   issueId: string,
 ): Promise<IssueHistory[]> {
-  const historySnapshot = await db
+  // Note: IssueHistory model would need to be imported/created
+  // For now using any to avoid blocking compilation
+  const history = await (IssueModel as any).db
     .collection("issue_history")
-    .where("issueId", "==", issueId)
-    .orderBy("changedAt", "desc")
-    .get();
+    .find({ issueId })
+    .sort({ changedAt: -1 })
+    .lean();
 
-  return historySnapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
+  return history.map((doc: any) => ({
+    id: doc._id.toString(),
+    ...doc,
   })) as IssueHistory[];
 }
 
@@ -682,18 +634,17 @@ export async function getIssuesByProximity(
   centerLng: number,
   radiusKm: number,
 ): Promise<Issue[]> {
-  // Firestore doesn't support geospatial queries directly
-  // We need to get all issues and filter in memory
-  const allIssues = await db
-    .collection("issues")
-    .where("cityId", "==", cityId)
-    .where("status", "!=", IssueStatus.CLOSED)
-    .get();
+  // MongoDB supports geospatial queries, but for compatibility
+  // we'll use the same in-memory filtering approach
+  const allIssues = await IssueModel.find({
+    cityId,
+    status: { $ne: IssueStatus.CLOSED },
+  }).lean();
 
   const issues: Issue[] = [];
 
-  for (const doc of allIssues.docs) {
-    const issue = { id: doc.id, ...doc.data() } as Issue;
+  for (const doc of allIssues) {
+    const issue = { id: (doc as any)._id.toString(), ...doc } as unknown as Issue;
     const distance = calculateDistance(
       centerLat,
       centerLng,
@@ -716,24 +667,22 @@ export async function getHighPriorityIssues(
   cityId: string,
   limit: number = 20,
 ): Promise<Issue[]> {
-  // Query for high-priority open issues with a limit to prevent quota exhaustion
-  const db = getFirestore();
-
-  const snapshot = await db
-    .collection("issues")
-    .where("cityId", "==", cityId)
-    .where("status", "in", [IssueStatus.OPEN, IssueStatus.IN_PROGRESS])
-    .where("priority", "in", [IssuePriority.HIGH, IssuePriority.CRITICAL])
-    .orderBy("aiRiskScore", "desc")
+  // Query for high-priority open issues with a limit
+  const issues = await IssueModel.find({
+    cityId,
+    status: { $in: [IssueStatus.OPEN, IssueStatus.IN_PROGRESS] },
+    priority: { $in: [IssuePriority.HIGH, IssuePriority.CRITICAL] },
+  })
+    .sort({ aiRiskScore: -1 })
     .limit(limit * 2) // Fetch more to ensure we have enough after sorting
-    .get();
+    .lean();
 
-  const issues = snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
+  const mappedIssues = issues.map((doc: any) => ({
+    id: doc._id.toString(),
+    ...doc,
   })) as Issue[];
 
-  return issues.slice(0, limit);
+  return mappedIssues.slice(0, limit);
 }
 
 /**
@@ -748,15 +697,11 @@ export async function getIssueStats(cityId: string): Promise<{
   byPriority: Record<string, number>;
   avgResolutionTime: number;
 }> {
-  // Add limit to prevent quota exhaustion
-  const allIssues = await db
-    .collection("issues")
-    .where("cityId", "==", cityId)
-    .limit(10000)
-    .get();
+  // Add limit to prevent excessive queries
+  const allIssues = await IssueModel.find({ cityId }).limit(10000).lean();
 
   const stats = {
-    total: allIssues.size,
+    total: allIssues.length,
     open: 0,
     inProgress: 0,
     resolved: 0,
@@ -768,17 +713,18 @@ export async function getIssueStats(cityId: string): Promise<{
   let totalResolutionTime = 0;
   let resolvedCount = 0;
 
-  allIssues.docs.forEach((doc) => {
-    const issue = doc.data() as Issue;
+  allIssues.forEach((doc: any) => {
+    const issue = doc as unknown as Issue;
 
     // Count by status
     if (issue.status === IssueStatus.OPEN) stats.open++;
     if (issue.status === IssueStatus.IN_PROGRESS) stats.inProgress++;
     if (issue.status === IssueStatus.RESOLVED) {
       stats.resolved++;
-      if (issue.resolvedAt) {
+      if (issue.resolvedAt && issue.createdAt) {
         const resolutionTime =
-          issue.resolvedAt.toMillis() - issue.createdAt.toMillis();
+          new Date(issue.resolvedAt).getTime() -
+          new Date(issue.createdAt).getTime();
         totalResolutionTime += resolutionTime;
         resolvedCount++;
       }
@@ -808,7 +754,11 @@ export async function getIssueStats(cityId: string): Promise<{
 async function createIssueHistory(
   historyData: Partial<IssueHistory>,
 ): Promise<void> {
-  await db.collection("issue_history").add(historyData);
+  // Note: IssueHistory model would need to be imported/created
+  // For now using MongoDB connection directly
+  await (IssueModel as any).db
+    .collection("issue_history")
+    .insertOne(historyData);
 }
 
 /**

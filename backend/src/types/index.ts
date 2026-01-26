@@ -1,4 +1,10 @@
-import { firestore } from "firebase-admin";
+/**
+ * Geographic point type (replacing Firebase GeoPoint)
+ */
+export interface GeoPoint {
+  latitude: number;
+  longitude: number;
+}
 
 /**
  * Organization/University entity (for multi-tenancy)
@@ -11,20 +17,20 @@ export interface Organization {
   city: string;
   state: string;
   country: string;
-  campusCenter: firestore.GeoPoint;
+  campusCenter: GeoPoint;
   campusBounds: {
-    northWest: firestore.GeoPoint;
-    northEast: firestore.GeoPoint;
-    southWest: firestore.GeoPoint;
-    southEast: firestore.GeoPoint;
+    northWest: GeoPoint;
+    northEast: GeoPoint;
+    southWest: GeoPoint;
+    southEast: GeoPoint;
   };
   contactEmail: string;
   contactPhone: string;
   website?: string;
   timezone: string;
   isActive: boolean;
-  createdAt: firestore.Timestamp;
-  updatedAt: firestore.Timestamp;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 /**
@@ -40,8 +46,8 @@ export interface Agency {
   contactEmail?: string;
   contactPhone?: string;
   isActive: boolean;
-  createdAt: firestore.Timestamp;
-  updatedAt: firestore.Timestamp;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 // Backward compatibility alias
@@ -56,16 +62,16 @@ export interface Zone {
   agencyId?: string;
   name: string;
   code: string;
-  location: firestore.GeoPoint;
+  location: GeoPoint;
   address: string;
   zoneType: string;
   floors: number;
   totalArea?: number;
   constructionYear?: number;
-  lastRenovation?: firestore.Timestamp;
+  lastRenovation?: Date;
   status: "active" | "under_maintenance" | "decommissioned";
-  createdAt: firestore.Timestamp;
-  updatedAt: firestore.Timestamp;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 // Backward compatibility alias
@@ -95,8 +101,8 @@ export interface Room {
   hasAC: boolean;
   hasProjector: boolean;
   status: "active" | "under_maintenance" | "closed";
-  createdAt: firestore.Timestamp;
-  updatedAt: firestore.Timestamp;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 /**
@@ -125,7 +131,7 @@ export interface Issue {
   severity: number; // 1-10 scale (auto-calculated by AI)
   status: "open" | "in_progress" | "resolved" | "closed";
   priority: "low" | "medium" | "high" | "critical"; // Auto-calculated
-  location: firestore.GeoPoint;
+  location: GeoPoint;
 
   // Multi-modal submission
   submissionType: "text" | "voice" | "image" | "mixed";
@@ -169,9 +175,9 @@ export interface Issue {
   aiRecommendations?: string[];
   aiSummary?: string;
 
-  createdAt: firestore.Timestamp;
-  updatedAt: firestore.Timestamp;
-  resolvedAt?: firestore.Timestamp;
+  createdAt: Date;
+  updatedAt: Date;
+  resolvedAt?: Date;
 }
 
 /**
@@ -191,7 +197,7 @@ export interface IssueHistory {
     | "comment"
     | "resolution";
   comment?: string;
-  changedAt: firestore.Timestamp;
+  changedAt: Date;
 }
 
 /**
@@ -201,7 +207,7 @@ export interface ZoneDefinition {
   id: string;
   cityId: string;
   name: string;
-  boundary: firestore.GeoPoint[]; // Array of GeoPoints for polygon
+  boundary: GeoPoint[]; // Array of GeoPoints for polygon
   zoneType:
     | "academic"
     | "residential"
@@ -209,8 +215,8 @@ export interface ZoneDefinition {
     | "recreational"
     | "other";
   zoneIds?: string[];
-  createdAt: firestore.Timestamp;
-  updatedAt: firestore.Timestamp;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 /**
@@ -224,7 +230,7 @@ export interface RiskScore {
   category: string;
   score: number; // 0-100
   riskLevel: "low" | "medium" | "high" | "critical";
-  calculatedAt: firestore.Timestamp;
+  calculatedAt: Date;
   metadata?: {
     issueCount?: number;
     avgSeverity?: number;
@@ -263,9 +269,9 @@ export interface User {
     votesCast: number; // Number of times they voted
     helpfulReports: number; // Issues marked as helpful/resolved quickly
   };
-  createdAt: firestore.Timestamp;
-  updatedAt: firestore.Timestamp;
-  lastLogin?: firestore.Timestamp;
+  createdAt: Date;
+  updatedAt: Date;
+  lastLogin?: Date;
   preferences?: {
     notifications?: boolean;
     emailAlerts?: boolean;
@@ -288,10 +294,10 @@ export interface IssuePrediction {
   suggestedPreventiveMeasures: string[];
   estimatedTimeframe: string; // e.g., "within 30 days"
   basedOnHistoricalIssues: string[]; // Issue IDs
-  createdAt: firestore.Timestamp;
+  createdAt: Date;
   isActualized: boolean; // Did this prediction come true?
   actualizedIssueId?: string;
-  actualizedAt?: firestore.Timestamp;
+  actualizedAt?: Date;
 }
 
 /**
@@ -309,7 +315,7 @@ export interface AnalyticsEvent {
     | "other";
   userId?: string;
   metadata?: Record<string, any>;
-  timestamp: firestore.Timestamp;
+  timestamp: Date;
 }
 
 /**
@@ -320,7 +326,7 @@ export interface Vote {
   issueId: string;
   userId: string;
   cityId: string;
-  createdAt: firestore.Timestamp;
+  createdAt: Date;
 }
 
 /**
@@ -348,7 +354,7 @@ export interface Badge {
   pointsAwarded: number; // Points given when badge is earned
   rarity: "common" | "rare" | "epic" | "legendary";
   isActive: boolean;
-  createdAt: firestore.Timestamp;
+  createdAt: Date;
 }
 
 /**
@@ -359,7 +365,7 @@ export interface UserBadge {
   userId: string;
   badgeId: string;
   cityId: string;
-  earnedAt: firestore.Timestamp;
+  earnedAt: Date;
   progress?: number; // For tracking progress towards next level of same badge
 }
 
@@ -383,7 +389,7 @@ export interface RewardTransaction {
   relatedEntityId?: string; // Issue ID, Badge ID, etc.
   relatedEntityType?: "issue" | "badge" | "vote" | "other";
   description: string;
-  createdAt: firestore.Timestamp;
+  createdAt: Date;
 }
 
 /**
@@ -402,7 +408,7 @@ export interface LeaderboardEntry {
   votesReceived: number;
   badges: string[];
   period: "all_time" | "monthly" | "weekly";
-  updatedAt: firestore.Timestamp;
+  updatedAt: Date;
 }
 
 /**

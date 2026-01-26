@@ -7,7 +7,7 @@ import { Agency } from "../../models/Agency";
  * Get all cities
  * GET /api/cities
  */
-export async function getCities(req: Request, res: Response) {
+export async function getCities(_req: Request, res: Response) {
   try {
     const cities = await City.find()
       .select(

@@ -8,7 +8,7 @@ import * as votingService from "./voting.service";
 export async function voteOnIssue(req: Request, res: Response) {
   try {
     const { id: issueId } = req.params;
-    const userId = req.user?.uid;
+    const userId = req.user?.userId;
 
     if (!userId) {
       return res.status(401).json({
@@ -62,7 +62,7 @@ export async function voteOnIssue(req: Request, res: Response) {
 export async function unvoteOnIssue(req: Request, res: Response) {
   try {
     const { id: issueId } = req.params;
-    const userId = req.user?.uid;
+    const userId = req.user?.userId;
 
     if (!userId) {
       return res.status(401).json({
@@ -108,7 +108,7 @@ export async function unvoteOnIssue(req: Request, res: Response) {
 export async function getIssueVotes(req: Request, res: Response) {
   try {
     const { id: issueId } = req.params;
-    const userId = req.user?.uid;
+    const userId = req.user?.userId;
 
     const votes = await votingService.getIssueVotes(issueId);
 
@@ -142,7 +142,7 @@ export async function getIssueVotes(req: Request, res: Response) {
  */
 export async function getUserVotes(req: Request, res: Response) {
   try {
-    const userId = req.user?.uid;
+    const userId = req.user?.userId;
 
     if (!userId) {
       return res.status(401).json({
@@ -178,7 +178,7 @@ export async function getUserVotes(req: Request, res: Response) {
 export async function checkUserVote(req: Request, res: Response) {
   try {
     const { id: issueId } = req.params;
-    const userId = req.user?.uid;
+    const userId = req.user?.userId;
 
     if (!userId) {
       return res.status(200).json({

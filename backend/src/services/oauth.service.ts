@@ -63,7 +63,7 @@ export async function handleGoogleOAuth(code: string, cityId: string) {
  * GitHub OAuth Handler - REMOVED
  * Use Google OAuth instead
  */
-export async function handleGitHubOAuth(code: string, cityId: string) {
+export async function handleGitHubOAuth(_code: string, _cityId: string) {
   throw new Error(
     "GitHub OAuth is not supported. Please use Google OAuth instead.",
   );
@@ -180,7 +180,7 @@ export function getGoogleAuthUrl(cityId: string, state?: string): string {
  * Generate OAuth authorization URL for GitHub - REMOVED
  * Use Google OAuth instead
  */
-export function getGitHubAuthUrl(cityId: string, state?: string): string {
+export function getGitHubAuthUrl(_cityId: string, _state?: string): string {
   throw new Error(
     "GitHub OAuth is not supported. Please use Google OAuth instead.",
   );

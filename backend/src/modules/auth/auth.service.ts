@@ -1,21 +1,55 @@
-import * as admin from "firebase-admin";
-import { getAuth, getFirestore } from "../../config/firebase";
+import { OAuth2Client } from "google-auth-library";
+import { User as UserModel } from "../../models/User";
 import { User, UserRole } from "../../types";
 
+// Initialize Google OAuth2 client
+const oauth2Client = new OAuth2Client(
+  process.env.GOOGLE_OAUTH_CLIENT_ID,
+  process.env.GOOGLE_OAUTH_CLIENT_SECRET,
+  process.env.GOOGLE_OAUTH_REDIRECT_URI,
+);
+
+interface GoogleTokenPayload {
+  iss: string;
+  azp: string;
+  aud: string;
+  sub: string;
+  email: string;
+  email_verified: boolean;
+  at_hash: string;
+  name: string;
+  picture: string;
+  given_name: string;
+  family_name: string;
+  locale: string;
+  iat: number;
+  exp: number;
+}
+
 /**
- * Verify Firebase ID token from client
+ * Verify Google OAuth ID token from client
  */
 export async function verifyIdToken(
   idToken: string,
-): Promise<admin.auth.DecodedIdToken> {
+): Promise<GoogleTokenPayload> {
   try {
-    const auth = getAuth();
-    console.log("🔐 Verifying token, length:", idToken.length);
-    const decodedToken = await auth.verifyIdToken(idToken);
-    console.log("✅ Token verified for user:", decodedToken.uid);
-    return decodedToken;
+    console.log("🔐 Verifying Google OAuth token, length:", idToken.length);
+
+    // Verify the token with Google
+    const ticket = await oauth2Client.verifyIdToken({
+      idToken,
+      audience: process.env.GOOGLE_OAUTH_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload() as GoogleTokenPayload;
+    if (!payload) {
+      throw new Error("Invalid token payload");
+    }
+
+    console.log("✅ Google OAuth token verified for user:", payload.sub);
+    return payload;
   } catch (error) {
-    console.error("❌ Token verification failed:", error);
+    console.error("❌ Google OAuth token verification failed:", error);
     if (error instanceof Error) {
       throw new Error(`Invalid or expired token: ${error.message}`);
     }
@@ -24,33 +58,35 @@ export async function verifyIdToken(
 }
 
 /**
- * Get or create user in Firestore after Google OAuth login
+ * Get or create user in MongoDB after Google OAuth login
  */
 export async function getOrCreateUser(
-  firebaseUser: admin.auth.DecodedIdToken,
+  googleUser: GoogleTokenPayload,
   cityId: string,
   role?: UserRole,
 ): Promise<{ user: User; isNewUser: boolean }> {
-  const db = getFirestore();
-  const userRef = db.collection("users").doc(firebaseUser.uid);
-  const userDoc = await userRef.get();
+  const userDoc = await UserModel.findById(googleUser.sub).lean();
 
-  if (userDoc.exists) {
+  if (userDoc) {
     // Update last login
-    await userRef.update({
-      lastLogin: admin.firestore.FieldValue.serverTimestamp(),
+    await UserModel.findByIdAndUpdate(googleUser.sub, {
+      lastLogin: new Date(),
     });
     return {
-      user: { id: userDoc.id, ...userDoc.data() } as User,
+      user: {
+        id: (userDoc as any)._id.toString(),
+        ...userDoc,
+      } as unknown as User,
       isNewUser: false,
     };
   }
 
   // Create new user
-  const newUser: Omit<User, "id"> = {
+  const newUser = {
+    _id: googleUser.sub,
     cityId,
-    email: firebaseUser.email || "",
-    name: firebaseUser.name || firebaseUser.email?.split("@")[0] || "User",
+    email: googleUser.email || "",
+    name: googleUser.name || googleUser.email?.split("@")[0] || "User",
     role: role || UserRole.STUDENT,
     isActive: true,
     permissions: getDefaultPermissions(role || UserRole.STUDENT),
@@ -64,17 +100,14 @@ export async function getOrCreateUser(
       votesCast: 0,
       helpfulReports: 0,
     },
-    createdAt:
-      admin.firestore.FieldValue.serverTimestamp() as admin.firestore.Timestamp,
-    updatedAt:
-      admin.firestore.FieldValue.serverTimestamp() as admin.firestore.Timestamp,
-    lastLogin:
-      admin.firestore.FieldValue.serverTimestamp() as admin.firestore.Timestamp,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    lastLogin: new Date(),
   };
 
-  await userRef.set(newUser);
+  await UserModel.create(newUser);
   return {
-    user: { id: firebaseUser.uid, ...newUser } as User,
+    user: { id: googleUser.sub, ...newUser } as User,
     isNewUser: true,
   };
 }
@@ -130,6 +163,7 @@ function getDefaultPermissions(role: UserRole) {
 
 /**
  * Create user with email and password
+ * Note: This requires Google Cloud Identity Platform to be configured
  */
 export async function createUserWithEmail(
   email: string,
@@ -138,20 +172,33 @@ export async function createUserWithEmail(
   cityId: string,
   role?: UserRole,
 ): Promise<{ user: User; token: string }> {
-  const auth = getAuth();
-  const db = getFirestore();
-
   try {
-    // Create user in Firebase Auth
-    const userRecord = await auth.createUser({
-      email,
-      password,
-      displayName: name,
-      emailVerified: false,
-    });
+    // Create user via Google Cloud Identity Platform REST API
+    const identityResponse = await fetch(
+      `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${process.env.GOOGLE_OAUTH_API_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          password,
+          displayName: name,
+          returnSecureToken: true,
+        }),
+      },
+    );
 
-    // Create user profile in Firestore
-    const newUser: Omit<User, "id"> = {
+    if (!identityResponse.ok) {
+      const errorData = (await identityResponse.json()) as any;
+      throw new Error(errorData.error?.message || "Failed to create user");
+    }
+
+    const identityData = (await identityResponse.json()) as any;
+    const userId = identityData.localId;
+
+    // Create user profile in MongoDB
+    const newUser = {
+      _id: userId,
       cityId,
       email,
       name,
@@ -168,24 +215,21 @@ export async function createUserWithEmail(
         votesCast: 0,
         helpfulReports: 0,
       },
-      createdAt:
-        admin.firestore.FieldValue.serverTimestamp() as admin.firestore.Timestamp,
-      updatedAt:
-        admin.firestore.FieldValue.serverTimestamp() as admin.firestore.Timestamp,
-      lastLogin:
-        admin.firestore.FieldValue.serverTimestamp() as admin.firestore.Timestamp,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      lastLogin: new Date(),
     };
 
-    await db.collection("users").doc(userRecord.uid).set(newUser);
+    await UserModel.create(newUser);
 
     // Sign in the newly created user to get an ID token
-    const firebaseApiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
-    if (!firebaseApiKey) {
-      throw new Error("Firebase API key not configured");
+    const googleApiKey = process.env.GOOGLE_OAUTH_API_KEY;
+    if (!googleApiKey) {
+      throw new Error("Google OAuth API key not configured");
     }
 
     const authResponse = await fetch(
-      `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${firebaseApiKey}`,
+      `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${googleApiKey}`,
       {
         method: "POST",
         headers: {
@@ -208,7 +252,7 @@ export async function createUserWithEmail(
     };
 
     return {
-      user: { id: userRecord.uid, ...newUser } as User,
+      user: { id: userId, ...newUser } as User,
       token: authData.idToken,
     };
   } catch (error: unknown) {
@@ -228,17 +272,15 @@ export async function authenticateWithEmail(
   email: string,
   password: string,
 ): Promise<{ user: User; token: string }> {
-  const db = getFirestore();
-
   try {
-    // Verify credentials using Firebase Auth REST API
-    const firebaseApiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
-    if (!firebaseApiKey) {
-      throw new Error("Firebase API key not configured");
+    // Verify credentials using Google Cloud Identity REST API
+    const googleApiKey = process.env.GOOGLE_OAUTH_API_KEY;
+    if (!googleApiKey) {
+      throw new Error("Google OAuth API key not configured");
     }
 
     const authResponse = await fetch(
-      `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${firebaseApiKey}`,
+      `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${googleApiKey}`,
       {
         method: "POST",
         headers: {
@@ -265,14 +307,14 @@ export async function authenticateWithEmail(
     };
     const uid = authData.localId;
 
-    // Get user profile from Firestore
-    const userDoc = await db.collection("users").doc(uid).get();
+    // Get user profile from MongoDB
+    const userDoc = await UserModel.findById(uid).lean();
 
-    if (!userDoc.exists) {
+    if (!userDoc) {
       throw new Error("User profile not found");
     }
 
-    const userData = userDoc.data() as Omit<User, "id">;
+    const userData = userDoc as any;
 
     // Check if user is active
     if (!userData.isActive) {
@@ -280,8 +322,8 @@ export async function authenticateWithEmail(
     }
 
     // Update last login
-    await db.collection("users").doc(uid).update({
-      lastLogin: admin.firestore.FieldValue.serverTimestamp(),
+    await UserModel.findByIdAndUpdate(uid, {
+      lastLogin: new Date(),
     });
 
     // Return the ID token from Firebase Auth
@@ -317,14 +359,13 @@ export async function authenticateWithEmail(
  * Get user by ID
  */
 export async function getUserById(userId: string): Promise<User | null> {
-  const db = getFirestore();
-  const userDoc = await db.collection("users").doc(userId).get();
+  const userDoc = await UserModel.findById(userId).lean();
 
-  if (!userDoc.exists) {
+  if (!userDoc) {
     return null;
   }
 
-  return { id: userDoc.id, ...userDoc.data() } as User;
+  return { id: (userDoc as any)._id.toString(), ...userDoc } as unknown as User;
 }
 
 /**
@@ -334,19 +375,19 @@ export async function updateUserProfile(
   userId: string,
   updates: Partial<User>,
 ): Promise<User> {
-  const db = getFirestore();
-  const userRef = db.collection("users").doc(userId);
-
   // Don't allow updating sensitive fields
   const { id, cityId, createdAt, ...safeUpdates } = updates;
 
-  await userRef.update({
+  await UserModel.findByIdAndUpdate(userId, {
     ...safeUpdates,
-    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    updatedAt: new Date(),
   });
 
-  const updatedDoc = await userRef.get();
-  return { id: updatedDoc.id, ...updatedDoc.data() } as User;
+  const updatedDoc = await UserModel.findById(userId).lean();
+  return {
+    id: (updatedDoc as any)._id.toString(),
+    ...updatedDoc,
+  } as unknown as User;
 }
 
 /**
@@ -356,28 +397,26 @@ export async function getUsersByOrganization(
   cityId: string,
   role?: UserRole,
 ): Promise<User[]> {
-  const db = getFirestore();
-  let query = db
-    .collection("users")
-    .where("cityId", "==", cityId)
-    .where("isActive", "==", true);
+  const query: any = {
+    cityId,
+    isActive: true,
+  };
 
   if (role) {
-    query = query.where("role", "==", role);
+    query.role = role;
   }
 
-  const snapshot = await query.get();
-  return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as User);
+  const users = await UserModel.find(query).lean();
+  return users.map((doc: any) => ({ id: doc._id.toString(), ...doc }) as User);
 }
 
 /**
  * Deactivate user
  */
 export async function deactivateUser(userId: string): Promise<void> {
-  const db = getFirestore();
-  await db.collection("users").doc(userId).update({
+  await UserModel.findByIdAndUpdate(userId, {
     isActive: false,
-    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    updatedAt: new Date(),
   });
 }
 
@@ -388,17 +427,17 @@ export async function updateUserRole(
   userId: string,
   newRole: UserRole,
 ): Promise<User> {
-  const db = getFirestore();
-  const userRef = db.collection("users").doc(userId);
-
-  await userRef.update({
+  await UserModel.findByIdAndUpdate(userId, {
     role: newRole,
     permissions: getDefaultPermissions(newRole),
-    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    updatedAt: new Date(),
   });
 
-  const updatedDoc = await userRef.get();
-  return { id: updatedDoc.id, ...updatedDoc.data() } as User;
+  const updatedDoc = await UserModel.findById(userId).lean();
+  return {
+    id: (updatedDoc as any)._id.toString(),
+    ...updatedDoc,
+  } as unknown as User;
 }
 
 /**
@@ -416,34 +455,31 @@ export async function hasPermission(
 }
 
 /**
- * Change user password
+ * Change user password via Google Cloud Identity
  */
 export async function changePassword(
   userId: string,
   currentPassword: string,
   newPassword: string,
 ): Promise<void> {
-  const auth = getAuth();
-  const db = getFirestore();
-
   try {
-    // Get user email from Firestore
-    const userDoc = await db.collection("users").doc(userId).get();
-    if (!userDoc.exists) {
+    // Get user email from MongoDB
+    const userDoc = await UserModel.findById(userId).lean();
+    if (!userDoc) {
       throw new Error("User not found");
     }
 
-    const userData = userDoc.data() as User;
+    const userData = userDoc as any;
     const email = userData.email;
 
-    // Verify current password by attempting sign-in
-    const firebaseApiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
-    if (!firebaseApiKey) {
-      throw new Error("Firebase API key not configured");
+    // Verify current password by attempting sign-in via Google Identity Platform
+    const googleApiKey = process.env.GOOGLE_OAUTH_API_KEY;
+    if (!googleApiKey) {
+      throw new Error("Google OAuth API key not configured");
     }
 
     const authResponse = await fetch(
-      `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${firebaseApiKey}`,
+      `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${googleApiKey}`,
       {
         method: "POST",
         headers: {
@@ -461,14 +497,29 @@ export async function changePassword(
       throw new Error("Current password is incorrect");
     }
 
-    // Update password in Firebase Auth
-    await auth.updateUser(userId, {
-      password: newPassword,
-    });
+    // Update password via Google Identity Platform REST API
+    const updateResponse = await fetch(
+      `https://identitytoolkit.googleapis.com/v1/accounts:update?key=${googleApiKey}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          localId: userId,
+          password: newPassword,
+          returnSecureToken: true,
+        }),
+      },
+    );
 
-    // Update timestamp in Firestore
-    await db.collection("users").doc(userId).update({
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    if (!updateResponse.ok) {
+      throw new Error("Failed to update password");
+    }
+
+    // Update timestamp in MongoDB
+    await UserModel.findByIdAndUpdate(userId, {
+      updatedAt: new Date(),
     });
   } catch (error: unknown) {
     if (error instanceof Error) {

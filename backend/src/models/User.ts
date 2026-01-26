@@ -37,6 +37,18 @@ export interface IUser extends Document {
     canGenerateReports: boolean;
   };
 
+  // Rewards system
+  rewardPoints: number;
+  level: number;
+  badges: string[];
+  statistics: {
+    issuesReported: number;
+    issuesResolved: number;
+    votesReceived: number;
+    votesCast: number;
+    helpfulReports: number;
+  };
+
   createdAt: Date;
   updatedAt: Date;
   lastLogin?: Date;
@@ -138,6 +150,18 @@ const UserSchema = new Schema<IUser>(
       canGenerateReports: { type: Boolean, default: false },
     },
 
+    // Rewards system
+    rewardPoints: { type: Number, default: 0 },
+    level: { type: Number, default: 1 },
+    badges: { type: [String], default: [] },
+    statistics: {
+      issuesReported: { type: Number, default: 0 },
+      issuesResolved: { type: Number, default: 0 },
+      votesReceived: { type: Number, default: 0 },
+      votesCast: { type: Number, default: 0 },
+      helpfulReports: { type: Number, default: 0 },
+    },
+
     lastLogin: {
       type: Date,
     },
@@ -156,21 +180,16 @@ const UserSchema = new Schema<IUser>(
 UserSchema.index({ email: 1, cityId: 1 }, { sparse: true, unique: true });
 
 // Hash password before saving (only if modified)
-UserSchema.pre("save", async function (next) {
+UserSchema.pre("save", async function () {
   if (!this.isModified("password")) {
-    return next();
+    return;
   }
 
-  try {
-    // Only hash if password exists
-    if (this.password) {
-      const bcrypt = require("bcryptjs");
-      const salt = await bcrypt.genSalt(10);
-      this.password = await bcrypt.hash(this.password, salt);
-    }
-    next();
-  } catch (error) {
-    next(error as Error);
+  // Only hash if password exists
+  if (this.password) {
+    const bcrypt = require("bcryptjs");
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
   }
 });
 

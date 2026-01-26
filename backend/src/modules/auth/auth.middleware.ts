@@ -1,8 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import { getAuth } from "../../config/firebase";
 import * as authService from "./auth.service";
 import { UserRole, User } from "../../types";
-import { AuthUser } from "../../middlewares/auth";
 
 // Extend Express Request type to include additional user data
 declare module "express-serve-static-core" {
@@ -17,12 +15,12 @@ declare module "express-serve-static-core" {
 }
 
 /**
- * Authenticate Firebase ID token from Authorization header
+ * Authenticate Google OAuth token from Authorization header
  */
 export async function authenticate(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   try {
     let authHeader = req.headers.authorization as string | undefined;
@@ -40,13 +38,12 @@ export async function authenticate(
     }
 
     const idToken = authHeader.split("Bearer ")[1];
-    const auth = getAuth();
 
-    // Verify token
-    const decodedToken = await auth.verifyIdToken(idToken);
+    // Verify Google OAuth token
+    const decodedToken = await authService.verifyIdToken(idToken);
 
-    // Get user data from Firestore
-    const user = await authService.getUserById(decodedToken.uid);
+    // Get user data from MongoDB
+    const user = await authService.getUserById(decodedToken.sub);
 
     if (!user || !user.isActive) {
       return res.status(401).json({
@@ -57,11 +54,11 @@ export async function authenticate(
 
     // Attach user info to request (using AuthUser type)
     req.user = {
-      uid: decodedToken.uid,
+      userId: decodedToken.sub,
       email: decodedToken.email,
       role: user.role,
       cityId: user.cityId,
-    } as AuthUser;
+    };
 
     // Attach detailed user data to request
     req.userData = {
@@ -133,7 +130,7 @@ export function requirePermission(permission: keyof User["permissions"]) {
 export function sameOrganization(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   const { cityId } = req.params;
 
@@ -160,18 +157,20 @@ export function sameOrganization(
 export async function optionalAuth(
   req: Request,
   _res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   try {
     const authHeader = req.headers.authorization;
 
     if (authHeader && authHeader.startsWith("Bearer ")) {
       const idToken = authHeader.split("Bearer ")[1];
-      const auth = getAuth();
-      const decodedToken = await auth.verifyIdToken(idToken);
-      req.user = decodedToken;
+      const decodedToken = await authService.verifyIdToken(idToken);
+      req.user = {
+        userId: decodedToken.sub,
+        email: decodedToken.email,
+      };
 
-      const user = await authService.getUserById(decodedToken.uid);
+      const user = await authService.getUserById(decodedToken.sub);
       if (user && user.isActive) {
         req.userData = {
           id: user.id,

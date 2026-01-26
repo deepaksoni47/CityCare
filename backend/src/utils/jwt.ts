@@ -32,8 +32,8 @@ export function generateAccessToken(user: IUser): string {
   };
 
   return jwt.sign(payload, JWT_SECRET, {
-    expiresIn: JWT_EXPIRE,
-  });
+    expiresIn: JWT_EXPIRE as string,
+  } as jwt.SignOptions);
 }
 
 /**
@@ -48,8 +48,8 @@ export function generateRefreshToken(user: IUser): string {
   };
 
   return jwt.sign(payload, REFRESH_TOKEN_SECRET, {
-    expiresIn: REFRESH_TOKEN_EXPIRE,
-  });
+    expiresIn: REFRESH_TOKEN_EXPIRE as string,
+  } as jwt.SignOptions);
 }
 
 /**

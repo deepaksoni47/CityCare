@@ -1,8 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import multer, { FileFilterCallback } from "multer";
 import path from "path";
-// @ts-expect-error - Express namespace needed for Express.Multer.File type
-import type { Express } from "express";
 
 /**
  * File upload validation and configuration
@@ -45,7 +43,7 @@ export const MAX_FILES_PER_UPLOAD = 10;
  */
 function isAllowedFileType(
   mimetype: string,
-  allowedTypes: readonly string[]
+  allowedTypes: readonly string[],
 ): boolean {
   return allowedTypes.includes(mimetype as (typeof allowedTypes)[number]);
 }
@@ -55,7 +53,7 @@ function isAllowedFileType(
  */
 function isAllowedExtension(
   filename: string,
-  allowedExtensions: string[]
+  allowedExtensions: string[],
 ): boolean {
   const ext = path.extname(filename).toLowerCase();
   return allowedExtensions.includes(ext);
@@ -67,14 +65,14 @@ function isAllowedExtension(
 const imageFilter = (
   _req: Request,
   file: Express.Multer.File,
-  cb: FileFilterCallback
+  cb: FileFilterCallback,
 ) => {
   // Check MIME type
   if (!isAllowedFileType(file.mimetype, ALLOWED_IMAGE_TYPES)) {
     return cb(
       new Error(
-        `Invalid file type. Allowed types: ${ALLOWED_IMAGE_TYPES.join(", ")}`
-      )
+        `Invalid file type. Allowed types: ${ALLOWED_IMAGE_TYPES.join(", ")}`,
+      ),
     );
   }
 
@@ -83,8 +81,8 @@ const imageFilter = (
   if (!isAllowedExtension(file.originalname, allowedExtensions)) {
     return cb(
       new Error(
-        `Invalid file extension. Allowed extensions: ${allowedExtensions.join(", ")}`
-      )
+        `Invalid file extension. Allowed extensions: ${allowedExtensions.join(", ")}`,
+      ),
     );
   }
 
@@ -106,14 +104,14 @@ export const uploadImage = multer({
 const audioFilter = (
   _req: Request,
   file: Express.Multer.File,
-  cb: FileFilterCallback
+  cb: FileFilterCallback,
 ) => {
   // Check MIME type
   if (!isAllowedFileType(file.mimetype, ALLOWED_AUDIO_TYPES)) {
     return cb(
       new Error(
-        `Invalid audio type. Allowed types: ${ALLOWED_AUDIO_TYPES.join(", ")}`
-      )
+        `Invalid audio type. Allowed types: ${ALLOWED_AUDIO_TYPES.join(", ")}`,
+      ),
     );
   }
 
@@ -122,8 +120,8 @@ const audioFilter = (
   if (!isAllowedExtension(file.originalname, allowedExtensions)) {
     return cb(
       new Error(
-        `Invalid audio extension. Allowed extensions: ${allowedExtensions.join(", ")}`
-      )
+        `Invalid audio extension. Allowed extensions: ${allowedExtensions.join(", ")}`,
+      ),
     );
   }
 
@@ -145,14 +143,14 @@ export const uploadAudio = multer({
 const videoFilter = (
   _req: Request,
   file: Express.Multer.File,
-  cb: FileFilterCallback
+  cb: FileFilterCallback,
 ) => {
   // Check MIME type
   if (!isAllowedFileType(file.mimetype, ALLOWED_VIDEO_TYPES)) {
     return cb(
       new Error(
-        `Invalid video type. Allowed types: ${ALLOWED_VIDEO_TYPES.join(", ")}`
-      )
+        `Invalid video type. Allowed types: ${ALLOWED_VIDEO_TYPES.join(", ")}`,
+      ),
     );
   }
 
@@ -161,8 +159,8 @@ const videoFilter = (
   if (!isAllowedExtension(file.originalname, allowedExtensions)) {
     return cb(
       new Error(
-        `Invalid video extension. Allowed extensions: ${allowedExtensions.join(", ")}`
-      )
+        `Invalid video extension. Allowed extensions: ${allowedExtensions.join(", ")}`,
+      ),
     );
   }
 
@@ -184,15 +182,15 @@ export const uploadVideo = multer({
 const mixedMediaFilter = (
   _req: Request,
   file: Express.Multer.File,
-  cb: FileFilterCallback
+  cb: FileFilterCallback,
 ) => {
   const allAllowedTypes = [...ALLOWED_IMAGE_TYPES, ...ALLOWED_AUDIO_TYPES];
 
   if (!isAllowedFileType(file.mimetype, allAllowedTypes)) {
     return cb(
       new Error(
-        `Invalid file type. Allowed types: images (jpg, png, gif, webp) and audio (mp3, wav)`
-      )
+        `Invalid file type. Allowed types: images (jpg, png, gif, webp) and audio (mp3, wav)`,
+      ),
     );
   }
 
@@ -216,7 +214,7 @@ export const handleUploadErrors = (
   err: Error | unknown,
   _req: Request,
   res: Response,
-  _next: NextFunction
+  _next: NextFunction,
 ): void => {
   if (err instanceof multer.MulterError) {
     // Multer-specific errors
@@ -272,7 +270,7 @@ export const handleUploadErrors = (
 export const validateUploadedFiles = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const files = req.files as Express.Multer.File[];
 
@@ -357,7 +355,7 @@ export const validateImageDimensions = async (
     maxHeight?: number;
     minWidth?: number;
     minHeight?: number;
-  } = {}
+  } = {},
 ): Promise<{ valid: boolean; message?: string }> => {
   // This would require an image processing library like 'sharp'
   // For now, we'll return a placeholder
@@ -428,7 +426,7 @@ export const isValidAudio = (buffer: Buffer): boolean => {
 export const validateFileContent = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const files = req.files as Express.Multer.File[];
 
@@ -471,7 +469,7 @@ export const validateFileContent = (
 export const preventPathTraversal = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): void => {
   const { filename, path: filePath } = req.body;
 

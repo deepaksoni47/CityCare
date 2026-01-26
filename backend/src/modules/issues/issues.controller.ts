@@ -6,7 +6,6 @@ import {
   IssuePriority,
   UserRole,
 } from "../../types";
-import { firestore } from "firebase-admin";
 
 /**
  * Create a new issue
@@ -14,7 +13,7 @@ import { firestore } from "firebase-admin";
  */
 export async function createIssue(req: Request, res: Response) {
   try {
-    const userId = req.userData?.id || req.user?.uid;
+    const userId = req.userData?.id || req.user?.userId;
     const userRole = req.userData?.role;
 
     if (!userId || !userRole) {
@@ -56,11 +55,11 @@ export async function createIssue(req: Request, res: Response) {
       });
     }
 
-    // Create GeoPoint
-    const location = new firestore.GeoPoint(
-      parseFloat(latitude),
-      parseFloat(longitude),
-    );
+    // Create location object
+    const location = {
+      latitude: parseFloat(latitude),
+      longitude: parseFloat(longitude),
+    };
 
     const issueData = {
       cityId,
@@ -140,7 +139,7 @@ export async function getIssue(req: Request, res: Response) {
  */
 export async function getIssues(req: Request, res: Response) {
   try {
-    const userId = req.user?.uid;
+    const userId = req.user?.userId;
     // const userRole = req.userData?.role; // Commented out - currently not used
 
     if (!userId) {
@@ -224,7 +223,7 @@ export async function getIssues(req: Request, res: Response) {
  */
 export async function updateIssue(req: Request, res: Response) {
   try {
-    const userId = req.user?.uid;
+    const userId = req.user?.userId;
 
     if (!userId) {
       return res.status(401).json({
@@ -266,7 +265,7 @@ export async function updateIssue(req: Request, res: Response) {
  */
 export async function resolveIssue(req: Request, res: Response) {
   try {
-    const userId = req.user?.uid;
+    const userId = req.user?.userId;
     const userRole = req.user?.role;
 
     if (!userId) {
@@ -321,7 +320,7 @@ export async function resolveIssue(req: Request, res: Response) {
  */
 export async function assignIssue(req: Request, res: Response) {
   try {
-    const userId = req.user?.uid;
+    const userId = req.user?.userId;
     const userRole = req.user?.role;
 
     if (!userId) {
@@ -373,7 +372,7 @@ export async function assignIssue(req: Request, res: Response) {
  */
 export async function deleteIssue(req: Request, res: Response) {
   try {
-    const userId = req.user?.uid;
+    const userId = req.user?.userId;
     const userRole = req.user?.role;
 
     if (!userId) {
@@ -458,7 +457,7 @@ export async function getIssueHistory(req: Request, res: Response) {
  */
 export async function uploadImage(req: Request, res: Response) {
   try {
-    const userId = req.userData?.id || req.user?.uid;
+    const userId = req.userData?.id || req.user?.userId;
 
     if (!userId) {
       return res.status(401).json({

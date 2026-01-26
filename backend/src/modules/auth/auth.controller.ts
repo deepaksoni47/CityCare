@@ -188,7 +188,7 @@ export async function loginWithEmail(req: Request, res: Response) {
  */
 export async function getCurrentUser(req: Request, res: Response) {
   try {
-    const userId = req.user?.uid;
+    const userId = req.user?.userId;
 
     if (!userId) {
       return res.status(401).json({
@@ -238,7 +238,7 @@ export async function getCurrentUser(req: Request, res: Response) {
  */
 export async function updateProfile(req: Request, res: Response) {
   try {
-    const userId = req.user?.uid;
+    const userId = req.user?.userId;
 
     if (!userId) {
       return res.status(401).json({
@@ -415,7 +415,7 @@ export async function logout(_req: Request, res: Response) {
  */
 export async function changePassword(req: Request, res: Response) {
   try {
-    const userId = req.user?.uid;
+    const userId = req.user?.userId;
 
     if (!userId) {
       return res.status(401).json({

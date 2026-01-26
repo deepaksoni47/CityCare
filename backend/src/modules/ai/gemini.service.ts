@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { Issue as IssueModel } from "../../models/Issue";
 
 /**
  * Initialize Gemini AI client
@@ -916,37 +917,22 @@ export async function generateDailySummary(
   upcomingRisks: string[];
 }> {
   try {
-    const db = admin.firestore();
-
-    // Get today's issues
+    // Get today's issues from MongoDB
     const startOfDay = new Date(date);
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date(date);
     endOfDay.setHours(23, 59, 59, 999);
 
-    const todaySnapshot = await db
-      .collection("issues")
-      .where("cityId", "==", cityId)
-      .where("createdAt", ">=", startOfDay)
-      .where("createdAt", "<=", endOfDay)
-      .get();
+    const todayIssues = (await IssueModel.find({
+      cityId,
+      createdAt: { $gte: startOfDay, $lte: endOfDay },
+    }).lean()) as any[];
 
-    const todayIssues = todaySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-
-    // Get all open issues
-    const openSnapshot = await db
-      .collection("issues")
-      .where("cityId", "==", cityId)
-      .where("status", "in", ["open", "in_progress"])
-      .get();
-
-    const openIssues = openSnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+    // Get all open issues from MongoDB
+    const openIssues = (await IssueModel.find({
+      cityId,
+      status: { $in: ["open", "in_progress"] },
+    }).lean()) as any[];
 
     const resolvedToday = todayIssues.filter(
       (i: any) => i.status === "resolved",
@@ -1218,9 +1204,6 @@ Make it thorough and professional for administrative records.`;
     throw new Error("Failed to generate incident report");
   }
 }
-
-// Add admin import at top
-import * as admin from "firebase-admin";
 
 export default {
   getGeminiModel,
