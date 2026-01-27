@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import * as authService from "./auth.service";
+import { verifyAccessToken } from "../../utils/jwt";
 import { UserRole, User } from "../../types";
 
 // Extend Express Request type to include additional user data
@@ -37,10 +38,39 @@ export async function authenticate(
       });
     }
 
-    const idToken = authHeader.split("Bearer ")[1];
+    const rawToken = authHeader.split("Bearer ")[1];
 
-    // Verify Google OAuth token
-    const decodedToken = await authService.verifyIdToken(idToken);
+    // First, try verifying our JWT access token (HS256)
+    const jwtPayload = verifyAccessToken(rawToken);
+    if (jwtPayload) {
+      const user = await authService.getUserById(jwtPayload.userId);
+
+      if (!user || !user.isActive) {
+        return res.status(401).json({
+          error: "Unauthorized",
+          message: "User account is inactive or does not exist",
+        });
+      }
+
+      req.user = {
+        userId: user.id,
+        email: user.email,
+        role: user.role,
+        cityId: user.cityId,
+      } as any;
+
+      req.userData = {
+        id: user.id,
+        cityId: (user as any).cityId,
+        role: user.role as UserRole,
+        permissions: (user as any).permissions || {},
+      };
+
+      return next();
+    }
+
+    // Fallback: verify legacy Google ID token (RS256)
+    const decodedToken = await authService.verifyIdToken(rawToken);
 
     // Get user data from MongoDB
     const user = await authService.getUserById(decodedToken.sub);
@@ -163,8 +193,31 @@ export async function optionalAuth(
     const authHeader = req.headers.authorization;
 
     if (authHeader && authHeader.startsWith("Bearer ")) {
-      const idToken = authHeader.split("Bearer ")[1];
-      const decodedToken = await authService.verifyIdToken(idToken);
+      const rawToken = authHeader.split("Bearer ")[1];
+
+      // Prefer our JWT access token
+      const jwtPayload = verifyAccessToken(rawToken);
+      if (jwtPayload) {
+        const user = await authService.getUserById(jwtPayload.userId);
+        if (user && user.isActive) {
+          req.user = {
+            userId: user.id,
+            email: user.email,
+            role: user.role,
+            cityId: user.cityId,
+          } as any;
+          req.userData = {
+            id: user.id,
+            cityId: (user as any).cityId,
+            role: user.role as UserRole,
+            permissions: (user as any).permissions || {},
+          };
+        }
+        return next();
+      }
+
+      // Fallback to legacy Google ID token
+      const decodedToken = await authService.verifyIdToken(rawToken);
       req.user = {
         userId: decodedToken.sub,
         email: decodedToken.email,

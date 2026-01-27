@@ -2,27 +2,17 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { initializeApp, getApps, getApp } from "firebase/app";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL as string;
-
-// Client-side Firebase configuration using public env variables
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+const getApiBaseUrl = () => {
+  if (process.env.NEXT_PUBLIC_API_BASE_URL)
+    return process.env.NEXT_PUBLIC_API_BASE_URL;
+  if (typeof window !== "undefined") return window.location.origin;
+  return "";
 };
-
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-const auth = getAuth(app);
-const googleProvider = new GoogleAuthProvider();
 
 interface GoogleSignInButtonProps {
   cityId?: string;
+  // cityId specifies which city the user is signing in for
 }
 
 export function GoogleSignInButton({
@@ -36,62 +26,37 @@ export function GoogleSignInButton({
     try {
       setError(null);
       setIsLoading(true);
+      const apiBaseUrl = getApiBaseUrl();
 
-      // 1. Sign in with Google popup via Firebase
-      const result = await signInWithPopup(auth, googleProvider);
-      const user = result.user;
+      if (!apiBaseUrl) {
+        throw new Error("Missing API base URL for Google sign-in.");
+      }
 
-      // 2. Get Firebase ID token
-      const idToken = await user.getIdToken();
+      const url = new URL(`${apiBaseUrl}/api/auth/oauth/google/url`);
+      url.searchParams.set("cityId", cityId);
 
-      // 3. Send token to CityCare backend
-      const response = await fetch(`${API_BASE_URL}/api/auth/login/google`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          idToken,
-          cityId,
-          role: "citizen",
-        }),
-      });
-
+      const response = await fetch(url.toString());
       const data = (await response.json()) as {
         success?: boolean;
-        data?: { user: unknown; token: string };
+        data?: { authUrl?: string };
         message?: string;
         error?: string;
       };
 
-      if (!response.ok || !data.success || !data.data?.token) {
+      const authUrl = data.data?.authUrl;
+
+      if (!response.ok || !data.success || !authUrl) {
         const message =
-          data.message || data.error || "Unable to complete sign-in.";
+          data.message || data.error || "Unable to start Google sign-in.";
         throw new Error(message);
       }
 
-      // 4. Store user + token
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem("citycare_token", data.data.token);
-        window.localStorage.setItem(
-          "citycare_user",
-          JSON.stringify(data.data.user),
-        );
-        // Notify other components in this tab about auth change
-        try {
-          window.dispatchEvent(new Event("citycare_auth_changed"));
-        } catch (_) {
-          /* ignore */
-        }
-      }
-
-      // 5. Redirect to dashboard
-      router.push("/dashboard");
+      // Redirect to Google's consent screen
+      window.location.href = authUrl;
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Unexpected error during sign-in.";
       setError(message);
-    } finally {
       setIsLoading(false);
     }
   };

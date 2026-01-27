@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { auth } from "@/lib/firebase";
 import toast from "react-hot-toast";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL as string;
@@ -21,17 +20,18 @@ const CATEGORIES = [
   "Other",
 ] as const;
 
-const BUILDINGS = [
-  { id: "building_001", name: "Main Administration Building" },
-  { id: "building_002", name: "Engineering Block" },
-  { id: "building_003", name: "Science Block" },
-  { id: "building_004", name: "Library" },
-  { id: "building_005", name: "Hostel Block A" },
-  { id: "building_006", name: "Hostel Block B" },
-  { id: "building_007", name: "Cafeteria" },
-  { id: "building_008", name: "Sports Complex" },
-  { id: "building_009", name: "Auditorium" },
-  { id: "building_010", name: "Parking Area" },
+// City locations for issue reporting
+const LOCATIONS = [
+  { id: "zone_downtown", name: "Downtown District" },
+  { id: "zone_north", name: "North Zone" },
+  { id: "zone_south", name: "South Zone" },
+  { id: "zone_east", name: "East Zone" },
+  { id: "zone_west", name: "West Zone" },
+  { id: "zone_central", name: "Central Hub" },
+  { id: "zone_industrial", name: "Industrial Area" },
+  { id: "zone_residential", name: "Residential Area" },
+  { id: "zone_commercial", name: "Commercial District" },
+  { id: "zone_parks", name: "Parks & Recreation" },
 ];
 
 interface LocationState {
@@ -58,9 +58,8 @@ export default function ReportPage() {
     title: "",
     description: "",
     category: "Other" as (typeof CATEGORIES)[number],
-    buildingId: "",
-    departmentId: "",
-    roomId: "",
+    locationId: "",
+    zone: "",
   });
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [aiImageAnalysis, setAiImageAnalysis] = useState<string>("");
@@ -88,11 +87,11 @@ export default function ReportPage() {
   const checkAuth = () => {
     const token =
       typeof window !== "undefined"
-        ? window.localStorage.getItem("campuscare_token")
+        ? window.localStorage.getItem("citycare_token")
         : null;
     const userStr =
       typeof window !== "undefined"
-        ? window.localStorage.getItem("campuscare_user")
+        ? window.localStorage.getItem("citycare_user")
         : null;
 
     if (!token || !userStr) {
@@ -204,15 +203,12 @@ export default function ReportPage() {
   const analyzeImageWithAI = async (imageFile: File) => {
     setIsAnalyzingImage(true);
     try {
-      const token = window.localStorage.getItem("campuscare_token");
+      const token = window.localStorage.getItem("citycare_token");
 
       // First upload the image to get a URL
       const uploadFormData = new FormData();
       uploadFormData.append("images", imageFile);
-      uploadFormData.append(
-        "organizationId",
-        user?.organizationId || "ggv-bilaspur",
-      );
+      uploadFormData.append("cityId", user?.cityId || "default-city");
 
       const uploadResponse = await fetch(
         `${API_BASE_URL}/api/issues/upload-image`,
@@ -254,8 +250,7 @@ export default function ReportPage() {
           },
           body: JSON.stringify({
             imageUrl,
-            buildingName: BUILDINGS.find((b) => b.id === formData.buildingId)
-              ?.name,
+            zone: LOCATIONS.find((l) => l.id === formData.locationId)?.name,
           }),
         },
       );
@@ -504,7 +499,7 @@ export default function ReportPage() {
   const processTranscriptWithAI = async (transcript: string) => {
     setIsProcessingVoice(true);
     try {
-      const token = window.localStorage.getItem("campuscare_token");
+      const token = window.localStorage.getItem("citycare_token");
 
       // Use the classify-text endpoint instead of process-voice
       const response = await fetch(`${API_BASE_URL}/api/ai/classify-text`, {
@@ -515,8 +510,7 @@ export default function ReportPage() {
         },
         body: JSON.stringify({
           text: transcript,
-          buildingName: BUILDINGS.find((b) => b.id === formData.buildingId)
-            ?.name,
+          zone: LOCATIONS.find((l) => l.id === formData.locationId)?.name,
         }),
       });
 
@@ -555,7 +549,7 @@ export default function ReportPage() {
   const sendAudioToServer = async (blob: Blob) => {
     setIsProcessingVoice(true);
     try {
-      const token = window.localStorage.getItem("campuscare_token");
+      const token = window.localStorage.getItem("citycare_token");
       // Convert blob to base64
       const base64 = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
@@ -581,8 +575,7 @@ export default function ReportPage() {
         body: JSON.stringify({
           audioBase64: base64,
           mimeType,
-          buildingName: BUILDINGS.find((b) => b.id === formData.buildingId)
-            ?.name,
+          zone: LOCATIONS.find((l) => l.id === formData.locationId)?.name,
         }),
       });
 
@@ -630,7 +623,7 @@ export default function ReportPage() {
   const uploadImages = async (): Promise<string[]> => {
     if (imageFiles.length === 0) return [];
 
-    const token = window.localStorage.getItem("campuscare_token");
+    const token = window.localStorage.getItem("citycare_token");
     const uploadedUrls: string[] = [];
 
     try {
@@ -639,7 +632,7 @@ export default function ReportPage() {
       imageFiles.forEach((file) => {
         formData.append("images", file);
       });
-      formData.append("organizationId", user.organizationId || "ggv-bilaspur");
+      formData.append("cityId", user.cityId || "default-city");
 
       const response = await fetch(`${API_BASE_URL}/api/issues/upload-image`, {
         method: "POST",
@@ -693,8 +686,8 @@ export default function ReportPage() {
       return;
     }
 
-    if (!formData.buildingId) {
-      toast.error("Please select a building");
+    if (!formData.locationId) {
+      toast.error("Please select a location");
       return;
     }
 
@@ -707,28 +700,16 @@ export default function ReportPage() {
     setIsSubmitting(true);
 
     try {
-      let token = window.localStorage.getItem("campuscare_token");
-
-      // Refresh token if possible
-      if (auth.currentUser) {
-        try {
-          token = await auth.currentUser.getIdToken();
-          // Update local storage
-          window.localStorage.setItem("campuscare_token", token);
-        } catch (e) {
-          console.error("Token refresh failed", e);
-        }
-      }
+      let token = window.localStorage.getItem("citycare_token");
 
       // Upload images first if any
       const imageUrls = await uploadImages();
 
       // Prepare issue data
       const issueData = {
-        organizationId: user.organizationId || "ggv-bilaspur",
-        buildingId: formData.buildingId,
-        departmentId: formData.departmentId || undefined,
-        roomId: formData.roomId || undefined,
+        cityId: user.cityId || "default-city",
+        locationId: formData.locationId,
+        zone: formData.zone || undefined,
         title: formData.title.trim(),
         description: formData.description.trim(),
         category: formData.category,
@@ -765,9 +746,8 @@ export default function ReportPage() {
           title: "",
           description: "",
           category: "Other",
-          buildingId: "",
-          departmentId: "",
-          roomId: "",
+          locationId: "",
+          zone: "",
         });
         setImageFiles([]);
         setAiImageAnalysis("");
@@ -1150,70 +1130,50 @@ export default function ReportPage() {
             </select>
           </div>
 
-          {/* Building */}
+          {/* Location */}
           <div>
             <label
-              htmlFor="buildingId"
+              htmlFor="locationId"
               className="block text-sm font-medium mb-2"
             >
-              Building <span className="text-rose-400">*</span>
+              Location / Zone <span className="text-rose-400">*</span>
             </label>
             <select
-              id="buildingId"
-              name="buildingId"
-              value={formData.buildingId}
+              id="locationId"
+              name="locationId"
+              value={formData.locationId}
               onChange={handleInputChange}
               required
               className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 outline-none transition-all text-white"
             >
               <option value="" className="bg-[#1a1a2e]">
-                Select a building
+                Select a location
               </option>
-              {BUILDINGS.map((building) => (
+              {LOCATIONS.map((location) => (
                 <option
-                  key={building.id}
-                  value={building.id}
+                  key={location.id}
+                  value={location.id}
                   className="bg-[#1a1a2e]"
                 >
-                  {building.name}
+                  {location.name}
                 </option>
               ))}
             </select>
           </div>
 
-          {/* Department (Optional) */}
+          {/* Zone (Optional) */}
           <div>
-            <label
-              htmlFor="departmentId"
-              className="block text-sm font-medium mb-2"
-            >
-              Department{" "}
+            <label htmlFor="zone" className="block text-sm font-medium mb-2">
+              Specific Area{" "}
               <span className="text-white/40 text-xs">(Optional)</span>
             </label>
             <input
               type="text"
-              id="departmentId"
-              name="departmentId"
-              value={formData.departmentId}
+              id="zone"
+              name="zone"
+              value={formData.zone}
               onChange={handleInputChange}
-              placeholder="e.g., Computer Science"
-              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 outline-none transition-all text-white placeholder-white/40"
-            />
-          </div>
-
-          {/* Room (Optional) */}
-          <div>
-            <label htmlFor="roomId" className="block text-sm font-medium mb-2">
-              Room Number{" "}
-              <span className="text-white/40 text-xs">(Optional)</span>
-            </label>
-            <input
-              type="text"
-              id="roomId"
-              name="roomId"
-              value={formData.roomId}
-              onChange={handleInputChange}
-              placeholder="e.g., 101, Lab-3"
+              placeholder="e.g., intersection, parking lot, street number"
               className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 outline-none transition-all text-white placeholder-white/40"
             />
           </div>

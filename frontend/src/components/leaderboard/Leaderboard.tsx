@@ -193,13 +193,6 @@ function LeaderboardCard({
 
         <div className="text-center min-w-0 flex-1 sm:flex-none">
           <div className="font-bold text-gray-900 text-sm sm:text-base">
-            {entry.votesReceived}
-          </div>
-          <div className="text-xs text-gray-600">Votes</div>
-        </div>
-
-        <div className="text-center min-w-0 flex-1 sm:flex-none">
-          <div className="font-bold text-gray-900 text-sm sm:text-base">
             {entry.badges.length}
           </div>
           <div className="text-xs text-gray-600">Badges</div>

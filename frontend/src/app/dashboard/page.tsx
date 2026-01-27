@@ -13,7 +13,12 @@ import {
   Workflow,
 } from "lucide-react";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL as string;
+const getApiBaseUrl = () => {
+  if (process.env.NEXT_PUBLIC_API_BASE_URL)
+    return process.env.NEXT_PUBLIC_API_BASE_URL;
+  if (typeof window !== "undefined") return window.location.origin;
+  return "";
+};
 
 // --- Types ---
 interface Issue {
@@ -113,9 +118,7 @@ export default function DashboardPage() {
           );
         }
 
-        const isManagerOrAdmin = ["agency", "admin"].includes(
-          userData.role,
-        );
+        const isManagerOrAdmin = ["agency", "admin"].includes(userData.role);
 
         await Promise.all([
           // Only load global stats for Managers/Admins to avoid 403 errors
@@ -138,7 +141,7 @@ export default function DashboardPage() {
     try {
       const token = window.localStorage.getItem("citycare_token");
       const response = await fetch(
-        `${API_BASE_URL}/api/issues/stats?cityId=${userData.cityId}`,
+        `${getApiBaseUrl()}/api/issues/stats?cityId=${userData.cityId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -187,7 +190,7 @@ export default function DashboardPage() {
         query += `&reportedBy=${userData.id}`;
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/issues?${query}`, {
+      const response = await fetch(`${getApiBaseUrl()}/api/issues?${query}`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -221,7 +224,7 @@ export default function DashboardPage() {
     try {
       const token = window.localStorage.getItem("citycare_token");
       const response = await fetch(
-        `${API_BASE_URL}/api/issues/priorities?cityId=${userData.cityId}`,
+        `${getApiBaseUrl()}/api/issues/priorities?cityId=${userData.cityId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -249,7 +252,7 @@ export default function DashboardPage() {
   const loadAIInsights = async (userData: UserData) => {
     try {
       const token = window.localStorage.getItem("citycare_token");
-      const response = await fetch(`${API_BASE_URL}/api/ai/insights`, {
+      const response = await fetch(`${getApiBaseUrl()}/api/ai/insights`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -385,11 +388,10 @@ export default function DashboardPage() {
                   {user?.role}
                 </span>
               </span>
-              
             </div>
-              <p className="text-white/60 text-lg">
-                Infrastructure Intelligence System
-              </p>
+            <p className="text-white/60 text-lg">
+              Infrastructure Intelligence System
+            </p>
           </div>
         </motion.div>
 
@@ -499,8 +501,6 @@ export default function DashboardPage() {
               href="/profile?tab=leaderboard"
               gradient="from-yellow-600 to-orange-600"
             />
-          </div>
-        </motion.div>
           </div>
         </motion.div>
 

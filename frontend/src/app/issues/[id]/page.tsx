@@ -5,17 +5,16 @@ import { useRouter, useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import toast from "react-hot-toast";
-import { auth } from "@/lib/firebase";
-import { VoteButton, VoteCount } from "@/components/voting/VoteButton";
+import { clearAuthTokens } from "@/lib/tokenManager";
+import { useAuth } from "@/lib/hooks/useAuth";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL as string;
 
 interface Issue {
   id: string;
-  organizationId: string;
-  buildingId?: string;
-  departmentId?: string;
-  roomId?: string;
+  cityId: string;
+  zoneId?: string;
+  agencyId?: string;
   title: string;
   description: string;
   category: string;
@@ -23,8 +22,9 @@ interface Issue {
   status: string;
   priority: string;
   location?: {
-    _latitude: number;
-    _longitude: number;
+    latitude: number;
+    longitude: number;
+    address?: string;
   };
   reportedBy: string;
   reportedByRole?: string;
@@ -38,94 +38,57 @@ interface Issue {
   estimatedDuration?: number;
   actualCost?: number;
   actualDuration?: number;
-  resolutionComment?: string;
+  resolutionNotes?: string;
   resolvedAt?: any;
+  resolvedBy?: string;
   createdAt: any;
   updatedAt: any;
-  voteCount?: number;
-  votedBy?: string[];
-}
-
-interface HistoryEntry {
-  id: string;
-  issueId: string;
-  fieldName: string;
-  oldValue: string;
-  newValue: string;
-  changedBy: string;
-  changeType: string;
-  comment?: string;
-  changedAt: any;
-}
-
-interface UserData {
-  id: string;
-  organizationId: string;
-  role: string;
-  name?: string;
 }
 
 export default function IssueDetailPage() {
   const router = useRouter();
   const params = useParams();
   const issueId = params?.id as string;
+  const { user, loading } = useAuth();
 
-  const [user, setUser] = useState<UserData | null>(null);
   const [issue, setIssue] = useState<Issue | null>(null);
-  const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
-  const [showHistory, setShowHistory] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   // Action states
   const [assigneeId, setAssigneeId] = useState("");
-  const [resolutionComment, setResolutionComment] = useState("");
-  const [actualCost, setActualCost] = useState("");
-  const [actualDuration, setActualDuration] = useState("");
+  const [resolutionNotes, setResolutionNotes] = useState("");
   const [showResolveModal, setShowResolveModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteReason, setDeleteReason] = useState("");
 
   useEffect(() => {
-    checkAuth();
-  }, []);
-
-  useEffect(() => {
-    if (user && issueId) {
-      fetchIssueDetails();
-      fetchIssueHistory();
-    }
-  }, [user, issueId]);
-
-  const checkAuth = () => {
-    const userStr =
-      typeof window !== "undefined"
-        ? window.localStorage.getItem("campuscare_user")
-        : null;
-
-    if (!userStr) {
+    if (!loading && !user) {
       toast.error("Please log in to view issue details");
       router.push("/login");
-      return;
     }
+  }, [loading, user, router]);
 
-    try {
-      const userData = JSON.parse(userStr);
-      setUser(userData);
-    } catch (error) {
-      toast.error("Invalid user data. Please log in again.");
-      router.push("/login");
+  useEffect(() => {
+    if (user && issueId && !loading) {
+      fetchIssueDetails();
     }
-  };
+  }, [user, issueId, loading, router]);
 
   const fetchIssueDetails = async () => {
     setIsLoading(true);
     try {
-      let token = window.localStorage.getItem("campuscare_token");
+      const token =
+        typeof window !== "undefined"
+          ? window.localStorage.getItem("citycare_token")
+          : null;
 
-      if (auth.currentUser) {
-        token = await auth.currentUser.getIdToken();
+      if (!token) {
+        clearAuthTokens();
+        toast.error("Session expired. Please log in again.");
+        router.push("/login");
+        return;
       }
 
       const response = await fetch(`${API_BASE_URL}/api/issues/${issueId}`, {
@@ -135,16 +98,45 @@ export default function IssueDetailPage() {
       });
 
       if (response.status === 401) {
+        clearAuthTokens();
         toast.error("Session expired. Please log in again.");
-        localStorage.removeItem("campuscare_token");
-        localStorage.removeItem("campuscare_user");
         router.push("/login");
         return;
       }
 
       if (response.ok) {
         const result = await response.json();
-        setIssue(result.data);
+        const rawIssue = result.data?.issue ?? result.data;
+        setIssue({
+          id: rawIssue._id || rawIssue.id,
+          cityId: rawIssue.cityId,
+          zoneId: rawIssue.zoneId?._id || rawIssue.zoneId,
+          agencyId: rawIssue.agencyId?._id || rawIssue.agencyId,
+          title: rawIssue.title,
+          description: rawIssue.description,
+          category: rawIssue.category,
+          severity: rawIssue.severity,
+          status: rawIssue.status,
+          priority: rawIssue.priority,
+          location: rawIssue.location,
+          reportedBy: rawIssue.reportedBy?._id || rawIssue.reportedBy,
+          reportedByRole: rawIssue.reportedByRole,
+          assignedTo: rawIssue.assignedTo?._id || rawIssue.assignedTo,
+          aiRiskScore: rawIssue.aiRiskScore,
+          images: rawIssue.images || [],
+          voiceTranscript: rawIssue.voiceTranscript,
+          aiImageAnalysis: rawIssue.aiImageAnalysis,
+          submissionType: rawIssue.submissionType,
+          estimatedCost: rawIssue.estimatedCost,
+          estimatedDuration: rawIssue.estimatedDuration,
+          actualCost: rawIssue.actualCost,
+          actualDuration: rawIssue.actualDuration,
+          resolutionNotes: rawIssue.resolutionNotes,
+          resolvedAt: rawIssue.resolvedAt,
+          resolvedBy: rawIssue.resolvedBy?._id || rawIssue.resolvedBy,
+          createdAt: rawIssue.createdAt,
+          updatedAt: rawIssue.updatedAt,
+        });
       } else {
         const error = await response.json();
         toast.error(error.message || "Failed to load issue");
@@ -159,52 +151,22 @@ export default function IssueDetailPage() {
     }
   };
 
-  const fetchIssueHistory = async () => {
-    try {
-      let token = window.localStorage.getItem("campuscare_token");
-
-      if (auth.currentUser) {
-        token = await auth.currentUser.getIdToken();
-      }
-
-      const response = await fetch(
-        `${API_BASE_URL}/api/issues/${issueId}/history`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-
-      if (response.status === 401) {
-        toast.error("Session expired. Please log in again.");
-        localStorage.removeItem("campuscare_token");
-        localStorage.removeItem("campuscare_user");
-        router.push("/login");
-        return;
-      }
-
-      if (response.ok) {
-        const result = await response.json();
-        setHistory(result.data || []);
-      }
-    } catch (error) {
-      console.error("Error fetching history:", error);
-    }
-  };
-
   const handleResolve = async () => {
-    if (!resolutionComment.trim()) {
-      toast.error("Please provide a resolution comment");
+    if (!resolutionNotes.trim()) {
+      toast.error("Please provide resolution notes");
       return;
     }
 
     setIsUpdating(true);
     try {
-      let token = window.localStorage.getItem("campuscare_token");
-
-      if (auth.currentUser) {
-        token = await auth.currentUser.getIdToken();
+      const token =
+        typeof window !== "undefined"
+          ? window.localStorage.getItem("citycare_token")
+          : null;
+      if (!token) {
+        clearAuthTokens();
+        router.push("/login");
+        return;
       }
 
       const response = await fetch(
@@ -215,31 +177,22 @@ export default function IssueDetailPage() {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            resolutionComment,
-            actualCost: actualCost ? parseFloat(actualCost) : undefined,
-            actualDuration: actualDuration
-              ? parseInt(actualDuration)
-              : undefined,
-          }),
+          body: JSON.stringify({ resolutionNotes }),
         },
       );
 
       if (response.status === 401) {
+        clearAuthTokens();
         toast.error("Session expired. Please log in again.");
-        localStorage.removeItem("campuscare_token");
-        localStorage.removeItem("campuscare_user");
         router.push("/login");
         return;
       }
 
       if (response.ok) {
         toast.success("Issue resolved successfully!");
+        setShowResolveModal(false);
+        setResolutionNotes("");
         fetchIssueDetails();
-        fetchIssueHistory();
-        setResolutionComment("");
-        setActualCost("");
-        setActualDuration("");
       } else {
         const error = await response.json();
         toast.error(error.message || "Failed to resolve issue");
@@ -254,16 +207,20 @@ export default function IssueDetailPage() {
 
   const handleAssign = async () => {
     if (!assigneeId.trim()) {
-      toast.error("Please enter assignee user ID");
+      toast.error("Please enter officer/agency user ID");
       return;
     }
 
     setIsUpdating(true);
     try {
-      let token = window.localStorage.getItem("campuscare_token");
-
-      if (auth.currentUser) {
-        token = await auth.currentUser.getIdToken();
+      const token =
+        typeof window !== "undefined"
+          ? window.localStorage.getItem("citycare_token")
+          : null;
+      if (!token) {
+        clearAuthTokens();
+        router.push("/login");
+        return;
       }
 
       const response = await fetch(
@@ -274,25 +231,21 @@ export default function IssueDetailPage() {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            assignedTo: assigneeId,
-          }),
+          body: JSON.stringify({ assignedTo: assigneeId }),
         },
       );
 
       if (response.status === 401) {
+        clearAuthTokens();
         toast.error("Session expired. Please log in again.");
-        localStorage.removeItem("campuscare_token");
-        localStorage.removeItem("campuscare_user");
         router.push("/login");
         return;
       }
 
       if (response.ok) {
         toast.success("Issue assigned successfully!");
-        fetchIssueDetails();
-        fetchIssueHistory();
         setAssigneeId("");
+        fetchIssueDetails();
       } else {
         const error = await response.json();
         toast.error(error.message || "Failed to assign issue");
@@ -308,10 +261,14 @@ export default function IssueDetailPage() {
   const handleDelete = async () => {
     setIsUpdating(true);
     try {
-      let token = window.localStorage.getItem("campuscare_token");
-
-      if (auth.currentUser) {
-        token = await auth.currentUser.getIdToken();
+      const token =
+        typeof window !== "undefined"
+          ? window.localStorage.getItem("citycare_token")
+          : null;
+      if (!token) {
+        clearAuthTokens();
+        router.push("/login");
+        return;
       }
 
       const response = await fetch(`${API_BASE_URL}/api/issues/${issueId}`, {
@@ -321,14 +278,13 @@ export default function IssueDetailPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          reason: deleteReason || "Issue deleted by user",
+          reason: deleteReason || "Removed by CityCare user",
         }),
       });
 
       if (response.status === 401) {
+        clearAuthTokens();
         toast.error("Session expired. Please log in again.");
-        localStorage.removeItem("campuscare_token");
-        localStorage.removeItem("campuscare_user");
         router.push("/login");
         return;
       }
@@ -392,26 +348,26 @@ export default function IssueDetailPage() {
     });
   };
 
-  // Permission checks based on role hierarchy
+  // Permission checks based on CityCare role hierarchy
   const canResolve =
-    user?.role === "facility_manager" ||
+    user?.role === "manager" ||
     user?.role === "admin" ||
-    user?.role === "staff";
-  const canAssign = user?.role === "facility_manager" || user?.role === "admin";
+    user?.role === "officer" ||
+    user?.role === "agency";
+  const canAssign =
+    user?.role === "manager" ||
+    user?.role === "admin" ||
+    user?.role === "agency";
   const isOwner = user?.id === issue?.reportedBy;
 
   // Delete permissions:
-  // - Students can only delete their own issues
-  // - Faculty/Staff can delete their own issues
-  // - Facility managers can delete any issue
-  // - Admins can delete any issue
+  // - Citizens can delete their own issues
+  // - Officers can delete their own issues
+  // - Managers and Admins can delete any issue
   const canDelete =
     user?.role === "admin" ||
-    user?.role === "facility_manager" ||
-    (isOwner &&
-      (user?.role === "student" ||
-        user?.role === "faculty" ||
-        user?.role === "staff"));
+    user?.role === "manager" ||
+    (isOwner && ["citizen", "officer", "volunteer"].includes(user?.role || ""));
 
   if (isLoading) {
     return (
@@ -480,55 +436,32 @@ export default function IssueDetailPage() {
                 </span>
                 {isOwner && (
                   <span className="px-3 py-1 rounded-lg text-xs font-semibold bg-blue-500/20 text-blue-300 border border-blue-500/30">
-                    👤 Your Issue
+                    👤 Your Report
                   </span>
                 )}
-                {/* Vote Count Display */}
-                <div className="ml-2">
-                  <VoteCount count={issue.voteCount || 0} size="md" />
-                </div>
               </div>
               <h1 className="text-3xl md:text-4xl font-bold mb-2">
                 {issue.title}
               </h1>
               <div className="flex flex-wrap items-center gap-4 text-sm text-white/60">
                 <span>📂 {issue.category}</span>
-                {issue.buildingId && <span>🏢 {issue.buildingId}</span>}
-                {issue.roomId && <span>🚪 {issue.roomId}</span>}
+                {issue.zoneId && <span>🏙️ Zone: {issue.zoneId}</span>}
+                {issue.agencyId && <span>🏛️ Agency: {issue.agencyId}</span>}
                 <span>⏰ {formatDate(issue.createdAt)}</span>
               </div>
             </div>
 
             {/* Actions */}
             <div className="flex gap-2 flex-wrap">
-              {/* Vote Button */}
-              <VoteButton
-                issueId={issue.id}
-                initialVoteCount={issue.voteCount || 0}
-                size="md"
-                showCount={false}
-                onVoteChange={(newCount) => {
-                  if (issue) {
-                    setIssue({ ...issue, voteCount: newCount });
-                  }
-                }}
-              />
-
-              <button
-                onClick={() => setShowHistory(!showHistory)}
-                className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-sm transition"
-              >
-                {showHistory ? "Hide" : "Show"} History
-              </button>
               {canDelete && (
                 <button
                   onClick={() => setShowDeleteModal(true)}
                   disabled={isUpdating}
                   className="px-4 py-2 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 rounded-xl text-sm transition disabled:opacity-50"
                   title={
-                    user?.role === "admin" || user?.role === "facility_manager"
-                      ? "Delete issue (admin privilege)"
-                      : "Delete your issue"
+                    user?.role === "admin" || user?.role === "manager"
+                      ? "Delete issue (admin/manager privilege)"
+                      : "Delete your report"
                   }
                 >
                   Delete
@@ -629,14 +562,14 @@ export default function IssueDetailPage() {
                 <h2 className="text-xl font-semibold mb-4">Location</h2>
                 <div className="space-y-2 text-white/80">
                   <p>
-                    📍 Latitude: {issue.location._latitude?.toFixed(6) || "N/A"}
+                    📍 Latitude: {issue.location.latitude?.toFixed(6) || "N/A"}
                   </p>
                   <p>
                     📍 Longitude:{" "}
-                    {issue.location._longitude?.toFixed(6) || "N/A"}
+                    {issue.location.longitude?.toFixed(6) || "N/A"}
                   </p>
                   <a
-                    href={`https://www.google.com/maps?q=${issue.location._latitude},${issue.location._longitude}`}
+                    href={`https://www.google.com/maps?q=${issue.location.latitude},${issue.location.longitude}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-block mt-2 px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 rounded-lg text-sm transition"
@@ -648,7 +581,7 @@ export default function IssueDetailPage() {
             )}
 
             {/* Resolution Details */}
-            {issue.status === "resolved" && issue.resolutionComment && (
+            {issue.status === "resolved" && issue.resolutionNotes && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -658,77 +591,17 @@ export default function IssueDetailPage() {
                 <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
                   ✅ Resolution
                 </h2>
-                <p className="text-white/80 mb-4">{issue.resolutionComment}</p>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  {issue.actualCost && (
-                    <div>
-                      <span className="text-white/60">Actual Cost:</span>
-                      <p className="font-semibold">₹{issue.actualCost}</p>
-                    </div>
-                  )}
-                  {issue.actualDuration && (
-                    <div>
-                      <span className="text-white/60">Actual Duration:</span>
-                      <p className="font-semibold">
-                        {issue.actualDuration} days
-                      </p>
-                    </div>
-                  )}
-                  {issue.resolvedAt && (
-                    <div className="col-span-2">
-                      <span className="text-white/60">Resolved At:</span>
-                      <p className="font-semibold">
-                        {formatDate(issue.resolvedAt)}
-                      </p>
-                    </div>
-                  )}
-                </div>
+                <p className="text-white/80 mb-4">{issue.resolutionNotes}</p>
+                {issue.resolvedAt && (
+                  <div className="mt-4 pt-4 border-t border-white/10">
+                    <span className="text-white/60 text-sm">Resolved At:</span>
+                    <p className="font-semibold text-sm mt-1">
+                      {formatDate(issue.resolvedAt)}
+                    </p>
+                  </div>
+                )}
               </motion.div>
             )}
-
-            {/* History */}
-            <AnimatePresence>
-              {showHistory && history.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="bg-white/5 border border-white/10 rounded-2xl p-6 overflow-hidden"
-                >
-                  <h2 className="text-xl font-semibold mb-4">Change History</h2>
-                  <div className="space-y-4">
-                    {history.map((entry) => (
-                      <div
-                        key={entry.id}
-                        className="border-l-2 border-violet-500/30 pl-4 py-2"
-                      >
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1">
-                            <p className="font-medium text-white/90">
-                              {entry.changeType.replace(/_/g, " ")}
-                            </p>
-                            {entry.fieldName && (
-                              <p className="text-sm text-white/60 mt-1">
-                                {entry.fieldName}: {entry.oldValue} →{" "}
-                                {entry.newValue}
-                              </p>
-                            )}
-                            {entry.comment && (
-                              <p className="text-sm text-white/70 mt-2">
-                                "{entry.comment}"
-                              </p>
-                            )}
-                          </div>
-                          <span className="text-xs text-white/40 whitespace-nowrap">
-                            {formatDate(entry.changedAt)}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
           </div>
 
           {/* Sidebar */}
@@ -799,7 +672,7 @@ export default function IssueDetailPage() {
                 <div className="space-y-3">
                   <input
                     type="text"
-                    placeholder="Enter User ID"
+                    placeholder="Enter Officer/Agency User ID"
                     value={assigneeId}
                     onChange={(e) => setAssigneeId(e.target.value)}
                     className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-violet-500/50"
@@ -921,58 +794,21 @@ export default function IssueDetailPage() {
 
               {/* Body */}
               <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
-                {/* Resolution Comment */}
+                {/* Resolution Notes */}
                 <div>
                   <label className="block text-sm font-medium text-white/80 mb-2">
-                    Resolution Comment <span className="text-rose-400">*</span>
+                    Resolution Notes <span className="text-rose-400">*</span>
                   </label>
                   <textarea
                     placeholder="Describe how the issue was resolved..."
-                    value={resolutionComment}
-                    onChange={(e) => setResolutionComment(e.target.value)}
+                    value={resolutionNotes}
+                    onChange={(e) => setResolutionNotes(e.target.value)}
                     rows={4}
                     className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-green-500/50 focus:ring-1 focus:ring-green-500/50 resize-none transition"
                   />
                   <p className="text-xs text-white/40 mt-1">
                     Provide details about the solution and any actions taken
                   </p>
-                </div>
-
-                {/* Cost & Duration Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Actual Cost */}
-                  <div>
-                    <label className="block text-sm font-medium text-white/80 mb-2">
-                      Actual Cost (₹){" "}
-                      <span className="text-white/40">Optional</span>
-                    </label>
-                    <input
-                      type="number"
-                      placeholder="e.g., 5000"
-                      value={actualCost}
-                      onChange={(e) => setActualCost(e.target.value)}
-                      min="0"
-                      step="0.01"
-                      className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-green-500/50 focus:ring-1 focus:ring-green-500/50 transition"
-                    />
-                  </div>
-
-                  {/* Actual Duration */}
-                  <div>
-                    <label className="block text-sm font-medium text-white/80 mb-2">
-                      Duration (days){" "}
-                      <span className="text-white/40">Optional</span>
-                    </label>
-                    <input
-                      type="number"
-                      placeholder="e.g., 3"
-                      value={actualDuration}
-                      onChange={(e) => setActualDuration(e.target.value)}
-                      min="0"
-                      step="1"
-                      className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-green-500/50 focus:ring-1 focus:ring-green-500/50 transition"
-                    />
-                  </div>
                 </div>
 
                 {/* Info Box */}
@@ -1010,7 +846,7 @@ export default function IssueDetailPage() {
                     handleResolve();
                     setShowResolveModal(false);
                   }}
-                  disabled={isUpdating || !resolutionComment.trim()}
+                  disabled={isUpdating || !resolutionNotes.trim()}
                   className="flex-1 px-4 py-2.5 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 rounded-xl text-sm font-medium transition disabled:opacity-50 disabled:from-green-600/50 disabled:to-emerald-600/50 shadow-lg shadow-green-500/25"
                 >
                   {isUpdating ? (

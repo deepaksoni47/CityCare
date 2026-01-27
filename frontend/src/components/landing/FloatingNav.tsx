@@ -4,8 +4,6 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation"; // Added usePathname
 import Image from "next/image";
-import { signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL as string;
 
@@ -109,12 +107,6 @@ export function FloatingNav() {
         } catch (err) {
           console.warn("Backend logout failed, continuing:", err);
         }
-      }
-
-      try {
-        await signOut(auth);
-      } catch (err) {
-        console.warn("Firebase sign out failed:", err);
       }
 
       if (typeof window !== "undefined") {

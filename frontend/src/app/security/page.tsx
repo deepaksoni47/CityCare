@@ -43,8 +43,8 @@ export default function SecurityPage() {
             </span>
           </h1>
           <p className="text-lg text-white/50 max-w-2xl mx-auto leading-relaxed">
-            CampusCare implements a multi-layered security architecture designed
-            to protect campus infrastructure data through rigorous validation,
+            CityCare implements a multi-layered security architecture designed
+            to protect city infrastructure data through rigorous validation,
             real-time monitoring, and proactive attack prevention.
           </p>
         </motion.div>

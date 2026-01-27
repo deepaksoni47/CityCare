@@ -8,6 +8,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL as string;
 
 interface EmailSignInFormProps {
   cityId?: string;
+  // cityId specifies which city the user is signing in for
 }
 
 export function EmailSignInForm({ cityId = "bilaspur" }: EmailSignInFormProps) {

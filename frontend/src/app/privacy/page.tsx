@@ -41,7 +41,7 @@ export default function PrivacyPage() {
               1. Introduction
             </h2>
             <p>
-              CampusCare ("we," "us," "our," or "Company") is committed to
+              CityCare ("we," "us," "our," or "Company") is committed to
               protecting your privacy. This Privacy Policy explains how we
               collect, use, disclose, and safeguard your information when you
               visit our platform.
@@ -62,7 +62,7 @@ export default function PrivacyPage() {
                 credentials
               </li>
               <li>
-                Geospatial Data: Location information when reporting
+                Geospatial Data: Location information when reporting city
                 infrastructure issues
               </li>
               <li>
@@ -85,8 +85,11 @@ export default function PrivacyPage() {
               we may use information collected about you via the site to:
             </p>
             <ul className="list-disc list-inside space-y-2 ml-4">
-              <li>Process and deliver infrastructure reports</li>
-              <li>Generate AI-assisted insights for campus management</li>
+              <li>Process and deliver city issue reports and management</li>
+              <li>
+                Generate AI-assisted insights for urban infrastructure
+                management
+              </li>
               <li>Improve our services and user experience</li>
               <li>Send periodic communications regarding your account</li>
               <li>Monitor and analyze usage patterns and trends</li>
@@ -123,7 +126,7 @@ export default function PrivacyPage() {
             </h2>
             <p>
               If you have questions or comments about this Privacy Policy,
-              please contact us at support@campuscare.edu
+              please contact us at support@citycare.com
             </p>
           </section>
         </div>
@@ -132,7 +135,7 @@ export default function PrivacyPage() {
       {/* Footer */}
       <footer className="border-t border-white/5 py-12 px-6 mt-16">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-white/40 text-sm">© 2025 CampusCare</p>
+          <p className="text-white/40 text-sm">© 2025 CityCare</p>
           <div className="flex gap-6 text-sm text-white/40">
             <Link
               href="/privacy"

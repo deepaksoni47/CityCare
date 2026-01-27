@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
-import { auth } from "@/lib/firebase";
 import { VoteButton } from "@/components/voting/VoteButton";
 import {
   Calculator,
@@ -22,13 +21,18 @@ import {
   RockingChair,
   Dice1,
   Wrench,
-  ChevronLeft, // Added
-  ChevronRight, // Added
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL as string;
+const getApiBaseUrl = () => {
+  if (process.env.NEXT_PUBLIC_API_BASE_URL)
+    return process.env.NEXT_PUBLIC_API_BASE_URL;
+  if (typeof window !== "undefined") return window.location.origin;
+  return "";
+};
 
-// Category configurations from Priority Engine
+// Category configurations for CityCare Impact Scorer
 const CATEGORIES = [
   { value: "Safety", emoji: <Shield />, color: "from-red-600 to-rose-600" },
   {
@@ -90,18 +94,15 @@ interface PriorityInput {
   category: string;
   severity: number;
   description?: string;
-  buildingId?: string;
+  locationId?: string;
   occupancy?: number;
   affectedArea?: number;
   blocksAccess: boolean;
   safetyRisk: boolean;
   criticalInfrastructure: boolean;
-  affectsAcademics: boolean;
   weatherSensitive: boolean;
   timeOfDay: string;
   dayOfWeek: string;
-  currentSemester: boolean;
-  examPeriod: boolean;
   isRecurring: boolean;
   previousOccurrences: number;
   reportedAt: string;
@@ -133,18 +134,15 @@ export default function PriorityPage() {
     category: "Safety",
     severity: 5,
     description: "",
-    buildingId: "",
+    locationId: "",
     occupancy: 0,
     affectedArea: 0,
     blocksAccess: false,
     safetyRisk: false,
     criticalInfrastructure: false,
-    affectsAcademics: false,
     weatherSensitive: false,
     timeOfDay: "morning",
     dayOfWeek: "weekday",
-    currentSemester: true,
-    examPeriod: false,
     isRecurring: false,
     previousOccurrences: 0,
     reportedAt: new Date().toISOString(),
@@ -157,11 +155,11 @@ export default function PriorityPage() {
   const checkAuth = () => {
     const token =
       typeof window !== "undefined"
-        ? window.localStorage.getItem("campuscare_token")
+        ? window.localStorage.getItem("citycare_token")
         : null;
 
     if (!token) {
-      toast.error("Please log in to access priority engine");
+      toast.error("Please log in to access impact scorer");
       router.push("/login");
       return;
     }
@@ -171,14 +169,15 @@ export default function PriorityPage() {
   const handleCalculate = async () => {
     setIsSubmitting(true);
     try {
-      let token = window.localStorage.getItem("campuscare_token");
+      const token =
+        typeof window !== "undefined"
+          ? window.localStorage.getItem("citycare_token")
+          : null;
 
-      if (auth.currentUser) {
-        try {
-          token = await auth.currentUser.getIdToken();
-        } catch (e) {
-          console.error("Token refresh failed", e);
-        }
+      if (!token) {
+        toast.error("Session expired. Please log in again.");
+        router.push("/login");
+        return;
       }
 
       // Clean payload - only send non-default values
@@ -189,7 +188,7 @@ export default function PriorityPage() {
 
       if (formData.severity) payload.severity = formData.severity;
       if (formData.description) payload.description = formData.description;
-      if (formData.buildingId) payload.buildingId = formData.buildingId;
+      if (formData.locationId) payload.locationId = formData.locationId;
       if (formData.occupancy != null && formData.occupancy > 0)
         payload.occupancy = formData.occupancy;
       if (formData.affectedArea != null && formData.affectedArea > 0)
@@ -198,24 +197,24 @@ export default function PriorityPage() {
       if (formData.safetyRisk) payload.safetyRisk = true;
       if (formData.criticalInfrastructure)
         payload.criticalInfrastructure = true;
-      if (formData.affectsAcademics) payload.affectsAcademics = true;
       if (formData.weatherSensitive) payload.weatherSensitive = true;
       if (formData.timeOfDay) payload.timeOfDay = formData.timeOfDay;
       if (formData.dayOfWeek) payload.dayOfWeek = formData.dayOfWeek;
-      if (formData.currentSemester) payload.currentSemester = true;
-      if (formData.examPeriod) payload.examPeriod = true;
       if (formData.isRecurring) payload.isRecurring = true;
       if (formData.previousOccurrences > 0)
         payload.previousOccurrences = formData.previousOccurrences;
 
-      const response = await fetch(`${API_BASE_URL}/api/priority/calculate`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+      const response = await fetch(
+        `${getApiBaseUrl()}/api/priority/calculate`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
         },
-        body: JSON.stringify(payload),
-      });
+      );
 
       const data = await response.json();
 
@@ -235,13 +234,17 @@ export default function PriorityPage() {
 
   const loadScenarios = async () => {
     try {
-      let token = window.localStorage.getItem("campuscare_token");
+      const token =
+        typeof window !== "undefined"
+          ? window.localStorage.getItem("citycare_token")
+          : null;
 
-      if (auth.currentUser) {
-        token = await auth.currentUser.getIdToken();
+      if (!token) {
+        toast.error("Session expired. Please log in again.");
+        return;
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/priority/simulate`, {
+      const response = await fetch(`${getApiBaseUrl()}/api/priority/simulate`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -261,7 +264,7 @@ export default function PriorityPage() {
 
   const loadAlgorithm = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/priority/explain`);
+      const response = await fetch(`${getApiBaseUrl()}/api/priority/explain`);
       const data = await response.json();
 
       if (response.ok && data.success) {
@@ -275,8 +278,19 @@ export default function PriorityPage() {
   const loadIssues = async () => {
     setIsLoadingIssues(true);
     try {
-      let token = window.localStorage.getItem("campuscare_token");
-      const userStr = window.localStorage.getItem("campuscare_user");
+      const token =
+        typeof window !== "undefined"
+          ? window.localStorage.getItem("citycare_token")
+          : null;
+      const userStr =
+        typeof window !== "undefined"
+          ? window.localStorage.getItem("citycare_user")
+          : null;
+
+      if (!token) {
+        toast.error("Session expired. Please log in again.");
+        return;
+      }
 
       if (!userStr) {
         toast.error("User data not found. Please log in again.");
@@ -284,19 +298,15 @@ export default function PriorityPage() {
       }
 
       const userData = JSON.parse(userStr);
-      const organizationId = userData.organizationId;
+      const cityId = userData.cityId;
 
-      if (!organizationId) {
-        toast.error("Organization ID not found");
+      if (!cityId) {
+        toast.error("City ID not found");
         return;
       }
 
-      if (auth.currentUser) {
-        token = await auth.currentUser.getIdToken();
-      }
-
       const response = await fetch(
-        `${API_BASE_URL}/api/issues?organizationId=${organizationId}`,
+        `${getApiBaseUrl()}/api/issues?cityId=${cityId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -417,13 +427,14 @@ export default function PriorityPage() {
             className="text-center mb-8 md:mb-12"
           >
             <h1 className="text-3xl md:text-5xl font-bold tracking-tight mb-4">
-              Priority{" "}
+              Impact
               <span className="gradient-heading bg-clip-text text-transparent">
-                Engine
+                {" "}
+                Scorer
               </span>
             </h1>
             <p className="text-white/60 text-base md:text-lg max-w-2xl mx-auto">
-              Deterministic scoring system for campus infrastructure issue
+              Intelligent scoring system for city infrastructure issue
               prioritization
             </p>
           </motion.div>
@@ -590,11 +601,7 @@ export default function PriorityPage() {
                           { key: "blocksAccess", label: "🚫 Blocks Access" },
                           {
                             key: "criticalInfrastructure",
-                            label: "⚡ Critical Infra",
-                          },
-                          {
-                            key: "affectsAcademics",
-                            label: "📚 Affects Academics",
+                            label: "⚡ Critical Infrastructure",
                           },
                           {
                             key: "weatherSensitive",
@@ -676,34 +683,6 @@ export default function PriorityPage() {
                             📅 Weekend
                           </option>
                         </select>
-                        <label className="flex items-center gap-2 p-2 bg-white/5 rounded-lg text-sm text-white/70 col-span-1">
-                          <input
-                            type="checkbox"
-                            checked={formData.currentSemester}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                currentSemester: e.target.checked,
-                              })
-                            }
-                            className="rounded border-white/20 bg-transparent text-violet-500"
-                          />
-                          🎓 Semester
-                        </label>
-                        <label className="flex items-center gap-2 p-2 bg-white/5 rounded-lg text-sm text-white/70 col-span-1">
-                          <input
-                            type="checkbox"
-                            checked={formData.examPeriod}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                examPeriod: e.target.checked,
-                              })
-                            }
-                            className="rounded border-white/20 bg-transparent text-violet-500"
-                          />
-                          🗒️ Exam Period
-                        </label>
                       </div>
                     </div>
 
@@ -777,7 +756,7 @@ export default function PriorityPage() {
                       <div className="relative mb-8 p-6 rounded-2xl bg-gradient-to-br from-white/10 to-white/5 border border-white/10 overflow-hidden">
                         <div
                           className={`absolute inset-0 bg-gradient-to-br ${getScoreGradient(
-                            result.score
+                            result.score,
                           )} opacity-10`}
                         />
                         <div className="relative flex items-center justify-between">
@@ -787,7 +766,7 @@ export default function PriorityPage() {
                             </p>
                             <div
                               className={`inline-block px-4 py-2 rounded-xl border font-bold text-xl uppercase tracking-wider ${getPriorityColor(
-                                result.priority
+                                result.priority,
                               )}`}
                             >
                               {result.priority}
@@ -797,7 +776,7 @@ export default function PriorityPage() {
                             <p className="text-sm text-white/50 mb-2">Score</p>
                             <p
                               className={`text-5xl font-bold bg-gradient-to-br ${getScoreGradient(
-                                result.score
+                                result.score,
                               )} bg-clip-text text-transparent`}
                             >
                               {Math.round(result.score)}
@@ -840,7 +819,7 @@ export default function PriorityPage() {
                                     animate={{ width: `${value}%` }}
                                     transition={{ duration: 0.8, delay: 0.2 }}
                                     className={`h-2 rounded-full bg-gradient-to-r ${getScoreGradient(
-                                      value as number
+                                      value as number,
                                     )}`}
                                   />
                                 </div>
@@ -989,7 +968,7 @@ export default function PriorityPage() {
                             Status
                           </th>
                           <th className="pb-3 text-sm font-medium text-white/70 uppercase tracking-wider">
-                            Vote
+                            Votes
                           </th>
                         </tr>
                       </thead>
@@ -1008,7 +987,7 @@ export default function PriorityPage() {
                               <td className="py-4">
                                 <div
                                   className={`inline-block px-3 py-1 rounded-lg text-xs font-bold uppercase ${getPriorityColor(
-                                    priority
+                                    priority,
                                   )}`}
                                 >
                                   {priority}
@@ -1018,7 +997,7 @@ export default function PriorityPage() {
                                 <div className="flex items-center gap-2">
                                   <span
                                     className={`text-lg font-bold bg-gradient-to-br ${getScoreGradient(
-                                      score
+                                      score,
                                     )} bg-clip-text text-transparent`}
                                   >
                                     {Math.round(score)}
@@ -1026,7 +1005,7 @@ export default function PriorityPage() {
                                   <div className="w-16 h-1.5 bg-white/5 rounded-full overflow-hidden hidden sm:block">
                                     <div
                                       className={`h-full bg-gradient-to-r ${getScoreGradient(
-                                        score
+                                        score,
                                       )}`}
                                       style={{ width: `${score}%` }}
                                     />
@@ -1057,10 +1036,10 @@ export default function PriorityPage() {
                                     issue.status === "open"
                                       ? "bg-blue-500/10 text-blue-400"
                                       : issue.status === "in_progress"
-                                      ? "bg-yellow-500/10 text-yellow-400"
-                                      : issue.status === "resolved"
-                                      ? "bg-green-500/10 text-green-400"
-                                      : "bg-gray-500/10 text-gray-400"
+                                        ? "bg-yellow-500/10 text-yellow-400"
+                                        : issue.status === "resolved"
+                                          ? "bg-green-500/10 text-green-400"
+                                          : "bg-gray-500/10 text-gray-400"
                                   }`}
                                 >
                                   {issue.status.replace("_", " ")}
@@ -1160,7 +1139,7 @@ export default function PriorityPage() {
                     </h3>
                     <div
                       className={`inline-block px-3 py-1 rounded-lg text-sm font-bold uppercase mb-4 ${getPriorityColor(
-                        scenario.result.priority
+                        scenario.result.priority,
                       )}`}
                     >
                       {scenario.result.priority}
@@ -1175,7 +1154,7 @@ export default function PriorityPage() {
                       <div className="w-full bg-white/5 rounded-full h-2">
                         <div
                           className={`h-2 rounded-full bg-gradient-to-r ${getScoreGradient(
-                            scenario.result.score
+                            scenario.result.score,
                           )}`}
                           style={{ width: `${scenario.result.score}%` }}
                         />
@@ -1241,7 +1220,7 @@ export default function PriorityPage() {
                         <div
                           key={key}
                           className={`flex items-center justify-between p-4 rounded-xl border ${getPriorityColor(
-                            key
+                            key,
                           )}`}
                         >
                           <span className="font-bold uppercase">{key}</span>

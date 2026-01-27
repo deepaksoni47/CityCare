@@ -1,7 +1,7 @@
 {
-  "name": "campuscare-frontend",
+  "name": "citycare-frontend",
   "version": "0.1.0",
-  "description": "CampusCare - Frontend Application",
+  "description": "CityCare - Frontend Application",
   "private": true,
   "npmConfig": {
     "legacy-peer-deps": "true"

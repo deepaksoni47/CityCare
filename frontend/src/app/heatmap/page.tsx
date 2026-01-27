@@ -27,7 +27,12 @@ const DynamicHeatmapContainer = dynamic(
   { ssr: false },
 );
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL as string;
+const getApiBaseUrl = () => {
+  if (process.env.NEXT_PUBLIC_API_BASE_URL)
+    return process.env.NEXT_PUBLIC_API_BASE_URL;
+  if (typeof window !== "undefined") return window.location.origin;
+  return "";
+};
 
 interface HeatmapPoint {
   lat: number;
@@ -315,7 +320,7 @@ export default function HeatmapPage() {
       // Debug: Log the request URL
       console.log(
         "Fetching heatmap from:",
-        `${API_BASE_URL}/api/heatmap/${endpoint}?${params.toString()}`,
+        `${getApiBaseUrl()}/api/heatmap/${endpoint}?${params.toString()}`,
       );
 
       if (filters.minSeverity > 1) {
@@ -335,7 +340,7 @@ export default function HeatmapPage() {
       }
 
       const response = await fetch(
-        `${API_BASE_URL}/api/heatmap/${endpoint}?${params}`,
+        `${getApiBaseUrl()}/api/heatmap/${endpoint}?${params}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -464,7 +469,7 @@ export default function HeatmapPage() {
       }
 
       const response = await fetch(
-        `${API_BASE_URL}/api/heatmap/stats?${params}`,
+        `${getApiBaseUrl()}/api/heatmap/stats?${params}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -577,7 +582,7 @@ Provide:
 
 Keep the response concise and actionable.`;
 
-      const response = await fetch(`${API_BASE_URL}/api/ai/chat`, {
+      const response = await fetch(`${getApiBaseUrl()}/api/ai/chat`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

@@ -5,6 +5,23 @@ import { oauthConfig, oauthUrls } from "../config/oauth";
 import { generateAccessToken, generateRefreshToken } from "../utils/jwt";
 import mongoose from "mongoose";
 
+async function findCityByIdOrCode(cityIdOrCode: string) {
+  // Try by ObjectId first
+  if (mongoose.Types.ObjectId.isValid(cityIdOrCode)) {
+    const city = await City.findById(cityIdOrCode);
+    if (city) return city;
+  }
+
+  // Fallback: match by city code (stored uppercase)
+  const codeCandidate = cityIdOrCode.toUpperCase();
+  let city = await City.findOne({ code: codeCandidate });
+  if (city) return city;
+
+  // Fallback: match by city name (case-insensitive) for slug inputs like "bilaspur"
+  city = await City.findOne({ name: new RegExp(`^${cityIdOrCode}$`, "i") });
+  return city;
+}
+
 /**
  * Google OAuth Handler
  */
@@ -28,6 +45,12 @@ export async function handleGoogleOAuth(code: string, cityId: string) {
 
     const googleUser = userInfoResponse.data;
 
+    // Resolve city by id or code (for frontend slugs like "bilaspur")
+    const city = await findCityByIdOrCode(cityId);
+    if (!city) {
+      throw new Error(`City not found for id/code: ${cityId}`);
+    }
+
     // Find or create user
     const user = await findOrCreateOAuthUser({
       provider: "google",
@@ -35,7 +58,7 @@ export async function handleGoogleOAuth(code: string, cityId: string) {
       email: googleUser.email,
       name: googleUser.name,
       avatar: googleUser.picture,
-      cityId,
+      cityId: city._id.toString(),
     });
 
     // Generate tokens
@@ -81,8 +104,9 @@ async function findOrCreateOAuthUser(profile: {
   cityId: string;
 }) {
   try {
-    // Verify city exists
-    const city = await City.findById(profile.cityId);
+    // Verify city exists (profile.cityId already normalized to _id string)
+    const cityObjectId = new mongoose.Types.ObjectId(profile.cityId);
+    const city = await City.findById(cityObjectId);
     if (!city) {
       throw new Error("City not found");
     }
@@ -90,7 +114,7 @@ async function findOrCreateOAuthUser(profile: {
     // Try to find existing user by email
     let user = await User.findOne({
       email: profile.email,
-      cityId: new mongoose.Types.ObjectId(profile.cityId),
+      cityId: cityObjectId,
     });
 
     if (user) {
@@ -131,7 +155,7 @@ async function findOrCreateOAuthUser(profile: {
       email: profile.email,
       name: profile.name,
       avatar: profile.avatar,
-      cityId: new mongoose.Types.ObjectId(profile.cityId),
+      cityId: cityObjectId,
       role: "citizen",
       isActive: true,
       isVerified: true, // OAuth users are pre-verified

@@ -14,10 +14,10 @@ export default function LeaderboardPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2 gradient-heading">
-          🏆 Leaderboard
+          🏆 CityCare Leaderboard
         </h1>
         <p className="text-gray-600">
-          See how you rank against other community members
+          See how you rank against other citizens in your city
         </p>
       </div>
 

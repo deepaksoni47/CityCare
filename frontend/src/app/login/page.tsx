@@ -5,18 +5,13 @@ import { useRouter } from "next/navigation";
 import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 import { EmailSignInForm } from "@/components/auth/EmailSignInForm";
 import { isTokenValid } from "@/lib/tokenManager";
-import {
-  COLLEGE_OPTIONS,
-  DEFAULT_COLLEGE_ID,
-  getCollegeByOrganizationId,
-} from "@/data/colleges";
+import { CITY_OPTIONS, DEFAULT_CITY_ID } from "@/data/cities";
 
 export default function LoginPage() {
   const router = useRouter();
   const [authMethod, setAuthMethod] = useState<"google" | "email">("google");
   const [registered, setRegistered] = useState<string | null>(null);
-  const [selectedCollegeId, setSelectedCollegeId] =
-    useState(DEFAULT_COLLEGE_ID);
+  const [selectedCityId, setSelectedCityId] = useState(DEFAULT_CITY_ID);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -37,10 +32,10 @@ export default function LoginPage() {
     }
   }, [router]);
 
-  const selectedCollege =
-    getCollegeByOrganizationId(selectedCollegeId) ||
-    getCollegeByOrganizationId(DEFAULT_COLLEGE_ID) ||
-    COLLEGE_OPTIONS[0];
+  const selectedCity =
+    CITY_OPTIONS.find((c) => c.id === selectedCityId) ||
+    CITY_OPTIONS.find((c) => c.id === DEFAULT_CITY_ID) ||
+    CITY_OPTIONS[0];
 
   return (
     <main className="relative min-h-screen bg-[#050814] text-white overflow-hidden flex items-center justify-center px-4">
@@ -53,14 +48,14 @@ export default function LoginPage() {
       <section className="relative z-10 w-full max-w-md">
         <div className="mb-8 text-center">
           <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">
-            Access your
+            Welcome to
             <span className="ml-2 bg-gradient-to-r from-violet-400 via-fuchsia-400 to-sky-400 bg-clip-text text-transparent">
-              CampusCare Console
+              CityCare
             </span>
           </h1>
           <p className="mt-3 text-sm text-white/60 max-w-sm mx-auto">
-            Sign in with your campus Google account or email to view live
-            infrastructure issues, heatmaps, and AI insights.
+            Sign in with your Google account or email to report infrastructure
+            issues, view heatmaps, and collaborate with your city.
           </p>
         </div>
 
@@ -74,30 +69,27 @@ export default function LoginPage() {
 
           <div className="space-y-2">
             <label
-              htmlFor="college"
+              htmlFor="city"
               className="block text-[11px] sm:text-xs font-medium text-white/70 uppercase tracking-[0.18em]"
             >
-              College / University
+              Select Your City
             </label>
             <select
-              id="college"
-              value={selectedCollegeId}
-              onChange={(e) => setSelectedCollegeId(e.target.value)}
+              id="city"
+              value={selectedCityId}
+              onChange={(e) => setSelectedCityId(e.target.value)}
               className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl bg-black/40 border border-white/10 text-white text-sm sm:text-base focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/50 transition min-w-0"
             >
-              {COLLEGE_OPTIONS.map((college) => (
-                <option
-                  key={college.organizationId}
-                  value={college.organizationId}
-                >
-                  {college.name}
+              {CITY_OPTIONS.map((city) => (
+                <option key={city.id} value={city.id}>
+                  {city.name}, {city.state}
                 </option>
               ))}
             </select>
             <p className="text-[11px] sm:text-xs text-white/60">
               We will link your account and center the heatmap around{" "}
               <span className="font-semibold text-violet-200">
-                {selectedCollege?.name || "your campus"}
+                {selectedCity?.name || "your city"}
               </span>
               .
             </p>
@@ -160,15 +152,15 @@ export default function LoginPage() {
                 </p>
                 <p className="text-sm text-white/70">
                   Use your verified Google identity. We'll automatically create
-                  or link your CampusCare profile for{" "}
+                  or link your CityCare profile for{" "}
                   <span className="font-semibold text-violet-200">
-                    {selectedCollege?.name || "your campus"}
+                    {selectedCity?.name || "your city"}
                   </span>
                   .
                 </p>
               </div>
 
-              <GoogleSignInButton organizationId={selectedCollegeId} />
+              <GoogleSignInButton cityId={selectedCityId} />
             </>
           ) : (
             <>
@@ -180,20 +172,19 @@ export default function LoginPage() {
                   Sign in with your email and password, or create a new account
                   for{" "}
                   <span className="font-semibold text-violet-200">
-                    {selectedCollege?.name || "your campus"}
+                    {selectedCity?.name || "your city"}
                   </span>
                   .
                 </p>
               </div>
 
-              <EmailSignInForm organizationId={selectedCollegeId} />
+              <EmailSignInForm cityId={selectedCityId} />
             </>
           )}
 
           <p className="text-[11px] text-white/40 leading-relaxed">
-            Authentication is powered by Firebase and Google OAuth as described
-            in the CampusCare authentication guide. We never store your
-            passwords.
+            Authentication is powered by CityCare's secure authentication system
+            and Google OAuth. We never store your passwords.
           </p>
         </div>
 

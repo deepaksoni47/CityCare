@@ -160,7 +160,6 @@ export interface LeaderboardEntry {
   level: number;
   rank: number;
   issuesReported: number;
-  votesReceived: number;
   badges: string[];
   period: "all_time" | "monthly" | "weekly";
   updatedAt: string | number;
