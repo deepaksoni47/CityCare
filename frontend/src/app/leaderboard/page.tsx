@@ -4,10 +4,11 @@ import { Leaderboard } from "@/components/leaderboard/Leaderboard";
 import { useAuth } from "@/lib/hooks/useAuth";
 
 export default function LeaderboardPage() {
-  const { user } = useAuth();
+  const { getUser } = useAuth();
+  const user = getUser();
 
-  // In a real app, you'd get the organizationId from user context or URL
-  const organizationId = user?.organizationId || "default-org";
+  // In a real app, you'd get the cityId from user context or URL
+  const cityId = user?.cityId || "bilaspur";
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -20,7 +21,7 @@ export default function LeaderboardPage() {
         </p>
       </div>
 
-      <Leaderboard organizationId={organizationId} />
+      <Leaderboard cityId={cityId} />
     </div>
   );
 }

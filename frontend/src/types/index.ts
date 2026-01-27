@@ -31,7 +31,7 @@ export interface Issue {
   severity: number;
   status: IssueStatusType;
   description?: string;
-  building_id?: string;
+  zone_id?: string;
   reported_by?: string;
   assigned_to?: string;
   created_at: string;
@@ -46,7 +46,7 @@ export interface CreateIssueDto {
   longitude: number;
   severity: number;
   description?: string;
-  building_id?: string;
+  zone_id?: string;
 }
 
 export interface UpdateIssueDto {
@@ -63,7 +63,7 @@ export interface IssueFilters {
   severity_max?: number;
   start_date?: string;
   end_date?: string;
-  building_id?: string;
+  zone_id?: string;
   limit?: number;
   offset?: number;
 }
@@ -86,10 +86,12 @@ export interface TrendData {
 
 export interface RiskScore {
   zone_id?: string;
-  building_id?: string;
+  zone_name?: string;
   category?: IssueCategoryType;
   risk_score: number;
-  recurrence_probability: number;
+  risk_probability?: number;
+  recurrence_probability?: number;
+  risk_level?: string;
   issue_count: number;
   avg_severity: number;
 }

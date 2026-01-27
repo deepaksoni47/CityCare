@@ -52,8 +52,8 @@ export function FloatingNav() {
   useEffect(() => {
     const checkAuth = () => {
       if (typeof window !== "undefined") {
-        const token = window.localStorage.getItem("campuscare_token");
-        const userStr = window.localStorage.getItem("campuscare_user");
+        const token = window.localStorage.getItem("citycare_token");
+        const userStr = window.localStorage.getItem("citycare_user");
 
         if (token) {
           setIsLoggedIn(true);
@@ -78,10 +78,10 @@ export function FloatingNav() {
     checkAuth();
 
     window.addEventListener("storage", checkAuth);
-    window.addEventListener("campuscare_auth_changed", checkAuth);
+    window.addEventListener("citycare_auth_changed", checkAuth);
     return () => {
       window.removeEventListener("storage", checkAuth);
-      window.removeEventListener("campuscare_auth_changed", checkAuth);
+      window.removeEventListener("citycare_auth_changed", checkAuth);
     };
   }, []);
 
@@ -95,7 +95,7 @@ export function FloatingNav() {
 
   const handleLogout = async () => {
     try {
-      const token = window.localStorage.getItem("campuscare_token");
+      const token = window.localStorage.getItem("citycare_token");
 
       if (token) {
         try {
@@ -118,8 +118,8 @@ export function FloatingNav() {
       }
 
       if (typeof window !== "undefined") {
-        window.localStorage.removeItem("campuscare_token");
-        window.localStorage.removeItem("campuscare_user");
+        window.localStorage.removeItem("citycare_token");
+        window.localStorage.removeItem("citycare_user");
       }
 
       setIsLoggedIn(false);
@@ -129,8 +129,8 @@ export function FloatingNav() {
     } catch (error) {
       console.error("Logout error:", error);
       if (typeof window !== "undefined") {
-        window.localStorage.removeItem("campuscare_token");
-        window.localStorage.removeItem("campuscare_user");
+        window.localStorage.removeItem("citycare_token");
+        window.localStorage.removeItem("citycare_user");
       }
       setIsLoggedIn(false);
       setUserName(null);
@@ -157,7 +157,7 @@ export function FloatingNav() {
           <div className="w-7 h-7 md:w-8 md:h-8 relative rounded-lg overflow-hidden">
             <Image
               src="/logo.png"
-              alt="CampusCare"
+              alt="CityCare"
               fill={false}
               width={32}
               height={32}
@@ -166,8 +166,8 @@ export function FloatingNav() {
           </div>
           <div className="hidden sm:flex items-center gap-2">
             <span className="font-bold text-sm md:text-base">
-              <span className="text-blue-400">Campus</span>
-              <span className="text-green-400">Care</span>
+              <span className="text-emerald-400">City</span>
+              <span className="text-emerald-600">Care</span>
             </span>
             <div className="w-px h-6 bg-white/10" />
             <div className="w-px h-6 bg-white/7" />

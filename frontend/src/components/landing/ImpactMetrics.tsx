@@ -150,7 +150,7 @@ const metrics = [
     value: 100,
     suffix: "+",
     label: "Issues Tracked",
-    description: "Real-time monitoring across all campus infrastructure",
+    description: "Real-time monitoring across all city infrastructure",
     gradient: "from-lavender-400 to-lavender-300",
   },
   {

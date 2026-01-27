@@ -12,11 +12,11 @@ import {
 } from "@/components/heatmap/EnhancedHeatmapSidebar";
 import { HeatmapStats } from "@/components/heatmap/HeatmapStats";
 import {
-  COLLEGE_OPTIONS,
-  DEFAULT_COLLEGE_ID,
-  createBoundsFromCollege,
-  getCollegeByOrganizationId,
-} from "@/data/colleges";
+  CITY_OPTIONS,
+  DEFAULT_CITY_ID,
+  createBoundsFromCity,
+  getCityById,
+} from "@/data/cities";
 
 // Dynamic import to avoid SSR issues with Leaflet
 const DynamicHeatmapContainer = dynamic(
@@ -114,7 +114,7 @@ const PRESETS: Record<
       // No status filter - show all statuses
     },
   },
-  building: {
+  zone: {
     config: {
       timeDecayFactor: 0.5,
       severityWeightMultiplier: 2.0,
@@ -175,18 +175,15 @@ export default function HeatmapPage() {
     timeRange: "30d",
     minSeverity: 1,
   });
-  const defaultCollege =
-    getCollegeByOrganizationId(DEFAULT_COLLEGE_ID) || COLLEGE_OPTIONS[0];
-  const [activeOrganizationId, setActiveOrganizationId] = useState<string>(
-    defaultCollege.organizationId,
-  );
+  const defaultCity = getCityById(DEFAULT_CITY_ID) || CITY_OPTIONS[0];
+  const [activeCityId, setActiveCityId] = useState<string>(defaultCity.id);
   const [mapCenter, setMapCenter] = useState<[number, number]>([
-    defaultCollege.lat,
-    defaultCollege.lng,
+    defaultCity.lat,
+    defaultCity.lng,
   ]);
   const [mapBounds, setMapBounds] = useState<
     [[number, number], [number, number]]
-  >(createBoundsFromCollege(defaultCollege));
+  >(createBoundsFromCity(defaultCity));
 
   // Map UI layer names to backend category names
   const layerCategoryMap: Record<string, string[]> = {
@@ -246,18 +243,17 @@ export default function HeatmapPage() {
   };
 
   const resolveOrganizationContext = useCallback(() => {
-    const userDataStr = localStorage.getItem("campuscare_user");
+    const userDataStr = localStorage.getItem("citycare_user");
     if (!userDataStr) {
       throw new Error("No user data found. Please log in again.");
     }
 
     const userData = JSON.parse(userDataStr);
-    const organizationId = userData.organizationId || DEFAULT_COLLEGE_ID;
-    const college =
-      getCollegeByOrganizationId(organizationId) || defaultCollege;
+    const cityId = userData.cityId || DEFAULT_CITY_ID;
+    const city = getCityById(cityId) || defaultCity;
 
-    return { organizationId, college } as const;
-  }, [defaultCollege]);
+    return { cityId, city } as const;
+  }, [defaultCity]);
 
   // Fetch heatmap data
   const fetchHeatmapData = useCallback(async () => {
@@ -273,14 +269,14 @@ export default function HeatmapPage() {
         throw new Error("No authentication token found. Please log in.");
       }
 
-      const { organizationId, college } = resolveOrganizationContext();
-      setActiveOrganizationId(organizationId);
-      setMapCenter([college.lat, college.lng]);
-      setMapBounds(createBoundsFromCollege(college));
+      const { cityId, city } = resolveOrganizationContext();
+      setActiveCityId(cityId);
+      setMapCenter([city.lat, city.lng]);
+      setMapBounds(createBoundsFromCity(city));
 
       // Build query parameters
       const params = new URLSearchParams({
-        organizationId,
+        cityId,
         timeDecayFactor: config.timeDecayFactor.toString(),
         severityWeightMultiplier: config.severityWeightMultiplier.toString(),
         gridSize: config.gridSize.toString(),
@@ -441,11 +437,11 @@ export default function HeatmapPage() {
       const token = getToken();
       if (!token) return;
 
-      const { organizationId } = resolveOrganizationContext();
+      const { cityId } = resolveOrganizationContext();
 
       // Build same query parameters as data fetch
       const params = new URLSearchParams({
-        organizationId,
+        cityId,
         timeDecayFactor: config.timeDecayFactor.toString(),
         severityWeightMultiplier: config.severityWeightMultiplier.toString(),
         gridSize: config.gridSize.toString(),
@@ -556,7 +552,7 @@ export default function HeatmapPage() {
 
       if (criticalZones.length === 0) {
         toast.success(
-          "No critical zones detected. Campus infrastructure is in good condition!",
+          "No critical zones detected. City infrastructure is in good condition!",
           {
             id: "ai-insight",
             duration: 5000,
@@ -565,7 +561,7 @@ export default function HeatmapPage() {
         return;
       }
 
-      const analysisPrompt = `Analyze this campus infrastructure heatmap data:
+      const analysisPrompt = `Analyze this city infrastructure heatmap data:
 
 Total heatmap points: ${heatmapData.length}
 Critical zones identified: ${criticalZones.length}
@@ -704,7 +700,7 @@ Keep the response concise and actionable.`;
                     AI Infrastructure Analysis
                   </h2>
                   <p className="text-xs md:text-sm text-white/70 hidden sm:block">
-                    Generated insights from campus data
+                    Generated insights from city data
                   </p>
                 </div>
               </div>

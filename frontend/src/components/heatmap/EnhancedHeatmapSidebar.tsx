@@ -2,13 +2,23 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ShieldAlert,Wrench,University,Building,Droplet,Zap,Wifi,Search,Settings } from "lucide-react";
+import {
+  ShieldAlert,
+  Wrench,
+  University,
+  Building,
+  Droplet,
+  Zap,
+  Wifi,
+  Search,
+  Settings,
+} from "lucide-react";
 
 export type PresetMode =
   | "emergency"
   | "maintenance"
   | "overview"
-  | "building"
+  | "zone"
   | "custom";
 
 export interface HeatmapConfig {
@@ -62,7 +72,7 @@ export function EnhancedHeatmapSidebar({
 }: EnhancedHeatmapSidebarProps) {
   const [isOpen, setIsOpen] = useState(true);
   const [activeTab, setActiveTab] = useState<"filters" | "config" | "presets">(
-    "presets"
+    "presets",
   );
   const [isIntensityOpen, setIsIntensityOpen] = useState(true);
 
@@ -75,28 +85,28 @@ export function EnhancedHeatmapSidebar({
       id: "emergency" as PresetMode,
       name: "Emergency Response",
       icon: <ShieldAlert />,
-      description: "Critical issues, fast decay",
+      description: "Critical infrastructure failures, fast decay",
       color: "from-red-600 to-rose-600",
     },
     {
       id: "maintenance" as PresetMode,
       name: "Maintenance Planning",
       icon: <Wrench />,
-      description: "Persistent problems, slow decay",
+      description: "Persistent city problems, slow decay",
       color: "from-blue-600 to-cyan-600",
     },
     {
       id: "overview" as PresetMode,
-      name: "Campus Overview",
+      name: "City Overview",
       icon: <University />,
-      description: "Large-scale view, optimized",
+      description: "City-wide view, optimized for analysis",
       color: "from-violet-600 to-purple-600",
     },
     {
-      id: "building" as PresetMode,
-      name: "Building Analysis",
+      id: "zone" as PresetMode,
+      name: "Zone Analysis",
       icon: <Building />,
-      description: "High detail, building focus",
+      description: "High detail, zone-focused analysis",
       color: "from-green-600 to-emerald-600",
     },
   ];
@@ -161,26 +171,26 @@ export function EnhancedHeatmapSidebar({
 
       {/* Tabs */}
       <div className="flex border-b border-white/10 flex-shrink-0 flex-row justify-center">
-  {[
-    { id: "presets", label: "Presets", icon: <Zap /> },
-    { id: "filters", label: "Filters", icon: <Search /> },
-    { id: "config", label: "Config", icon: <Settings /> },
-  ].map((tab) => (
-    <button
-      key={tab.id}
-      onClick={() => setActiveTab(tab.id as any)}
-      // Added: flex, items-center, justify-center
-      className={`flex-1 px-4 py-3 text-sm font-medium transition-all flex items-center justify-center ${
-        activeTab === tab.id
-          ? "text-white bg-white/10 border-b-2 border-violet-500"
-          : "text-white/60 hover:text-white/80 hover:bg-white/5"
-      }`}
-    >
-      <span className="mr-2 flex items-center">{tab.icon}</span>
-      {tab.label}
-    </button>
-  ))}
-</div>
+        {[
+          { id: "presets", label: "Presets", icon: <Zap /> },
+          { id: "filters", label: "Filters", icon: <Search /> },
+          { id: "config", label: "Config", icon: <Settings /> },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as any)}
+            // Added: flex, items-center, justify-center
+            className={`flex-1 px-4 py-3 text-sm font-medium transition-all flex items-center justify-center ${
+              activeTab === tab.id
+                ? "text-white bg-white/10 border-b-2 border-violet-500"
+                : "text-white/60 hover:text-white/80 hover:bg-white/5"
+            }`}
+          >
+            <span className="mr-2 flex items-center">{tab.icon}</span>
+            {tab.label}
+          </button>
+        ))}
+      </div>
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4 space-y-6">

@@ -7,7 +7,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL as string;
 
 function getAuthToken(): string | null {
   if (typeof window === "undefined") return null;
-  return localStorage.getItem("campuscare_token");
+  return localStorage.getItem("citycare_token");
 }
 
 function authHeaders(): Record<string, string> {
@@ -28,8 +28,8 @@ export async function getMLHealth() {
 }
 
 export interface RiskScore {
-  building_id: string;
-  building_name?: string;
+  zone_id: string;
+  zone_name?: string;
   risk_probability: number;
   risk_level: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
   failure_score: number | null;
@@ -55,12 +55,12 @@ export async function getRiskScores(): Promise<
   );
 }
 
-export async function getCriticalBuildings() {
+export async function getCriticalZones() {
   const { getOrFetchPersistent } = await import("./persistentCache");
   return getOrFetchPersistent(
-    "risk:critical-buildings",
+    "risk:critical-zones",
     async () => {
-      const res = await fetch(`${API_BASE_URL}/api/ml/critical-buildings`, {
+      const res = await fetch(`${API_BASE_URL}/api/ml/critical-zones`, {
         headers: authHeaders(),
         cache: "no-store",
       });
@@ -70,12 +70,12 @@ export async function getCriticalBuildings() {
   );
 }
 
-export async function getHighRiskBuildings() {
+export async function getHighRiskZones() {
   const { getOrFetchPersistent } = await import("./persistentCache");
   return getOrFetchPersistent(
-    "risk:high-buildings",
+    "risk:high-zones",
     async () => {
-      const res = await fetch(`${API_BASE_URL}/api/ml/high-risk-buildings`, {
+      const res = await fetch(`${API_BASE_URL}/api/ml/high-risk-zones`, {
         headers: authHeaders(),
         cache: "no-store",
       });
@@ -100,7 +100,7 @@ export async function getCategoryRisks() {
   );
 }
 
-export async function getPriorityBuildings(limit = 10) {
+export async function getPriorityZones(limit = 10) {
   const params = new URLSearchParams({ limit: String(limit) });
   const { getOrFetchPersistent } = await import("./persistentCache");
   return getOrFetchPersistent(

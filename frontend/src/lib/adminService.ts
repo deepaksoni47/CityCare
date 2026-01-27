@@ -6,10 +6,9 @@ export interface AdminDashboardOverview {
     active: number;
     byRole: {
       admin: number;
-      facilityManager: number;
-      staff: number;
-      faculty: number;
-      student: number;
+      agency: number;
+      volunteer: number;
+      citizen: number;
     };
   };
   issueStats: {
@@ -55,7 +54,7 @@ export interface SystemAnalytics {
   issuesTrend: Array<{ date: string; count: number }>;
   resolutionTrend: Array<{ date: string; count: number }>;
   categoryDistribution: Record<string, number>;
-  buildingDistribution: Record<string, number>;
+  zoneDistribution: Record<string, number>;
   severityDistribution: {
     critical: number;
     high: number;
@@ -137,7 +136,7 @@ export async function getUserStats(userId: string) {
  */
 export async function getUserActivity(
   userId: string,
-  params?: { page?: number; limit?: number }
+  params?: { page?: number; limit?: number },
 ) {
   const response = await api.get(`/api/admin/users/${userId}/activity`, {
     params,
@@ -174,7 +173,6 @@ export async function getAllIssues(params?: {
   status?: string;
   category?: string;
   severity?: number;
-  buildingId?: string;
   reportedBy?: string;
   assignedTo?: string;
   search?: string;
@@ -194,7 +192,7 @@ export async function getAllIssues(params?: {
  */
 export async function exportIssues(
   format: "json" | "csv" = "json",
-  filters?: any
+  filters?: any,
 ) {
   const response = await api.get("/api/admin/issues/export", {
     params: { format, ...filters },

@@ -9,14 +9,14 @@ export default function DocumentationPage() {
       icon: <Book className="w-6 h-6" />,
       title: "Getting Started",
       description:
-        "Learn the basics of using CampusCare and setting up your account",
+        "Learn the basics of using CityCare and setting up your account",
       href: "#getting-started",
     },
     {
       icon: <Code className="w-6 h-6" />,
       title: "API Documentation",
       description:
-        "Comprehensive API reference for developers integrating with CampusCare",
+        "Comprehensive API reference for developers integrating with CityCare",
       href: "#api",
     },
     {
@@ -58,7 +58,7 @@ export default function DocumentationPage() {
           Documentation
         </h1>
         <p className="text-white/60 mb-12">
-          Everything you need to know about CampusCare
+          Everything you need to know about CityCare
         </p>
 
         {/* Documentation Sections Grid */}
@@ -92,17 +92,17 @@ export default function DocumentationPage() {
             </h2>
             <div className="space-y-4 text-white/80">
               <p>
-                Welcome to CampusCare! Our platform provides a data-driven,
-                geospatial, and AI-assisted solution for campus infrastructure
-                management.
+                Welcome to CityCare! Our platform provides a data-driven,
+                geospatial, and AI-assisted solution for proactive city
+                infrastructure management.
               </p>
               <h3 className="text-lg font-semibold text-white mt-6">
                 Creating Your Account
               </h3>
               <p>
                 To get started, visit the login page and create a new account
-                with your campus credentials. You'll need to verify your email
-                before accessing the platform.
+                with your city or agency credentials. You'll need to verify your
+                email before accessing the platform.
               </p>
               <h3 className="text-lg font-semibold text-white mt-6">
                 Reporting Issues
@@ -110,14 +110,15 @@ export default function DocumentationPage() {
               <p>
                 Use the issue reporting feature to document infrastructure
                 problems. Include location details, photos, and a detailed
-                description to help our team prioritize repairs.
+                description to help our city teams prioritize fixes.
               </p>
               <h3 className="text-lg font-semibold text-white mt-6">
                 Viewing Analytics
               </h3>
               <p>
                 Access the dashboard to view real-time infrastructure metrics,
-                AI-generated insights, and historical trends for your campus.
+                AI-generated insights, and historical trends for your city or
+                zone.
               </p>
             </div>
           </section>
@@ -128,14 +129,14 @@ export default function DocumentationPage() {
             </h2>
             <div className="space-y-4 text-white/80">
               <p>
-                CampusCare provides a comprehensive REST API for developers
+                CityCare provides a comprehensive REST API for developers
                 looking to integrate our platform with other systems.
               </p>
               <h3 className="text-lg font-semibold text-white mt-6">
                 Base URL
               </h3>
               <p className="font-mono bg-white/5 p-4 rounded border border-white/10">
-                https://api.campuscare.edu/v1
+                https://api.citycare.io/v1
               </p>
               <h3 className="text-lg font-semibold text-white mt-6">
                 Authentication
@@ -161,8 +162,8 @@ export default function DocumentationPage() {
             </h2>
             <div className="space-y-4 text-white/80">
               <p>
-                CampusCare uses a robust database architecture designed to
-                handle geospatial data, real-time updates, and complex analytics
+                CityCare uses a robust database architecture designed to handle
+                geospatial data, real-time updates, and complex analytics
                 queries.
               </p>
               <h3 className="text-lg font-semibold text-white mt-6">
@@ -170,7 +171,7 @@ export default function DocumentationPage() {
               </h3>
               <ul className="list-disc list-inside space-y-2 ml-4">
                 <li>Issues: Stores reported infrastructure problems</li>
-                <li>Buildings: Campus location and building data</li>
+                <li>Zones: City zones and geospatial boundaries</li>
                 <li>Users: User accounts and permissions</li>
                 <li>Analytics: Historical data and trends</li>
               </ul>
@@ -223,7 +224,7 @@ export default function DocumentationPage() {
                   What browsers are supported?
                 </h3>
                 <p className="text-white/80">
-                  CampusCare works on all modern browsers including Chrome,
+                  CityCare works on all modern browsers including Chrome,
                   Firefox, Safari, and Edge on both desktop and mobile devices.
                 </p>
               </div>
@@ -235,7 +236,7 @@ export default function DocumentationPage() {
       {/* Footer */}
       <footer className="border-t border-white/5 py-12 px-6 mt-16">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-white/40 text-sm">© 2025 CampusCare</p>
+          <p className="text-white/40 text-sm">© 2025 CityCare</p>
           <div className="flex gap-6 text-sm text-white/40">
             <Link
               href="/privacy"

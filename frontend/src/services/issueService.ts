@@ -9,7 +9,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL as string;
  */
 function getAuthToken(): string | null {
   if (typeof window === "undefined") return null;
-  return localStorage.getItem("campuscare_token");
+  return localStorage.getItem("citycare_token");
 }
 
 /**

@@ -168,7 +168,7 @@ export function FinalCTA() {
               transition={{ duration: 0.8, delay: 0.4 }}
               className="text-xl text-white/50 max-w-2xl mx-auto"
             >
-              Built for campuses that take infrastructure seriously.
+              Built for cities that take infrastructure seriously.
             </motion.p>
           </div>
           {/* CTA Button */}

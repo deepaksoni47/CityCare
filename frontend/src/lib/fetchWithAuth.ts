@@ -1,34 +1,15 @@
-import { auth } from "@/lib/firebase";
 import { clearAuthTokens } from "@/lib/tokenManager";
 
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL as string;
 
 function getAuthToken(): string | null {
   if (typeof window === "undefined") return null;
-  return localStorage.getItem("campuscare_token");
+  return localStorage.getItem("citycare_token");
 }
 
 async function tryRefreshToken(): Promise<string | null> {
-  if (typeof window === "undefined") return null;
-  try {
-    if (auth && auth.currentUser) {
-      const newToken = await auth.currentUser.getIdToken(true);
-      if (newToken) {
-        localStorage.setItem("campuscare_token", newToken);
-        // Notify listeners that token refreshed
-        try {
-          window.dispatchEvent(
-            new CustomEvent("campuscare:token_refreshed", {
-              detail: { token: newToken },
-            }),
-          );
-        } catch (e) {}
-        return newToken;
-      }
-    }
-  } catch (e) {
-    console.warn("Token refresh failed:", e);
-  }
+  // CityCare uses backend tokens without client-side Firebase refresh
+  // Token refresh should be handled by the backend or frontend should request a new token
   return null;
 }
 
@@ -66,17 +47,17 @@ export async function fetchWithAuth(
     } else {
       // Token refresh failed - clear stored credentials to prevent redirect loop
       if (typeof window !== "undefined") {
-        window.localStorage.removeItem("campuscare_token");
-        window.localStorage.removeItem("campuscare_user");
+        window.localStorage.removeItem("citycare_token");
+        window.localStorage.removeItem("citycare_user");
       }
 
       // Call global handler if present
       if (
         typeof window !== "undefined" &&
-        (window as any).__CAMPUSCARE_HANDLE_TOKEN_EXPIRED
+        (window as any).__CITYCARE_HANDLE_TOKEN_EXPIRED
       ) {
         try {
-          (window as any).__CAMPUSCARE_HANDLE_TOKEN_EXPIRED();
+          (window as any).__CITYCARE_HANDLE_TOKEN_EXPIRED();
         } catch (e) {}
       }
     }

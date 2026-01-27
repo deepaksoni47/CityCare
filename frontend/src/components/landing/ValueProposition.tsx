@@ -6,9 +6,9 @@ import { useRef } from "react";
 const features = [
   {
     number: "01",
-    title: "Campus-Isolated Intelligence",
+    title: "City-Isolated Intelligence",
     description:
-      "Each university sees only its own infrastructure data. No cross-campus noise. No irrelevant alerts. Every insight is context-aware and location-specific.",
+      "Each city sees only its own infrastructure data. No cross-city noise. No irrelevant alerts. Every insight is context-aware and location-specific.",
     icon: (
       <svg
         className="w-8 h-8"
@@ -30,7 +30,7 @@ const features = [
     number: "02",
     title: "Multi-Source Issue Reporting",
     description:
-      "Issues can be submitted by authenticated users through text reports, voice input, or image evidence. All inputs are normalized, validated, and reflected instantly on the campus heatmap.",
+      "Issues can be submitted by citizens through text reports, voice input, or image evidence. All inputs are normalized, validated, and reflected instantly on the city heatmap.",
     icon: (
       <svg
         className="w-8 h-8"
@@ -112,7 +112,7 @@ export function ValueProposition() {
           </h2>
           <p className="text-lg text-[#aeb6c2] max-w-2xl mx-auto">
             Not another dashboard. A complete intelligence platform designed for
-            the complexity of modern campus infrastructure.
+            the complexity of modern city infrastructure.
           </p>
         </motion.div>
 

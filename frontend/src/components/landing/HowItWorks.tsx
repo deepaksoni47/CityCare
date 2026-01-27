@@ -7,9 +7,9 @@ import { GraduationCap } from "lucide-react";
 const steps = [
   {
     number: "01",
-    title: "Campus Selection",
-    description: "Users enter a verified campus environment",
-    detail: "Example: Guru Ghasidas University, Bilaspur",
+    title: "City Selection",
+    description: "Users enter a verified city environment",
+    detail: "Example: Bilaspur, Chhattisgarh",
     icon: <GraduationCap />,
     color: "blue",
   },
@@ -17,7 +17,7 @@ const steps = [
     number: "02",
     title: "Real-Time Visibility",
     description: "Issues appear instantly on a geospatial heatmap",
-    detail: "Mapped down to building → department → room level",
+    detail: "Mapped down to zone → infrastructure layer → specific location",
     icon: "🗺️",
     color: "cyan",
   },

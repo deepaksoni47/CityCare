@@ -25,17 +25,17 @@ interface Issue {
   description?: string;
 }
 
-interface CampusMapProps {
+interface CityMapProps {
   issues: Issue[];
   center?: [number, number];
   zoom?: number;
 }
 
-export default function CampusMap({
+export default function CityMap({
   issues,
-  center = [28.5494, 77.1917], // Default: Delhi, India (change to your campus)
+  center = [22.0836, 82.154], // Default: Bilaspur, India
   zoom = 15,
-}: CampusMapProps) {
+}: CityMapProps) {
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
 

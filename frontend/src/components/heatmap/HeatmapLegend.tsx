@@ -74,7 +74,7 @@ export function HeatmapLegend() {
         <div className="mt-3 md:mt-4 pt-3 md:pt-4 border-t border-white/10">
           <p className="text-xs text-white/60 leading-relaxed">
             Intensity is calculated from issue severity, priority, and recency.
-            Red zones indicate critical infrastructure problems requiring
+            Red zones indicate critical city infrastructure issues requiring
             immediate attention.
           </p>
         </div>

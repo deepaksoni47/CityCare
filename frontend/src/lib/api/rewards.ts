@@ -9,7 +9,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL as string;
  */
 function getAuthToken(): string | null {
   if (typeof window === "undefined") return null;
-  return localStorage.getItem("campuscare_token");
+  return localStorage.getItem("citycare_token");
 }
 
 /**
@@ -141,7 +141,7 @@ export interface Badge {
 export interface RewardTransaction {
   id: string;
   userId: string;
-  organizationId: string;
+  cityId: string;
   type: string;
   points: number;
   relatedEntityId?: string;
@@ -153,7 +153,7 @@ export interface RewardTransaction {
 export interface LeaderboardEntry {
   id: string;
   userId: string;
-  organizationId: string;
+  cityId: string;
   userName: string;
   userRole: string;
   rewardPoints: number;
@@ -235,7 +235,7 @@ export async function getBadge(
  * Get leaderboard
  */
 export async function getLeaderboard(
-  organizationId: string,
+  cityId: string,
   period: "all_time" | "monthly" | "weekly" = "all_time",
   limit: number = 100,
 ) {
@@ -246,9 +246,7 @@ export async function getLeaderboard(
       period: string;
       count: number;
     };
-  }>(
-    `/api/leaderboard?organizationId=${organizationId}&period=${period}&limit=${limit}`,
-  );
+  }>(`/api/leaderboard?cityId=${cityId}&period=${period}&limit=${limit}`);
 }
 
 // ==================== ADMIN API ====================

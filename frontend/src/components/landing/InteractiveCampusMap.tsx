@@ -66,9 +66,9 @@ export function InteractiveCampusMap() {
           <circle cx="45%" cy="70%" r="18%" fill="url(#heat3)" />
         </svg>
 
-        {/* Campus Buildings Outline */}
+        {/* City Infrastructure Outline */}
         <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
-          {/* Building shapes */}
+          {/* Infrastructure zone shapes */}
           <motion.rect
             x="15"
             y="25"
@@ -194,11 +194,9 @@ export function InteractiveCampusMap() {
         {/* Info Overlay */}
         <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
           <div className="space-y-1">
-            <div className="text-xs text-white/40">
-              Guru Ghasidas University
-            </div>
+            <div className="text-xs text-white/40">Bilaspur, Chhattisgarh</div>
             <div className="text-sm font-semibold text-white">
-              22.1310°N, 82.1495°E
+              22.0836°N, 82.1540°E
             </div>
           </div>
           <div className="flex gap-2 items-center">

@@ -219,10 +219,10 @@ export default function Error({
               <p className="text-white/60 text-sm">
                 Need help? Contact our support team at{" "}
                 <a
-                  href="mailto:support@campuscare.edu"
+                  href="mailto:support@citycare.io"
                   className="text-blue-400 hover:text-blue-300 transition-colors"
                 >
-                  support@campuscare.edu
+                  support@citycare.io
                 </a>
               </p>
             </motion.div>
@@ -237,7 +237,7 @@ export default function Error({
           transition={{ duration: 0.6, delay: 1.2 }}
         >
           <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-white/40 text-sm">© 2025 CampusCare</p>
+            <p className="text-white/40 text-sm">© 2025 CityCare</p>
             <div className="flex gap-6 text-sm text-white/40">
               <Link
                 href="/privacy"

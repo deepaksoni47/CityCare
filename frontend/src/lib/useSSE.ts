@@ -8,7 +8,7 @@ export function useSSE(path: string, onMessage: (ev: MessageEvent) => void) {
   const openConnection = () => {
     const token =
       typeof window !== "undefined"
-        ? localStorage.getItem("campuscare_token")
+        ? localStorage.getItem("citycare_token")
         : null;
     const separator = path.includes("?") ? "&" : "?";
     const url = `${API_BASE_URL}${path}${separator}token=${encodeURIComponent(token || "")}`;
@@ -38,13 +38,13 @@ export function useSSE(path: string, onMessage: (ev: MessageEvent) => void) {
     };
 
     window.addEventListener(
-      "campuscare:token_refreshed",
+      "citycare:token_refreshed",
       onTokenRefreshed as EventListener,
     );
 
     return () => {
       window.removeEventListener(
-        "campuscare:token_refreshed",
+        "citycare:token_refreshed",
         onTokenRefreshed as EventListener,
       );
       if (esRef.current) {

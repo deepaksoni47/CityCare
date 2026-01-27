@@ -45,7 +45,7 @@ export function Hero() {
               transition={{ delay: 0.3, duration: 0.8 }}
               className="text-5xl md:text-7xl font-extrabold leading-[1.12] tracking-tight text-left"
             >
-              Campus Infrastructure
+              City Infrastructure
               <br />
               <span className="gradient-heading">Seen Clearly</span>.<br />
               <span className="gradient-heading">Fixed Proactively</span>.
@@ -57,8 +57,8 @@ export function Hero() {
               transition={{ delay: 0.5, duration: 0.8 }}
               className="text-lg md:text-xl text-secondary max-w-xl leading-relaxed font-normal"
             >
-              Monitor, prioritize, and resolve campus issues fast. Built for
-              clarity and control.
+              Monitor, prioritize, and resolve city infrastructure issues fast.
+              Built for clarity and control.
             </motion.p>
           </div>
 

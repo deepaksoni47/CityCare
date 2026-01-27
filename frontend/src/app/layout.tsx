@@ -12,10 +12,10 @@ import "@/styles/noise.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "CampusCare",
+  title: "CityCare",
   description:
-    "Data-driven, geospatial, and AI-assisted platform for proactive campus infrastructure management",
-  keywords: ["campus", "infrastructure", "AI", "geospatial", "management"],
+    "Data-driven, geospatial, and AI-assisted platform for proactive city infrastructure management",
+  keywords: ["city", "infrastructure", "AI", "geospatial", "management"],
   // themeColor moved to viewport export per Next.js guidance
   icons: {
     icon: "/logo.png",
@@ -23,17 +23,17 @@ export const metadata: Metadata = {
     apple: "/logo.png",
   },
   openGraph: {
-    title: "CampusCare",
+    title: "CityCare",
     description:
-      "Data-driven, geospatial, and AI-assisted platform for proactive campus infrastructure management",
+      "Data-driven, geospatial, and AI-assisted platform for proactive city infrastructure management",
     url: "https://your-domain.example", // replace with production URL
-    siteName: "CampusCare",
+    siteName: "CityCare",
     images: [
       {
         url: "/logo.png",
         width: 1200,
         height: 630,
-        alt: "CampusCare Logo",
+        alt: "CityCare Logo",
       },
     ],
     locale: "en_US",
@@ -41,9 +41,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "CampusCare",
+    title: "CityCare",
     description:
-      "Data-driven, geospatial, and AI-assisted platform for proactive campus infrastructure management",
+      "Data-driven, geospatial, and AI-assisted platform for proactive city infrastructure management",
     images: ["/logo.png"],
     creator: "@your_twitter_handle",
   },
@@ -73,7 +73,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className} suppressHydrationWarning>
         <CurtainLoader
-          logo={<img src="/logo.png" alt="CampusCare" className="w-7 h-7" />}
+          logo={<img src="/logo.png" alt="CityCare" className="w-7 h-7" />}
         />
         <div className="noise-overlay" aria-hidden="true" />
         <AuthProvider>

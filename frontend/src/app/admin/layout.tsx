@@ -121,11 +121,11 @@ export default function AdminLayout({
           <div className="absolute bottom-0 left-0 w-full p-4 border-t border-gray-800">
             <div className="flex items-center mb-3 px-3">
               <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold">
-                {user.displayName?.[0]?.toUpperCase() || "A"}
+                {user.name?.[0]?.toUpperCase() || "A"}
               </div>
               <div className="ml-3 overflow-hidden">
                 <p className="text-sm font-medium text-white truncate">
-                  {user.displayName || "Admin"}
+                  {user.name || "Admin"}
                 </p>
                 <p className="text-xs text-gray-400 truncate">{user.email}</p>
               </div>

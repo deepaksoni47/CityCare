@@ -94,7 +94,7 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="mt-20" >
+      <div className="mt-20">
         <h1 className="text-3xl font-bold text-white mb-2">Admin Dashboard</h1>
         <p className="text-gray-400">Overview of system metrics and activity</p>
       </div>
@@ -160,7 +160,7 @@ export default function AdminDashboard() {
                 <div className="flex items-center gap-3 text-sm text-gray-400">
                   <span className="capitalize">{issue.category}</span>
                   <span>•</span>
-                  <span>{issue.buildingName}</span>
+                  <span>{issue.zoneName}</span>
                   <span>•</span>
                   <span>{new Date(issue.createdAt).toLocaleDateString()}</span>
                 </div>
@@ -197,16 +197,16 @@ export default function AdminDashboard() {
         <div className="space-y-3">
           {overview.recentUsers.slice(0, 5).map((user: any) => (
             <div
-              key={user.uid}
+              key={user.id}
               className="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg border border-gray-700 hover:border-gray-600 transition-colors"
             >
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold">
-                  {user.displayName?.[0]?.toUpperCase() || "U"}
+                  {user.name?.[0]?.toUpperCase() || "U"}
                 </div>
                 <div>
                   <h3 className="text-white font-medium">
-                    {user.displayName || "Anonymous"}
+                    {user.name || "Anonymous"}
                   </h3>
                   <p className="text-sm text-gray-400">{user.email}</p>
                 </div>
@@ -230,18 +230,18 @@ export default function AdminDashboard() {
               .slice(0, 5)
               .map((contributor: any, index: number) => (
                 <div
-                  key={contributor.uid}
+                  key={contributor.id}
                   className="flex items-center gap-4 p-4 bg-gray-800/50 rounded-lg border border-gray-700"
                 >
                   <div className="text-2xl font-bold text-purple-400">
                     #{index + 1}
                   </div>
                   <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center text-white font-semibold">
-                    {contributor.displayName?.[0]?.toUpperCase() || "U"}
+                    {contributor.name?.[0]?.toUpperCase() || "U"}
                   </div>
                   <div className="flex-1">
                     <h3 className="text-white font-medium">
-                      {contributor.displayName || "Anonymous"}
+                      {contributor.name || "Anonymous"}
                     </h3>
                     <p className="text-sm text-gray-400">
                       {contributor.issuesReported} issues reported

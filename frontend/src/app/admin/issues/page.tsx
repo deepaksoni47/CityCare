@@ -259,7 +259,7 @@ export default function AdminIssuesPage() {
                     <div className="flex flex-wrap items-center gap-4 text-sm text-gray-400">
                       <div className="flex items-center gap-2">
                         <MapPin className="w-4 h-4" />
-                        <span>{issue.buildingName || "Unknown Building"}</span>
+                        <span>{issue.zoneName || "Unknown Zone"}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4" />
@@ -269,9 +269,7 @@ export default function AdminIssuesPage() {
                       </div>
                       <div className="flex items-center gap-2">
                         <User className="w-4 h-4" />
-                        <span>
-                          {issue.reportedBy?.displayName || "Anonymous"}
-                        </span>
+                        <span>{issue.reportedBy?.name || "Anonymous"}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <AlertCircle className="w-4 h-4" />
@@ -406,13 +404,13 @@ export default function AdminIssuesPage() {
                 <div>
                   <p className="text-sm text-gray-500 mb-1">Building</p>
                   <p className="text-white">
-                    {selectedIssue.buildingName || "Unknown"}
+                    {selectedIssue.zoneName || "Unknown"}
                   </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500 mb-1">Reported By</p>
                   <p className="text-white">
-                    {selectedIssue.reportedBy?.displayName || "Anonymous"}
+                    {selectedIssue.reportedBy?.name || "Anonymous"}
                   </p>
                 </div>
                 <div>

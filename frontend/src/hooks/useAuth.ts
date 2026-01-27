@@ -1,41 +1,21 @@
 import { useEffect, useCallback } from "react";
-import { auth } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 
 /**
- * Custom hook for authentication management with automatic token refresh
+ * Custom hook for authentication management
+ * CityCare uses backend-issued tokens that don't require client-side Firebase refresh
  */
 export function useAuth() {
   const router = useRouter();
-
-  /**
-   * Refresh the Firebase ID token
-   */
-  const refreshToken = useCallback(async () => {
-    try {
-      const user = auth.currentUser;
-      if (user) {
-        const newToken = await user.getIdToken(true);
-        if (typeof window !== "undefined") {
-          window.localStorage.setItem("campuscare_token", newToken);
-        }
-        return newToken;
-      }
-    } catch (error) {
-      console.error("Error refreshing token:", error);
-      return null;
-    }
-  }, []);
 
   /**
    * Logout user
    */
   const logout = useCallback(async () => {
     try {
-      await auth.signOut();
       if (typeof window !== "undefined") {
-        window.localStorage.removeItem("campuscare_token");
-        window.localStorage.removeItem("campuscare_user");
+        window.localStorage.removeItem("citycare_token");
+        window.localStorage.removeItem("citycare_user");
       }
       router.push("/login");
     } catch (error) {
@@ -48,7 +28,7 @@ export function useAuth() {
    */
   const getUser = useCallback(() => {
     if (typeof window !== "undefined") {
-      const userStr = window.localStorage.getItem("campuscare_user");
+      const userStr = window.localStorage.getItem("citycare_user");
       return userStr ? JSON.parse(userStr) : null;
     }
     return null;
@@ -59,7 +39,7 @@ export function useAuth() {
    */
   const getToken = useCallback(() => {
     if (typeof window !== "undefined") {
-      return window.localStorage.getItem("campuscare_token");
+      return window.localStorage.getItem("citycare_token");
     }
     return null;
   }, []);
@@ -72,52 +52,40 @@ export function useAuth() {
   }, [getToken]);
 
   /**
-   * Setup automatic token refresh
-   * Firebase tokens expire after 1 hour, refresh every 50 minutes
+   * Refresh token (no-op for backend tokens)
+   * CityCare tokens are issued by the backend and don't require client-side refresh
+   * This is a placeholder for API compatibility
    */
-  useEffect(() => {
-    const REFRESH_INTERVAL = 50 * 60 * 1000; // 50 minutes
-
-    const interval = setInterval(() => {
-      refreshToken();
-    }, REFRESH_INTERVAL);
-
-    // Also refresh on mount if user is logged in
-    if (isAuthenticated()) {
-      refreshToken();
-    }
-
-    return () => clearInterval(interval);
-  }, [refreshToken, isAuthenticated]);
-
-  /**
-   * Listen to Firebase auth state changes
-   */
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async (user) => {
-      if (user) {
-        // User is signed in, ensure we have the latest token
-        const token = await user.getIdToken();
-        if (typeof window !== "undefined") {
-          window.localStorage.setItem("campuscare_token", token);
-        }
-      } else {
-        // User is signed out
-        if (typeof window !== "undefined") {
-          window.localStorage.removeItem("campuscare_token");
-          window.localStorage.removeItem("campuscare_user");
-        }
-      }
-    });
-
-    return () => unsubscribe();
+  const refreshToken = useCallback(async () => {
+    // Backend tokens are long-lived; no refresh needed on client side
+    // If a token is invalid, the API will return 401 and the app will redirect to login
+    return Promise.resolve();
   }, []);
 
+  /**
+   * Listen to auth change events across tabs
+   */
+  useEffect(() => {
+    const handleAuthChanged = () => {
+      // Reload auth state when other tabs change auth
+      const user = getUser();
+      if (!user && router) {
+        router.push("/login");
+      }
+    };
+
+    window.addEventListener("citycare_auth_changed", handleAuthChanged);
+
+    return () => {
+      window.removeEventListener("citycare_auth_changed", handleAuthChanged);
+    };
+  }, [router, getUser]);
+
   return {
-    refreshToken,
     logout,
     getUser,
     getToken,
     isAuthenticated,
+    refreshToken,
   };
 }

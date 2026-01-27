@@ -40,7 +40,9 @@ export function HeatmapSidebar({
         >
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-white/10">
-            <h2 className="text-lg font-semibold text-white">Heatmap Controls</h2>
+            <h2 className="text-lg font-semibold text-white">
+              City Heatmap Controls
+            </h2>
             <button
               onClick={toggleSidebar}
               className="p-1.5 rounded-lg hover:bg-white/10 transition-colors"
@@ -72,8 +74,16 @@ export function HeatmapSidebar({
               <div className="space-y-2">
                 {[
                   { key: "water" as const, label: "Water Systems", icon: "💧" },
-                  { key: "power" as const, label: "Power & Electrical", icon: "⚡" },
-                  { key: "wifi" as const, label: "Wi-Fi & Network", icon: "📶" },
+                  {
+                    key: "power" as const,
+                    label: "Power & Electrical",
+                    icon: "⚡",
+                  },
+                  {
+                    key: "wifi" as const,
+                    label: "Wi-Fi & Network",
+                    icon: "📶",
+                  },
                 ].map((layer) => (
                   <label
                     key={layer.key}
@@ -150,4 +160,3 @@ export function HeatmapSidebar({
     </AnimatePresence>
   );
 }
-

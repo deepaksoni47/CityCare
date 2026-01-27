@@ -6,7 +6,7 @@ import { Trophy, CalendarDays, ChartColumnIncreasing } from "lucide-react";
 
 type Period = "all_time" | "monthly" | "weekly";
 
-export function Leaderboard({ organizationId }: { organizationId: string }) {
+export function Leaderboard({ cityId }: { cityId: string }) {
   const [period, setPeriod] = useState<Period>("all_time");
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -15,10 +15,8 @@ export function Leaderboard({ organizationId }: { organizationId: string }) {
   useEffect(() => {
     setLoading(true);
     setError(null);
-    console.log(
-      `Fetching leaderboard for org: ${organizationId}, period: ${period}`
-    );
-    getLeaderboard(organizationId, period, 100)
+    console.log(`Fetching leaderboard for city: ${cityId}, period: ${period}`);
+    getLeaderboard(cityId, period, 100)
       .then((response) => {
         console.log(`Received leaderboard data:`, response.data);
         const data = response.data.leaderboard || [];
@@ -32,7 +30,7 @@ export function Leaderboard({ organizationId }: { organizationId: string }) {
         setLeaderboard([]); // Set empty array on error
       })
       .finally(() => setLoading(false));
-  }, [organizationId, period]);
+  }, [cityId, period]);
 
   return (
     <div className="space-y-6">
@@ -87,13 +85,11 @@ export function Leaderboard({ organizationId }: { organizationId: string }) {
           <p className="text-gray-400 text-lg mb-2">
             No leaderboard data available
           </p>
-          <p className="text-gray-500 text-sm">
-            Organization ID: {organizationId}
-          </p>
+          <p className="text-gray-500 text-sm">City ID: {cityId}</p>
           <p className="text-gray-500 text-sm">Period: {period}</p>
           <p className="text-gray-500 text-sm mt-4">
-            Make sure users exist in your organization and check the browser
-            console for details.
+            Make sure users exist in your city and check the browser console for
+            details.
           </p>
         </div>
       ) : (

@@ -11,11 +11,11 @@ export function clearAuthTokens(): void {
   if (typeof window === "undefined") return;
 
   try {
-    window.localStorage.removeItem("campuscare_token");
-    window.localStorage.removeItem("campuscare_user");
+    window.localStorage.removeItem("citycare_token");
+    window.localStorage.removeItem("citycare_user");
 
     // Dispatch custom event to notify other parts of the app
-    window.dispatchEvent(new CustomEvent("campuscare:auth_cleared"));
+    window.dispatchEvent(new CustomEvent("citycare:auth_cleared"));
   } catch (error) {
     console.error("Error clearing auth tokens:", error);
   }
@@ -28,8 +28,8 @@ export function clearAuthTokens(): void {
 export function isTokenValid(): boolean {
   if (typeof window === "undefined") return false;
 
-  const token = window.localStorage.getItem("campuscare_token");
-  const userStr = window.localStorage.getItem("campuscare_user");
+  const token = window.localStorage.getItem("citycare_token");
+  const userStr = window.localStorage.getItem("citycare_user");
 
   // Both token and user data must exist
   if (!token || !userStr) return false;
@@ -56,7 +56,7 @@ export function isTokenValid(): boolean {
  */
 export function getValidToken(): string | null {
   if (!isTokenValid()) return null;
-  return window.localStorage.getItem("campuscare_token");
+  return window.localStorage.getItem("citycare_token");
 }
 
 /**
@@ -66,7 +66,7 @@ export function getValidUser(): Record<string, any> | null {
   if (!isTokenValid()) return null;
 
   try {
-    const userStr = window.localStorage.getItem("campuscare_user");
+    const userStr = window.localStorage.getItem("citycare_user");
     return userStr ? JSON.parse(userStr) : null;
   } catch (error) {
     clearAuthTokens();
@@ -93,10 +93,10 @@ export function setupAuthErrorListener(callback: () => void): () => void {
     callback();
   };
 
-  window.addEventListener("campuscare:auth_cleared", handleAuthCleared);
+  window.addEventListener("citycare:auth_cleared", handleAuthCleared);
 
   // Return unsubscribe function
   return () => {
-    window.removeEventListener("campuscare:auth_cleared", handleAuthCleared);
+    window.removeEventListener("citycare:auth_cleared", handleAuthCleared);
   };
 }

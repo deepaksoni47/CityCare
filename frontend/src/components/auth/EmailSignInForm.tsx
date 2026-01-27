@@ -2,23 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/lib/firebase";
-import {
-  COLLEGE_OPTIONS,
-  DEFAULT_COLLEGE_ID,
-  getCollegeByOrganizationId,
-} from "@/data/colleges";
+import { CITY_OPTIONS, DEFAULT_CITY_ID } from "@/data/cities";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL as string;
 
 interface EmailSignInFormProps {
-  organizationId?: string;
+  cityId?: string;
 }
 
-export function EmailSignInForm({
-  organizationId = "ggv-bilaspur",
-}: EmailSignInFormProps) {
+export function EmailSignInForm({ cityId = "bilaspur" }: EmailSignInFormProps) {
   const router = useRouter();
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -28,19 +20,15 @@ export function EmailSignInForm({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  const [role, setRole] = useState<string>("student");
-  const [selectedCollegeId, setSelectedCollegeId] = useState(
-    organizationId || DEFAULT_COLLEGE_ID,
-  );
+  const [role, setRole] = useState<string>("citizen");
+  const [selectedCityId, setSelectedCityId] = useState(cityId || "bilaspur");
 
   useEffect(() => {
-    setSelectedCollegeId(organizationId || DEFAULT_COLLEGE_ID);
-  }, [organizationId]);
+    setSelectedCityId(cityId || "bilaspur");
+  }, [cityId]);
 
-  const selectedCollege =
-    getCollegeByOrganizationId(selectedCollegeId) ||
-    getCollegeByOrganizationId(DEFAULT_COLLEGE_ID) ||
-    COLLEGE_OPTIONS[0];
+  const selectedCity =
+    CITY_OPTIONS.find((c) => c.id === selectedCityId) || CITY_OPTIONS[0];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,7 +42,7 @@ export function EmailSignInForm({
 
       const body = isLogin
         ? { email, password }
-        : { email, password, name, organizationId: selectedCollegeId, role };
+        : { email, password, name, cityId: selectedCityId, role };
 
       const response = await fetch(endpoint, {
         method: "POST",
@@ -76,21 +64,18 @@ export function EmailSignInForm({
         throw new Error(message);
       }
 
-      // Sign in to Firebase Auth client-side to maintain auth state
-      await signInWithEmailAndPassword(auth, email, password);
-
       // Store token and user data for both login and registration
       if (typeof window !== "undefined") {
-        window.localStorage.setItem("campuscare_token", data.data.token);
+        window.localStorage.setItem("citycare_token", data.data.token);
         window.localStorage.setItem(
-          "campuscare_user",
+          "citycare_user",
           JSON.stringify(data.data.user),
         );
       }
 
       // Notify other components in this tab about auth change
       try {
-        window.dispatchEvent(new Event("campuscare_auth_changed"));
+        window.dispatchEvent(new Event("citycare_auth_changed"));
       } catch (_) {
         /* ignore */
       }
@@ -115,22 +100,22 @@ export function EmailSignInForm({
           onClick={() => setIsLogin(true)}
           className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition ${
             isLogin
-              ? "bg-violet-500/20 text-violet-300 border border-violet-500/30"
+              ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
               : "text-white/60 hover:text-white/80"
           }`}
         >
-          Login
+          Sign In
         </button>
         <button
           type="button"
           onClick={() => setIsLogin(false)}
           className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition ${
             !isLogin
-              ? "bg-violet-500/20 text-violet-300 border border-violet-500/30"
+              ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
               : "text-white/60 hover:text-white/80"
           }`}
         >
-          Register
+          Join City
         </button>
       </div>
 
@@ -150,7 +135,7 @@ export function EmailSignInForm({
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/50 transition"
+              className="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 transition"
               placeholder="Enter your full name"
             />
           </div>
@@ -170,7 +155,7 @@ export function EmailSignInForm({
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/50 transition"
+            className="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 transition"
             placeholder="you@example.com"
           />
         </div>
@@ -190,7 +175,7 @@ export function EmailSignInForm({
             onChange={(e) => setPassword(e.target.value)}
             required
             minLength={6}
-            className="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/50 transition"
+            className="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 transition"
             placeholder="••••••••"
           />
           {!isLogin && (
@@ -211,25 +196,24 @@ export function EmailSignInForm({
               id="role"
               value={role}
               onChange={(e) => setRole(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/50 transition"
+              className="w-full px-4 py-2.5 rounded-xl bg-black/40 border border-white/10 text-white focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 transition"
             >
-              <option value="student">Student</option>
-              <option value="faculty">Faculty</option>
-              <option value="staff">Staff</option>
-              <option value="facility_manager">Facility Manager</option>
+              <option value="citizen">Citizen</option>
+              <option value="volunteer">Volunteer</option>
+              <option value="agency">Agency Representative</option>
+              <option value="admin">Admin</option>
             </select>
             <p className="mt-1 text-xs text-white/40">
-              Select your role in the organization
+              Choose your role in the city
             </p>
           </div>
         )}
 
-        {/* Organization info (Register only) */}
+        {/* City info (Register only) */}
         {!isLogin && (
-          <div className="p-3 rounded-xl bg-violet-500/10 border border-violet-500/20">
-            <p className="text-xs text-violet-300">
-              <span className="font-semibold">Campus:</span>{" "}
-              {selectedCollege.name}
+          <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+            <p className="text-xs text-emerald-300">
+              <span className="font-semibold">City:</span> {selectedCity.name}
             </p>
           </div>
         )}
@@ -245,7 +229,7 @@ export function EmailSignInForm({
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full py-3 rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white font-medium shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 transition disabled:opacity-70 disabled:cursor-not-allowed"
+          className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-medium shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 transition disabled:opacity-70 disabled:cursor-not-allowed"
         >
           {isLoading
             ? isLogin
@@ -253,7 +237,7 @@ export function EmailSignInForm({
               : "Creating account..."
             : isLogin
               ? "Sign In"
-              : "Create Account"}
+              : "Join City"}
         </button>
       </form>
     </div>

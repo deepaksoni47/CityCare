@@ -7,8 +7,7 @@ interface User {
   email: string;
   name: string;
   role: string;
-  organizationId: string;
-  departmentId?: string;
+  cityId: string;
   phone?: string;
 }
 
@@ -35,7 +34,7 @@ export default function ProfileInfo({ user, onUpdate }: ProfileInfoProps) {
     setSuccess(null);
 
     try {
-      const token = localStorage.getItem("campuscare_token");
+      const token = localStorage.getItem("citycare_token");
       const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL as string;
 
       const response = await fetch(`${API_BASE_URL}/api/auth/profile`, {
@@ -77,10 +76,9 @@ export default function ProfileInfo({ user, onUpdate }: ProfileInfoProps) {
 
   const roleLabels: Record<string, string> = {
     admin: "Administrator",
-    facility_manager: "Facility Manager",
-    staff: "Staff Member",
-    faculty: "Faculty Member",
-    student: "Student",
+    agency: "Agency",
+    volunteer: "Volunteer",
+    citizen: "Citizen",
   };
 
   return (
@@ -192,29 +190,15 @@ export default function ProfileInfo({ user, onUpdate }: ProfileInfoProps) {
           </div>
         </div>
 
-        {/* Organization (Read-only) */}
+        {/* City (Read-only) */}
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-2">
-            Organization
+            City
           </label>
           <div className="px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white">
-            {user.organizationId === "ggv-bilaspur"
-              ? "GGV Bilaspur"
-              : user.organizationId}
+            {user.cityId}
           </div>
         </div>
-
-        {/* Department (Read-only) */}
-        {user.departmentId && (
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Department
-            </label>
-            <div className="px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white">
-              {user.departmentId}
-            </div>
-          </div>
-        )}
 
         {/* Action Buttons */}
         {isEditing && (

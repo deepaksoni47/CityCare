@@ -4,13 +4,11 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 interface User {
-  uid: string;
+  id: string;
   email: string;
-  displayName?: string;
+  name?: string;
   role: string;
-  photoURL?: string;
-  organizationId: string;
-  isActive: boolean;
+  cityId: string;
 }
 
 interface AuthContextType {
@@ -35,8 +33,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Load user from localStorage
     if (typeof window !== "undefined") {
-      const token = localStorage.getItem("campuscare_token");
-      const userStr = localStorage.getItem("campuscare_user");
+      const token = localStorage.getItem("citycare_token");
+      const userStr = localStorage.getItem("citycare_user");
 
       if (token && userStr) {
         try {
@@ -44,8 +42,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(userData);
         } catch (error) {
           console.error("Failed to parse user data:", error);
-          localStorage.removeItem("campuscare_token");
-          localStorage.removeItem("campuscare_user");
+          localStorage.removeItem("citycare_token");
+          localStorage.removeItem("citycare_user");
         }
       }
       setLoading(false);
@@ -53,8 +51,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const logout = () => {
-    localStorage.removeItem("campuscare_token");
-    localStorage.removeItem("campuscare_user");
+    localStorage.removeItem("citycare_token");
+    localStorage.removeItem("citycare_user");
     setUser(null);
     router.push("/login");
   };

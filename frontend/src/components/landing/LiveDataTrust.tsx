@@ -26,16 +26,16 @@ export function LiveDataTrust() {
         <div className="grid md:grid-cols-4 gap-6 mb-12">
           {[
             {
-              label: "Campus boundary layer",
+              label: "City boundary layer",
               desc: "Defines the outer perimeter for all spatial logic.",
             },
             {
-              label: "Building footprint layer",
-              desc: "Maps every structure as a discrete, validated entity.",
+              label: "Zone footprint layer",
+              desc: "Maps every district as a discrete, validated entity.",
             },
             {
-              label: "Floor and room-level resolution",
-              desc: "Supports granular location mapping and navigation.",
+              label: "Infrastructure and location resolution",
+              desc: "Supports granular infrastructure type mapping and navigation.",
             },
             {
               label: "Issue-to-location binding",
@@ -74,7 +74,7 @@ export function LiveDataTrust() {
             "Boundary-locked issue reporting",
             "Location-aware validation",
             "Hierarchical spatial mapping",
-            "Multi-campus ready architecture",
+            "Multi-city ready architecture",
           ].map((guarantee) => (
             <div
               key={guarantee}
@@ -107,7 +107,7 @@ export function LiveDataTrust() {
     "Boundary-locked issue reporting",
     "Location-aware validation",
     "Hierarchical spatial mapping",
-    "Multi-campus ready architecture",
+    "Multi-city ready architecture",
   ].map((guarantee) => (
     <div
       key={guarantee}

@@ -2,17 +2,31 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { signInWithPopup } from "firebase/auth";
-import { auth, googleProvider } from "@/lib/firebase";
+import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { initializeApp, getApps, getApp } from "firebase/app";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL as string;
 
+// Client-side Firebase configuration using public env variables
+const firebaseConfig = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+};
+
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+const auth = getAuth(app);
+const googleProvider = new GoogleAuthProvider();
+
 interface GoogleSignInButtonProps {
-  organizationId?: string;
+  cityId?: string;
 }
 
 export function GoogleSignInButton({
-  organizationId = "ggv-bilaspur",
+  cityId = "bilaspur",
 }: GoogleSignInButtonProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -23,14 +37,14 @@ export function GoogleSignInButton({
       setError(null);
       setIsLoading(true);
 
-      // 1. Sign in with Google popup
+      // 1. Sign in with Google popup via Firebase
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
 
       // 2. Get Firebase ID token
       const idToken = await user.getIdToken();
 
-      // 3. Send token to backend (Google OAuth login)
+      // 3. Send token to CityCare backend
       const response = await fetch(`${API_BASE_URL}/api/auth/login/google`, {
         method: "POST",
         headers: {
@@ -38,8 +52,8 @@ export function GoogleSignInButton({
         },
         body: JSON.stringify({
           idToken,
-          organizationId,
-          role: "student",
+          cityId,
+          role: "citizen",
         }),
       });
 
@@ -56,16 +70,16 @@ export function GoogleSignInButton({
         throw new Error(message);
       }
 
-      // 4. Store user + token (backend echoes the Firebase ID token)
+      // 4. Store user + token
       if (typeof window !== "undefined") {
-        window.localStorage.setItem("campuscare_token", data.data.token);
+        window.localStorage.setItem("citycare_token", data.data.token);
         window.localStorage.setItem(
-          "campuscare_user",
+          "citycare_user",
           JSON.stringify(data.data.user),
         );
         // Notify other components in this tab about auth change
         try {
-          window.dispatchEvent(new Event("campuscare_auth_changed"));
+          window.dispatchEvent(new Event("citycare_auth_changed"));
         } catch (_) {
           /* ignore */
         }
@@ -75,9 +89,7 @@ export function GoogleSignInButton({
       router.push("/dashboard");
     } catch (err) {
       const message =
-        err instanceof Error
-          ? err.message
-          : "Unexpected error during Google sign-in.";
+        err instanceof Error ? err.message : "Unexpected error during sign-in.";
       setError(message);
     } finally {
       setIsLoading(false);
@@ -118,7 +130,7 @@ export function GoogleSignInButton({
           </svg>
         </span>
         <span>
-          {isLoading ? "Connecting to Google..." : "Sign in with Google"}
+          {isLoading ? "Connecting with Google..." : "Continue with Google"}
         </span>
       </button>
       {error ? (

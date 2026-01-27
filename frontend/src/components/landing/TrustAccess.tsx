@@ -42,7 +42,7 @@ const badgeText: Record<string, string> = {
 
 const roles = [
   {
-    title: "Students",
+    title: "Citizens",
     access: "Issue Reporting",
     description:
       "Submit text, voice, or image-based reports. Track status in real-time.",
@@ -64,7 +64,7 @@ const roles = [
     color: "blue",
   },
   {
-    title: "Facility Teams",
+    title: "Volunteers",
     access: "Resolution & Monitoring",
     description:
       "Mark issues resolved. Attach proof. Update status. Monitor patterns.",
@@ -170,7 +170,7 @@ export function TrustAccess() {
                     {badge}
                   </span>
                 </motion.div>
-              )
+              ),
             )}
           </div>
         </motion.div>

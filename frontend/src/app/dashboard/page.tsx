@@ -49,8 +49,8 @@ interface UserData {
   id: string;
   name: string;
   email: string;
-  role: "student" | "faculty" | "staff" | "facility_manager" | "admin";
-  organizationId: string;
+  role: "citizen" | "volunteer" | "agency" | "admin";
+  cityId: string;
 }
 
 export default function DashboardPage() {
@@ -79,7 +79,7 @@ export default function DashboardPage() {
           typeof userDataRaw.name !== "string" ||
           typeof userDataRaw.email !== "string" ||
           typeof userDataRaw.role !== "string" ||
-          typeof userDataRaw.organizationId !== "string"
+          typeof userDataRaw.cityId !== "string"
         ) {
           if (
             typeof window !== "undefined" &&
@@ -98,13 +98,13 @@ export default function DashboardPage() {
           name: userDataRaw.name,
           email: userDataRaw.email,
           role: userDataRaw.role as UserData["role"],
-          organizationId: userDataRaw.organizationId,
+          cityId: userDataRaw.cityId,
         };
         setUser(userData);
 
         // Debug: show whether a token exists and the user's role (do not print token)
         if (typeof window !== "undefined") {
-          const t = window.localStorage.getItem("campuscare_token");
+          const t = window.localStorage.getItem("citycare_token");
           console.debug(
             "Dashboard: token present=",
             !!t,
@@ -113,7 +113,7 @@ export default function DashboardPage() {
           );
         }
 
-        const isManagerOrAdmin = ["facility_manager", "admin"].includes(
+        const isManagerOrAdmin = ["agency", "admin"].includes(
           userData.role,
         );
 
@@ -136,9 +136,9 @@ export default function DashboardPage() {
 
   const loadStats = async (userData: UserData) => {
     try {
-      const token = window.localStorage.getItem("campuscare_token");
+      const token = window.localStorage.getItem("citycare_token");
       const response = await fetch(
-        `${API_BASE_URL}/api/issues/stats?organizationId=${userData.organizationId || "ggv-bilaspur"}`,
+        `${API_BASE_URL}/api/issues/stats?cityId=${userData.cityId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -164,10 +164,10 @@ export default function DashboardPage() {
             inProgress: result.data.inProgress || 0,
             resolved: result.data.resolved || 0,
             closed: result.data.closed || 0,
-            critical: result.data.byPriority?.critical || 0,
-            high: result.data.byPriority?.high || 0,
-            medium: result.data.byPriority?.medium || 0,
-            low: result.data.byPriority?.low || 0,
+            critical: result.data.bySeverity?.critical || 0,
+            high: result.data.bySeverity?.high || 0,
+            medium: result.data.bySeverity?.medium || 0,
+            low: result.data.bySeverity?.low || 0,
           });
         }
       }
@@ -178,12 +178,12 @@ export default function DashboardPage() {
 
   const loadRecentIssues = async (userData: UserData) => {
     try {
-      const token = window.localStorage.getItem("campuscare_token");
+      const token = window.localStorage.getItem("citycare_token");
 
-      // Filter logic: Students see only their issues, Managers see all
-      let query = `organizationId=${userData.organizationId || "ggv-bilaspur"}&limit=5`;
+      // Filter logic: Citizens see only their issues, Agencies/Admins see all
+      let query = `cityId=${userData.cityId}&limit=5`;
 
-      if (userData.role === "student") {
+      if (userData.role === "citizen") {
         query += `&reportedBy=${userData.id}`;
       }
 
@@ -219,9 +219,9 @@ export default function DashboardPage() {
 
   const loadHighPriorityIssues = async (userData: UserData) => {
     try {
-      const token = window.localStorage.getItem("campuscare_token");
+      const token = window.localStorage.getItem("citycare_token");
       const response = await fetch(
-        `${API_BASE_URL}/api/issues/priorities?organizationId=${userData.organizationId || "ggv-bilaspur"}`,
+        `${API_BASE_URL}/api/issues/priorities?cityId=${userData.cityId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -248,7 +248,7 @@ export default function DashboardPage() {
 
   const loadAIInsights = async (userData: UserData) => {
     try {
-      const token = window.localStorage.getItem("campuscare_token");
+      const token = window.localStorage.getItem("citycare_token");
       const response = await fetch(`${API_BASE_URL}/api/ai/insights`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -277,14 +277,14 @@ export default function DashboardPage() {
     switch (role?.toLowerCase()) {
       case "admin":
         return "bg-rose-500/20 text-rose-300 border-rose-500/50";
-      case "facility_manager":
+      case "agency":
         return "bg-violet-500/20 text-violet-300 border-violet-500/50";
-      case "staff":
+      case "volunteer":
         return "bg-blue-500/20 text-blue-300 border-blue-500/50";
-      case "faculty":
+      case "citizen":
         return "bg-cyan-500/20 text-cyan-300 border-cyan-500/50";
       default:
-        return "bg-emerald-500/20 text-emerald-300 border-emerald-500/50"; // Student
+        return "bg-emerald-500/20 text-emerald-300 border-emerald-500/50";
     }
   };
 
@@ -382,13 +382,13 @@ export default function DashboardPage() {
                 <span
                   className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider border ${getRoleBadgeColor(user?.role)}`}
                 >
-                  {user?.role?.replace("_", " ") || "Student"}
+                  {user?.role}
                 </span>
               </span>
               
             </div>
               <p className="text-white/60 text-lg">
-                Campus Infrastructure Intelligence
+                Infrastructure Intelligence System
               </p>
           </div>
         </motion.div>
@@ -459,7 +459,7 @@ export default function DashboardPage() {
             {/* Action 1: Report (Everyone) */}
             <QuickActionCard
               title="Heatmap View"
-              description="Visualize infrastructure issues on campus map"
+              description="Visualize infrastructure issues on city map"
               icon="🗺️"
               href="/heatmap"
               gradient="from-violet-600 to-fuchsia-600"
@@ -501,6 +501,8 @@ export default function DashboardPage() {
             />
           </div>
         </motion.div>
+          </div>
+        </motion.div>
 
         {/* Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -513,7 +515,7 @@ export default function DashboardPage() {
           >
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold">
-                {isManager ? "High Priority Issues" : "Campus Alerts"}
+                {isManager ? "High Priority Issues" : "Active Alerts"}
               </h2>
               <Link
                 href="/priority"
@@ -555,15 +557,13 @@ export default function DashboardPage() {
             </div>
             <div className="space-y-3">
               {recentIssues.length > 0 ? (
+                <p className="text-white/40 text-sm py-4 text-center">
+                  No recent issues
+                </p>
+              ) : (
                 recentIssues.map((issue) => (
                   <IssueCard key={issue.id} issue={issue} />
                 ))
-              ) : (
-                <p className="text-white/40 text-sm py-4 text-center">
-                  {isManager
-                    ? "No recent issues reported"
-                    : "You haven't reported any issues yet"}
-                </p>
               )}
             </div>
           </motion.div>

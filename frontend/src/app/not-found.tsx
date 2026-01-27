@@ -130,7 +130,7 @@ export default function NotFound() {
               <p className="text-lg text-white/70 mb-10 leading-relaxed max-w-lg mx-auto">
                 The page you're looking for seems to have wandered off into the
                 digital void. Don't worry, let's get you back to exploring
-                CampusCare!
+                CityCare!
               </p>
             </motion.div>
 
@@ -243,7 +243,7 @@ export default function NotFound() {
           transition={{ duration: 0.6, delay: 1.4 }}
         >
           <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-white/40 text-sm">© 2025 CampusCare</p>
+            <p className="text-white/40 text-sm">© 2025 CityCare</p>
             <div className="flex gap-6 text-sm text-white/40">
               <Link
                 href="/privacy"

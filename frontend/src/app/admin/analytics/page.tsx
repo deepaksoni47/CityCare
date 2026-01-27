@@ -77,7 +77,7 @@ export default function AnalyticsPage() {
     ([key, value]) => ({
       name: key.charAt(0).toUpperCase() + key.slice(1),
       value,
-    })
+    }),
   );
 
   const categoryData = Object.entries(analytics.categoryDistribution)
@@ -88,7 +88,7 @@ export default function AnalyticsPage() {
       count: value,
     }));
 
-  const buildingData = Object.entries(analytics.buildingDistribution)
+  const buildingData = Object.entries(analytics.zoneDistribution)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5)
     .map(([key, value]) => ({
@@ -290,10 +290,10 @@ export default function AnalyticsPage() {
           </ResponsiveContainer>
         </div>
 
-        {/* Top Buildings */}
+        {/* Top Zones */}
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
           <h2 className="text-xl font-bold text-white mb-6">
-            Top Buildings by Issues
+            Top Zones by Issues
           </h2>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={buildingData} layout="vertical">

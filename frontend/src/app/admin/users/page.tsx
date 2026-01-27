@@ -90,11 +90,11 @@ export default function UsersPage() {
     try {
       const formData = new FormData(e.target as HTMLFormElement);
       const updates = {
-        displayName: formData.get("displayName"),
+        name: formData.get("name"),
         role: formData.get("role"),
       };
 
-      await updateUser(selectedUser.uid, updates);
+      await updateUser(selectedUser.id, updates);
       toast.success("User updated successfully");
       setShowEditModal(false);
       loadUsers();
@@ -175,10 +175,9 @@ export default function UsersPage() {
           >
             <option value="">All Roles</option>
             <option value="admin">Admin</option>
-            <option value="facilityManager">Facility Manager</option>
-            <option value="staff">Staff</option>
-            <option value="faculty">Faculty</option>
-            <option value="student">Student</option>
+            <option value="agency">Agency</option>
+            <option value="volunteer">Volunteer</option>
+            <option value="citizen">Citizen</option>
           </select>
 
           <select
@@ -243,17 +242,17 @@ export default function UsersPage() {
                 <tbody className="divide-y divide-gray-800">
                   {data.users.map((user: any) => (
                     <tr
-                      key={user.uid}
+                      key={user.id}
                       className="hover:bg-gray-800/50 transition-colors"
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white font-semibold">
-                            {user.displayName?.[0]?.toUpperCase() || "U"}
+                            {user.name?.[0]?.toUpperCase() || "U"}
                           </div>
                           <div>
                             <div className="text-white font-medium">
-                              {user.displayName || "Anonymous"}
+                              {user.name || "Anonymous"}
                             </div>
                             <div className="text-sm text-gray-400">
                               {user.email}
@@ -295,14 +294,14 @@ export default function UsersPage() {
                             <Edit className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => handleToggleStatus(user.uid)}
+                            onClick={() => handleToggleStatus(user.id)}
                             className="p-2 text-yellow-400 hover:bg-yellow-900/20 rounded-lg transition-colors"
                             title="Toggle Status"
                           >
                             <Ban className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => handleDeleteUser(user.uid)}
+                            onClick={() => handleDeleteUser(user.id)}
                             className="p-2 text-red-400 hover:bg-red-900/20 rounded-lg transition-colors"
                             title="Delete User"
                           >
@@ -365,8 +364,8 @@ export default function UsersPage() {
                 </label>
                 <input
                   type="text"
-                  name="displayName"
-                  defaultValue={selectedUser.displayName}
+                  name="name"
+                  defaultValue={selectedUser.name}
                   className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-500"
                 />
               </div>
@@ -379,10 +378,9 @@ export default function UsersPage() {
                   defaultValue={selectedUser.role}
                   className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-purple-500"
                 >
-                  <option value="student">Student</option>
-                  <option value="faculty">Faculty</option>
-                  <option value="staff">Staff</option>
-                  <option value="facilityManager">Facility Manager</option>
+                  <option value="citizen">Citizen</option>
+                  <option value="volunteer">Volunteer</option>
+                  <option value="agency">Agency</option>
                   <option value="admin">Admin</option>
                 </select>
               </div>

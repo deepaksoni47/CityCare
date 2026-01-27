@@ -2,9 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { signOut } from "firebase/auth";
 import { motion, AnimatePresence } from "framer-motion";
-import { auth } from "@/lib/firebase";
 import ProfileInfo from "@/components/profile/ProfileInfo";
 import ChangePassword from "@/components/profile/ChangePassword";
 import { RewardsProfile } from "@/components/rewards/RewardsProfile";
@@ -17,15 +15,8 @@ interface User {
   email: string;
   name: string;
   role: string;
-  organizationId: string;
-  departmentId?: string;
+  cityId: string;
   phone?: string;
-  preferences?: {
-    emailNotifications?: boolean;
-    pushNotifications?: boolean;
-    theme?: "light" | "dark" | "system";
-    language?: string;
-  };
 }
 
 export default function ProfilePage() {
@@ -38,14 +29,14 @@ export default function ProfilePage() {
 
   useEffect(() => {
     // Check authentication
-    const token = localStorage.getItem("campuscare_token");
+    const token = localStorage.getItem("citycare_token");
     if (!token) {
       router.replace("/login");
       return;
     }
 
     // Load user data from localStorage
-    const userStr = localStorage.getItem("campuscare_user");
+    const userStr = localStorage.getItem("citycare_user");
     if (userStr) {
       try {
         const userData = JSON.parse(userStr);
@@ -63,7 +54,7 @@ export default function ProfilePage() {
     if (
       tabParam &&
       ["profile", "rewards", "badges", "leaderboard", "password"].includes(
-        tabParam
+        tabParam,
       )
     ) {
       setActiveTab(tabParam as any);
@@ -81,7 +72,7 @@ export default function ProfilePage() {
     if (user) {
       const newUser = { ...user, ...updatedUser };
       setUser(newUser);
-      localStorage.setItem("campuscare_user", JSON.stringify(newUser));
+      localStorage.setItem("citycare_user", JSON.stringify(newUser));
     }
   };
 
@@ -130,14 +121,9 @@ export default function ProfilePage() {
               <div className="mt-4 md:mt-0">
                 <button
                   onClick={async () => {
-                    try {
-                      await signOut(auth);
-                    } catch (e) {
-                      console.warn("signOut failed:", e);
-                    }
-                    localStorage.removeItem("campuscare_token");
-                    localStorage.removeItem("campuscare_user");
-                    window.dispatchEvent(new Event("campuscare_auth_changed"));
+                    localStorage.removeItem("citycare_token");
+                    localStorage.removeItem("citycare_user");
+                    window.dispatchEvent(new Event("citycare_auth_changed"));
                     router.push("/");
                   }}
                   className="px-6 py-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-medium shadow-lg transition-all"
@@ -208,7 +194,7 @@ export default function ProfilePage() {
                   <h2 className="text-2xl font-bold text-white mb-6">
                     Community Leaderboard
                   </h2>
-                  <Leaderboard organizationId={user.organizationId} />
+                  <Leaderboard cityId={user.cityId} />
                 </div>
               )}
               {activeTab === "password" && <ChangePassword />}
