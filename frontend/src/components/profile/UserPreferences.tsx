@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { safeJsonResponse } from "@/lib/safeJsonResponse";
 
 interface User {
   id: string;
@@ -40,9 +41,11 @@ export default function UserPreferences({
 
     try {
       const token = localStorage.getItem("citycare_token");
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL as string;
+      const apiBaseUrl =
+        process.env.NEXT_PUBLIC_API_BASE_URL ||
+        (typeof window !== "undefined" ? window.location.origin : "");
 
-      const response = await fetch(`${API_BASE_URL}/api/auth/profile`, {
+      const response = await fetch(`${apiBaseUrl}/api/auth/profile`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -51,7 +54,7 @@ export default function UserPreferences({
         body: JSON.stringify({ preferences }),
       });
 
-      const data = await response.json();
+      const data = await safeJsonResponse(response, "auth/profile");
 
       if (!response.ok) {
         throw new Error(data.message || "Failed to update preferences");

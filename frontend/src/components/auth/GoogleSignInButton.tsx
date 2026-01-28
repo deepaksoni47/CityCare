@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { safeJsonResponse } from "@/lib/safeJsonResponse";
 
 const getApiBaseUrl = () => {
   if (process.env.NEXT_PUBLIC_API_BASE_URL)
@@ -36,12 +37,7 @@ export function GoogleSignInButton({
       url.searchParams.set("cityId", cityId);
 
       const response = await fetch(url.toString());
-      const data = (await response.json()) as {
-        success?: boolean;
-        data?: { authUrl?: string };
-        message?: string;
-        error?: string;
-      };
+      const data = await safeJsonResponse(response, "auth/oauth/google/url");
 
       const authUrl = data.data?.authUrl;
 

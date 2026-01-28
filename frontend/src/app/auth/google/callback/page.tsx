@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { DEFAULT_CITY_ID } from "@/data/cities";
+import { safeJsonResponse } from "@/lib/safeJsonResponse";
 
 const getApiBaseUrl = () => {
   if (process.env.NEXT_PUBLIC_API_BASE_URL)
@@ -58,7 +59,10 @@ export default function GoogleOAuthCallbackPage() {
           },
         );
 
-        const data = await response.json();
+        const data = await safeJsonResponse(
+          response,
+          "auth/oauth/google/callback",
+        );
 
         if (
           !response.ok ||

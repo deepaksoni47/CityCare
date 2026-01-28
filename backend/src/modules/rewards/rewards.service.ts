@@ -1,6 +1,27 @@
 import { User as UserModel } from "../../models/User";
 import { Badge as BadgeModel } from "../../models/Badge";
 import { User, Badge, RewardTransaction, LeaderboardEntry } from "../../types";
+import mongoose from "mongoose";
+
+// Badge Definition Model (for badge templates)
+const BadgeDefinitionSchema = new mongoose.Schema(
+  {
+    _id: { type: String, required: true },
+    name: { type: String, required: true },
+    description: { type: String, required: true },
+    icon: { type: String },
+    category: { type: String, required: true },
+    criteria: { type: mongoose.Schema.Types.Mixed, required: true },
+    pointsAwarded: { type: Number, default: 0 },
+    rarity: { type: String, default: "common" },
+    isActive: { type: Boolean, default: true },
+  },
+  { timestamps: true },
+);
+
+const BadgeDefinition =
+  mongoose.models.BadgeDefinition ||
+  mongoose.model("BadgeDefinition", BadgeDefinitionSchema, "badge_definitions");
 
 /**
  * Get user's reward profile
@@ -76,13 +97,21 @@ export async function getUserTransactions(
  */
 export async function getAllBadges(): Promise<Badge[]> {
   try {
-    // Get all active badges
-    const badgeDocs = await BadgeModel.find().lean();
+    // Get all badge definitions (templates)
+    const badgeDocs = await BadgeDefinition.find({ isActive: true }).lean();
 
     // Map to Badge type
     const badges = badgeDocs.map((doc: any) => ({
       id: doc._id.toString(),
-      ...doc,
+      name: doc.name,
+      description: doc.description,
+      icon: doc.icon || "🏆",
+      category: doc.category,
+      criteria: doc.criteria,
+      pointsAwarded: doc.pointsAwarded,
+      rarity: doc.rarity,
+      isActive: doc.isActive,
+      createdAt: doc.createdAt,
     })) as Badge[];
 
     // Define rarity order for sorting

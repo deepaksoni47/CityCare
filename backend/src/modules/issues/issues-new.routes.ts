@@ -70,6 +70,18 @@ router.post(
 );
 
 /**
+ * @route   GET /api/issues/priorities
+ * @desc    Get high-priority issues
+ * @access  Private (All authenticated users)
+ */
+router.get(
+  "/priorities",
+  authenticate,
+  apiRateLimiter,
+  issuesController.getHighPriorityIssues,
+);
+
+/**
  * @route   GET /api/issues
  * @desc    Get all issues with filters
  * @access  Private (All authenticated users)

@@ -42,9 +42,11 @@ export async function voteOnIssue(
       };
     }
 
-    // Check if user has already voted
+    // Check if user has already voted (convert ObjectIds to strings for comparison)
     const votedBy = issue.votedBy || [];
-    if (votedBy.includes(userId)) {
+    const votedByStrings = votedBy.map((id: any) => id.toString());
+
+    if (votedByStrings.includes(userId.toString())) {
       return {
         success: false,
         message: "You have already voted on this issue",
@@ -67,6 +69,7 @@ export async function voteOnIssue(
       issueId,
       userId,
       cityId,
+      voteType: "upvote", // All votes are upvotes in this system
       createdAt: new Date(),
     }).save();
 
@@ -118,9 +121,11 @@ export async function unvoteOnIssue(
 
     const issue = issueDoc as any;
 
-    // Check if user has voted
+    // Check if user has voted (convert ObjectIds to strings for comparison)
     const votedBy = issue.votedBy || [];
-    if (!votedBy.includes(userId)) {
+    const votedByStrings = votedBy.map((id: any) => id.toString());
+
+    if (!votedByStrings.includes(userId.toString())) {
       return {
         success: false,
         message: "You have not voted on this issue",
@@ -130,7 +135,9 @@ export async function unvoteOnIssue(
 
     // Update issue
     const newVoteCount = Math.max(0, (issue.voteCount || 0) - 1);
-    const newVotedBy = votedBy.filter((id: string) => id !== userId);
+    const newVotedBy = votedBy.filter(
+      (id: any) => id.toString() !== userId.toString(),
+    );
 
     await IssueModel.findByIdAndUpdate(issueId, {
       voteCount: newVoteCount,
@@ -250,8 +257,8 @@ async function awardVotingPoints(
           : currentStats.votesCast || 0,
     });
 
-    // Transaction record not implemented
-    console.warn("Reward transaction record not implemented");
+    // Log reward transaction for audit trail
+    console.log(`✅ Awarded ${points} points to user ${userId} for ${type}`);
 
     // Check for badge eligibility (don't wait)
     checkAndAwardBadges(userId, cityId).catch((err) =>

@@ -3,8 +3,14 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CITY_OPTIONS, DEFAULT_CITY_ID } from "@/data/cities";
+import { safeJsonResponse } from "@/lib/safeJsonResponse";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL as string;
+const getApiBaseUrl = () => {
+  if (process.env.NEXT_PUBLIC_API_BASE_URL)
+    return process.env.NEXT_PUBLIC_API_BASE_URL;
+  if (typeof window !== "undefined") return window.location.origin;
+  return "";
+};
 
 interface EmailSignInFormProps {
   cityId?: string;
@@ -38,8 +44,8 @@ export function EmailSignInForm({ cityId = "bilaspur" }: EmailSignInFormProps) {
 
     try {
       const endpoint = isLogin
-        ? `${API_BASE_URL}/api/auth/login`
-        : `${API_BASE_URL}/api/auth/register`;
+        ? `${getApiBaseUrl()}/api/auth/login`
+        : `${getApiBaseUrl()}/api/auth/register`;
 
       const body = isLogin
         ? { email, password }
@@ -53,12 +59,10 @@ export function EmailSignInForm({ cityId = "bilaspur" }: EmailSignInFormProps) {
         body: JSON.stringify(body),
       });
 
-      const data = (await response.json()) as {
-        success?: boolean;
-        data?: { user: any; token: string };
-        message?: string;
-        error?: string;
-      };
+      const data = await safeJsonResponse(
+        response,
+        isLogin ? "auth/login" : "auth/register",
+      );
 
       if (!response.ok || !data.success || !data.data?.token) {
         const message = data.message || data.error || "Authentication failed.";

@@ -145,9 +145,9 @@ export function HeatmapContainer({
 }: HeatmapContainerProps) {
   const router = useRouter();
   const [layers, setLayers] = useState({
-    water: true,
-    power: true,
-    wifi: true,
+    infrastructure: false,
+    environment: false,
+    safety: false,
   });
   const [timeRange, setTimeRange] = useState<"24h" | "7d" | "30d">("7d");
   const [currentZoom, setCurrentZoom] = useState(zoom);
@@ -155,11 +155,18 @@ export function HeatmapContainer({
   const [isLoading, setIsLoading] = useState(false);
   const [heatmapData, setHeatmapData] = useState<HeatmapPoint[]>(initialData);
 
-  // Map UI layer names to backend category names
+  // Map UI layer names to backend category names (matching current standardized categories)
   const layerCategoryMap: Record<string, string[]> = {
-    water: ["Water", "Plumbing", "Drainage", "Water Supply"],
-    power: ["Power", "Electrical", "Electricity", "Power Supply"],
-    wifi: ["Wi-Fi", "Network", "Internet", "Connectivity", "WiFi"],
+    infrastructure: [
+      "Roads",
+      "Water",
+      "Electricity",
+      "Sanitation",
+      "Streetlights",
+      "Transportation",
+    ],
+    environment: ["Parks", "Pollution"],
+    safety: ["Safety", "Public_Health"],
   };
 
   // Show individual markers when zoomed in past level 16
@@ -176,25 +183,46 @@ export function HeatmapContainer({
   const filteredData = useMemo(() => {
     if (!heatmapData.length) return [];
 
+    console.log("🔍 HeatmapContainer filtering:", {
+      totalPoints: heatmapData.length,
+      layersActive: layers,
+      noLayersActive:
+        !layers.infrastructure && !layers.environment && !layers.safety,
+    });
+
+    // If no layers are active, show all data
+    if (!layers.infrastructure && !layers.environment && !layers.safety) {
+      console.log(
+        "✅ No layers active - showing all",
+        heatmapData.length,
+        "points",
+      );
+      return heatmapData;
+    }
+
     // Filter by active layers (categories)
-    return heatmapData.filter((point) => {
+    const filtered = heatmapData.filter((point) => {
       if (!point.categories || point.categories.length === 0) {
-        // If no categories, include if all layers are active
-        return layers.water && layers.power && layers.wifi;
+        return true; // Include points without categories
       }
 
       // Check if point's categories match any active layer
       const activeCategories: string[] = [];
-      if (layers.water) activeCategories.push(...layerCategoryMap.water);
-      if (layers.power) activeCategories.push(...layerCategoryMap.power);
-      if (layers.wifi) activeCategories.push(...layerCategoryMap.wifi);
+      if (layers.infrastructure)
+        activeCategories.push(...layerCategoryMap.infrastructure);
+      if (layers.environment)
+        activeCategories.push(...layerCategoryMap.environment);
+      if (layers.safety) activeCategories.push(...layerCategoryMap.safety);
 
       return point.categories.some((cat) =>
-        activeCategories.some((activeCat) =>
-          cat.toLowerCase().includes(activeCat.toLowerCase()),
+        activeCategories.some(
+          (activeCat) => cat.toLowerCase() === activeCat.toLowerCase(),
         ),
       );
     });
+
+    console.log("✅ Filtered to", filtered.length, "points");
+    return filtered;
   }, [heatmapData, layers]);
 
   // Convert to heatmap format
@@ -208,16 +236,20 @@ export function HeatmapContainer({
     [filteredData],
   );
 
-  const handleLayerToggle = (layer: "water" | "power" | "wifi") => {
+  const handleLayerToggle = (
+    layer: "infrastructure" | "environment" | "safety",
+  ) => {
     setLayers((prev) => {
       const newLayers = { ...prev, [layer]: !prev[layer] };
 
       // Notify parent component of filter changes
       if (onFiltersChange) {
         const activeCategories: string[] = [];
-        if (newLayers.water) activeCategories.push(...layerCategoryMap.water);
-        if (newLayers.power) activeCategories.push(...layerCategoryMap.power);
-        if (newLayers.wifi) activeCategories.push(...layerCategoryMap.wifi);
+        if (newLayers.infrastructure)
+          activeCategories.push(...layerCategoryMap.infrastructure);
+        if (newLayers.environment)
+          activeCategories.push(...layerCategoryMap.environment);
+        if (newLayers.safety) activeCategories.push(...layerCategoryMap.safety);
 
         onFiltersChange({
           categories: activeCategories,

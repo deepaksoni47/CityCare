@@ -4,19 +4,26 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
+import { safeJsonResponse } from "@/lib/safeJsonResponse";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL as string;
+const getApiBaseUrl = () => {
+  if (process.env.NEXT_PUBLIC_API_BASE_URL)
+    return process.env.NEXT_PUBLIC_API_BASE_URL;
+  if (typeof window !== "undefined") return window.location.origin;
+  return "";
+};
 
 const CATEGORIES = [
-  "Structural",
-  "Electrical",
-  "Plumbing",
-  "HVAC",
+  "Roads",
+  "Water",
+  "Electricity",
+  "Sanitation",
+  "Parks",
+  "Public_Health",
+  "Transportation",
+  "Streetlights",
+  "Pollution",
   "Safety",
-  "Maintenance",
-  "Cleanliness",
-  "Network",
-  "Furniture",
   "Other",
 ] as const;
 
@@ -211,7 +218,7 @@ export default function ReportPage() {
       uploadFormData.append("cityId", user?.cityId || "default-city");
 
       const uploadResponse = await fetch(
-        `${API_BASE_URL}/api/issues/upload-image`,
+        `${getApiBaseUrl()}/api/issues/upload-image`,
         {
           method: "POST",
           headers: {
@@ -222,7 +229,10 @@ export default function ReportPage() {
       );
 
       if (!uploadResponse.ok) {
-        const errorData = await uploadResponse.json().catch(() => ({}));
+        const errorData = await safeJsonResponse(
+          uploadResponse,
+          "upload-image",
+        ).catch(() => ({}));
         console.error("Image upload failed:", errorData);
         toast.error(
           "Image upload failed. You can still submit the issue without AI analysis.",
@@ -231,7 +241,10 @@ export default function ReportPage() {
         return;
       }
 
-      const uploadResult = await uploadResponse.json();
+      const uploadResult = await safeJsonResponse(
+        uploadResponse,
+        "upload-image",
+      );
       const imageUrl = uploadResult.data?.url || uploadResult.data?.urls?.[0];
 
       if (!imageUrl) {
@@ -241,7 +254,7 @@ export default function ReportPage() {
 
       // Now analyze the image with AI
       const analyzeResponse = await fetch(
-        `${API_BASE_URL}/api/ai/analyze-image`,
+        `${getApiBaseUrl()}/api/ai/analyze-image`,
         {
           method: "POST",
           headers: {
@@ -256,7 +269,10 @@ export default function ReportPage() {
       );
 
       if (!analyzeResponse.ok) {
-        const err = await analyzeResponse.json().catch(() => ({}));
+        const err = await safeJsonResponse(
+          analyzeResponse,
+          "analyze-image",
+        ).catch(() => ({}));
         console.error("AI analysis failed:", err);
 
         // Handle rate limiting specifically
@@ -273,7 +289,10 @@ export default function ReportPage() {
         return;
       }
 
-      const analyzeResult = await analyzeResponse.json();
+      const analyzeResult = await safeJsonResponse(
+        analyzeResponse,
+        "analyze-image",
+      );
       const analysis = analyzeResult.data?.analysis;
 
       if (analysis) {
@@ -502,7 +521,7 @@ export default function ReportPage() {
       const token = window.localStorage.getItem("citycare_token");
 
       // Use the classify-text endpoint instead of process-voice
-      const response = await fetch(`${API_BASE_URL}/api/ai/classify-text`, {
+      const response = await fetch(`${getApiBaseUrl()}/api/ai/classify-text`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -515,7 +534,7 @@ export default function ReportPage() {
       });
 
       if (response.ok) {
-        const result = await response.json();
+        const result = await safeJsonResponse(response, "analyze-voice");
         const classification = result.data?.classification;
 
         if (classification) {
@@ -566,7 +585,7 @@ export default function ReportPage() {
 
       const mimeType = blob.type || "audio/webm";
 
-      const resp = await fetch(`${API_BASE_URL}/api/ai/process-voice`, {
+      const resp = await fetch(`${getApiBaseUrl()}/api/ai/process-voice`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -634,17 +653,20 @@ export default function ReportPage() {
       });
       formData.append("cityId", user.cityId || "default-city");
 
-      const response = await fetch(`${API_BASE_URL}/api/issues/upload-image`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          // Don't set Content-Type header - browser will set it with boundary for FormData
+      const response = await fetch(
+        `${getApiBaseUrl()}/api/issues/upload-image`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            // Don't set Content-Type header - browser will set it with boundary for FormData
+          },
+          body: formData,
         },
-        body: formData,
-      });
+      );
 
       if (response.ok) {
-        const result = await response.json();
+        const result = await safeJsonResponse(response, "upload-images");
         if (result.success) {
           // Backend might return single URL or array of URLs
           if (result.data?.url) {
@@ -656,7 +678,10 @@ export default function ReportPage() {
           }
         }
       } else {
-        const errorData = await response.json().catch(() => ({}));
+        const errorData = await safeJsonResponse(
+          response,
+          "upload-images",
+        ).catch(() => ({}));
         console.error("Failed to upload images:", errorData);
         toast.error(
           "Failed to upload images. You can still submit without images.",
@@ -700,7 +725,7 @@ export default function ReportPage() {
     setIsSubmitting(true);
 
     try {
-      let token = window.localStorage.getItem("citycare_token");
+      const token = window.localStorage.getItem("citycare_token");
 
       // Upload images first if any
       const imageUrls = await uploadImages();
@@ -708,8 +733,7 @@ export default function ReportPage() {
       // Prepare issue data
       const issueData = {
         cityId: user.cityId || "default-city",
-        locationId: formData.locationId,
-        zone: formData.zone || undefined,
+        zoneId: formData.locationId, // locationId is actually the zoneId from LOCATIONS
         title: formData.title.trim(),
         description: formData.description.trim(),
         category: formData.category,
@@ -727,8 +751,10 @@ export default function ReportPage() {
         aiImageAnalysis: aiImageAnalysis || undefined,
       };
 
+      console.log("Submitting issue data:", issueData);
+
       // Submit issue
-      const response = await fetch(`${API_BASE_URL}/api/issues`, {
+      const response = await fetch(`${getApiBaseUrl()}/api/issues`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -737,7 +763,7 @@ export default function ReportPage() {
         body: JSON.stringify(issueData),
       });
 
-      const result = await response.json();
+      const result = await safeJsonResponse(response, "issues/create");
 
       if (response.ok && result.success) {
         toast.success("Issue reported successfully!");
@@ -758,13 +784,29 @@ export default function ReportPage() {
           router.push("/dashboard");
         }, 1500);
       } else {
-        const errorMessage =
-          result.message || result.error || "Failed to report issue";
+        // Handle validation errors
+        let errorMessage = "Failed to report issue";
+        if (result.details && Array.isArray(result.details)) {
+          // Validation error with details
+          const fieldErrors = result.details
+            .map((d: any) => `${d.field}: ${d.message}`)
+            .join(", ");
+          errorMessage = fieldErrors || result.message || "Validation failed";
+          console.error("Validation errors:", result.details);
+        } else {
+          errorMessage =
+            result.message || result.error || "Failed to report issue";
+        }
+        console.error("Issue submission error:", result);
         toast.error(errorMessage);
       }
     } catch (error) {
       console.error("Error submitting issue:", error);
-      toast.error("An error occurred while submitting the issue");
+      const errorMsg =
+        error instanceof Error
+          ? error.message
+          : "An error occurred while submitting the issue";
+      toast.error(errorMsg);
     } finally {
       setIsSubmitting(false);
     }
@@ -910,7 +952,7 @@ export default function ReportPage() {
               required
               minLength={5}
               maxLength={200}
-              placeholder="e.g., Broken water pipe in Engineering Block"
+              placeholder="e.g., Large pothole on Main Street near market"
               className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 outline-none transition-all text-white placeholder-white/40"
             />
             <p className="mt-1 text-xs text-white/40">
@@ -935,7 +977,7 @@ export default function ReportPage() {
               minLength={10}
               maxLength={2000}
               rows={6}
-              placeholder="Provide detailed information about the issue..."
+              placeholder="Describe the issue in detail, including severity, location landmarks, and any immediate risks..."
               className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 outline-none transition-all text-white placeholder-white/40 resize-none"
             />
             <p className="mt-1 text-xs text-white/40">
@@ -1173,7 +1215,7 @@ export default function ReportPage() {
               name="zone"
               value={formData.zone}
               onChange={handleInputChange}
-              placeholder="e.g., intersection, parking lot, street number"
+              placeholder="e.g., Near bus stop, opposite park gate, street number 15"
               className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 outline-none transition-all text-white placeholder-white/40"
             />
           </div>

@@ -104,7 +104,7 @@ export async function recalculatePriority(req: Request, res: Response) {
 
     const result = priorityEngine.recalculate(
       originalInput,
-      contextUpdates || {}
+      contextUpdates || {},
     );
 
     res.json({
@@ -209,79 +209,77 @@ export async function simulatePriorityScores(_req: Request, res: Response) {
   try {
     const scenarios = [
       {
-        name: "Critical Safety Issue - Fire Exit Blocked",
+        name: "Critical Safety Issue - Major Road Cave-in",
         input: {
           category: IssueCategory.SAFETY,
           severity: 10,
           reportedAt: new Date(),
           blocksAccess: true,
           safetyRisk: true,
-          occupancy: 200,
-          affectsAcademics: true,
-          currentSemester: true,
+          occupancy: 500,
+          criticalInfrastructure: true,
+          affectedPeople: 2000,
           timeOfDay: "afternoon" as const,
         },
       },
       {
-        name: "Structural Damage - Ceiling Crack",
+        name: "Burst Water Main - Residential Area",
         input: {
-          category: IssueCategory.STRUCTURAL,
-          severity: 8,
+          category: IssueCategory.PLUMBING,
+          severity: 9,
           reportedAt: new Date(),
           safetyRisk: true,
-          occupancy: 50,
-          affectedArea: 100,
-          currentSemester: true,
+          criticalInfrastructure: true,
+          affectedPeople: 1500,
+          affectedArea: 200,
+          blocksAccess: true,
         },
       },
       {
-        name: "AC Not Working During Exam",
+        name: "Power Outage - Hospital Zone",
         input: {
-          category: IssueCategory.HVAC,
-          severity: 7,
+          category: IssueCategory.ELECTRICAL,
+          severity: 10,
           reportedAt: new Date(),
-          occupancy: 80,
-          affectsAcademics: true,
-          examPeriod: true,
-          currentSemester: true,
-          timeOfDay: "morning" as const,
+          criticalInfrastructure: true,
+          safetyRisk: true,
+          affectedPeople: 800,
+          affectedArea: 150,
+          timeOfDay: "night" as const,
         },
       },
       {
-        name: "Recurring Network Issue",
+        name: "Recurring Garbage Overflow - Market Area",
         input: {
-          category: IssueCategory.NETWORK,
+          category: IssueCategory.CLEANLINESS,
           severity: 6,
           reportedAt: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
           isRecurring: true,
-          previousOccurrences: 3,
-          occupancy: 150,
-          criticalInfrastructure: true,
-          escalationRate: 0.6,
+          previousOccurrences: 5,
+          affectedPeople: 300,
+          escalationRate: 0.7,
         },
       },
       {
-        name: "Minor Furniture Damage - Weekend",
+        name: "Minor Pothole - Side Street Weekend",
         input: {
-          category: IssueCategory.FURNITURE,
+          category: IssueCategory.MAINTENANCE,
           severity: 3,
           reportedAt: new Date(),
-          occupancy: 10,
+          affectedPeople: 50,
           dayOfWeek: "weekend" as const,
-          currentSemester: true,
         },
       },
       {
-        name: "Power Outage - Critical Infrastructure",
+        name: "Broken Streetlight - Crime-Prone Area",
         input: {
           category: IssueCategory.ELECTRICAL,
-          severity: 9,
+          severity: 7,
           reportedAt: new Date(),
-          criticalInfrastructure: true,
-          blocksAccess: false,
-          occupancy: 300,
-          affectedArea: 500,
-          affectsAcademics: true,
+          safetyRisk: true,
+          affectedPeople: 400,
+          affectedArea: 100,
+          timeOfDay: "night" as const,
         },
       },
     ];

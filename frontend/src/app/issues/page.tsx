@@ -7,8 +7,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import { clearAuthTokens } from "@/lib/tokenManager";
 import { useAuth } from "@/lib/hooks/useAuth";
+import { safeJsonResponse } from "@/lib/safeJsonResponse";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL as string;
+const getApiBaseUrl = () => {
+  if (process.env.NEXT_PUBLIC_API_BASE_URL)
+    return process.env.NEXT_PUBLIC_API_BASE_URL;
+  if (typeof window !== "undefined") return window.location.origin;
+  return "";
+};
 
 const CATEGORY_OPTIONS = [
   "All",
@@ -123,7 +129,7 @@ export default function IssuesPage() {
 
       try {
         const response = await fetch(
-          `${API_BASE_URL}/api/issues?${params.toString()}`,
+          `${getApiBaseUrl()}/api/issues?${params.toString()}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -139,7 +145,7 @@ export default function IssuesPage() {
           return;
         }
 
-        const result = await response.json();
+        const result = await safeJsonResponse(response, "issues");
         const payload = result.data?.issues ?? result.data ?? [];
         const incoming = (Array.isArray(payload) ? payload : []).map(mapIssue);
 
@@ -195,7 +201,7 @@ export default function IssuesPage() {
     setIsDeleting(issueId);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/issues/${issueId}`, {
+      const response = await fetch(`${getApiBaseUrl()}/api/issues/${issueId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -211,7 +217,7 @@ export default function IssuesPage() {
       }
 
       if (!response.ok) {
-        const error = await response.json();
+        const error = await safeJsonResponse(response, "issues/delete");
         toast.error(error.message || "Failed to delete issue");
         return;
       }

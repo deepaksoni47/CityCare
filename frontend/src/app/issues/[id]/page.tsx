@@ -7,8 +7,14 @@ import Link from "next/link";
 import toast from "react-hot-toast";
 import { clearAuthTokens } from "@/lib/tokenManager";
 import { useAuth } from "@/lib/hooks/useAuth";
+import { safeJsonResponse } from "@/lib/safeJsonResponse";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL as string;
+const getApiBaseUrl = () => {
+  if (process.env.NEXT_PUBLIC_API_BASE_URL)
+    return process.env.NEXT_PUBLIC_API_BASE_URL;
+  if (typeof window !== "undefined") return window.location.origin;
+  return "";
+};
 
 interface Issue {
   id: string;
@@ -74,7 +80,7 @@ export default function IssueDetailPage() {
     if (user && issueId && !loading) {
       fetchIssueDetails();
     }
-  }, [user, issueId, loading, router]);
+  }, [user, issueId, loading]);
 
   const fetchIssueDetails = async () => {
     setIsLoading(true);
@@ -91,7 +97,7 @@ export default function IssueDetailPage() {
         return;
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/issues/${issueId}`, {
+      const response = await fetch(`${getApiBaseUrl()}/api/issues/${issueId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -105,7 +111,7 @@ export default function IssueDetailPage() {
       }
 
       if (response.ok) {
-        const result = await response.json();
+        const result = await safeJsonResponse(response, "issues/[id]");
         const rawIssue = result.data?.issue ?? result.data;
         setIssue({
           id: rawIssue._id || rawIssue.id,
@@ -138,7 +144,7 @@ export default function IssueDetailPage() {
           updatedAt: rawIssue.updatedAt,
         });
       } else {
-        const error = await response.json();
+        const error = await safeJsonResponse(response, "issues/[id]/load");
         toast.error(error.message || "Failed to load issue");
         router.push("/issues");
       }
@@ -170,7 +176,7 @@ export default function IssueDetailPage() {
       }
 
       const response = await fetch(
-        `${API_BASE_URL}/api/issues/${issueId}/resolve`,
+        `${getApiBaseUrl()}/api/issues/${issueId}/resolve`,
         {
           method: "PATCH",
           headers: {
@@ -194,7 +200,7 @@ export default function IssueDetailPage() {
         setResolutionNotes("");
         fetchIssueDetails();
       } else {
-        const error = await response.json();
+        const error = await safeJsonResponse(response, "issues/[id]/resolve");
         toast.error(error.message || "Failed to resolve issue");
       }
     } catch (error) {
@@ -224,7 +230,7 @@ export default function IssueDetailPage() {
       }
 
       const response = await fetch(
-        `${API_BASE_URL}/api/issues/${issueId}/assign`,
+        `${getApiBaseUrl()}/api/issues/${issueId}/assign`,
         {
           method: "PATCH",
           headers: {
@@ -247,7 +253,7 @@ export default function IssueDetailPage() {
         setAssigneeId("");
         fetchIssueDetails();
       } else {
-        const error = await response.json();
+        const error = await safeJsonResponse(response, "issues/[id]/assign");
         toast.error(error.message || "Failed to assign issue");
       }
     } catch (error) {
@@ -271,7 +277,7 @@ export default function IssueDetailPage() {
         return;
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/issues/${issueId}`, {
+      const response = await fetch(`${getApiBaseUrl()}/api/issues/${issueId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -293,7 +299,7 @@ export default function IssueDetailPage() {
         toast.success("Issue deleted successfully");
         router.push("/issues");
       } else {
-        const error = await response.json();
+        const error = await safeJsonResponse(response, "issues/[id]/delete");
         toast.error(error.message || "Failed to delete issue");
       }
     } catch (error) {

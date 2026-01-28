@@ -6,6 +6,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import { clearAuthTokens, getValidUser } from "@/lib/tokenManager";
+import { safeJsonResponse } from "@/lib/safeJsonResponse";
 import {
   BadgeAlert,
   SquareArrowOutUpRight,
@@ -206,13 +207,18 @@ export default function DashboardPage() {
       }
 
       if (response.ok) {
-        const result = await response.json();
+        const result = await safeJsonResponse(response, "dashboard/issues");
         if (result.success && result.data) {
           // Verify data structure (some backends return array directly, some inside .issues)
           const issuesData = Array.isArray(result.data)
             ? result.data
             : result.data.issues;
-          setRecentIssues(issuesData || []);
+          // Ensure each issue has an id field (map _id to id if needed)
+          const mappedIssues = (issuesData || []).map((issue: any) => ({
+            ...issue,
+            id: issue.id || issue._id,
+          }));
+          setRecentIssues(mappedIssues);
         }
       }
     } catch (error) {
@@ -239,9 +245,15 @@ export default function DashboardPage() {
       }
 
       if (response.ok) {
-        const result = await response.json();
+        const result = await safeJsonResponse(response, "dashboard/priorities");
         if (result.success && result.data) {
-          setHighPriorityIssues(Array.isArray(result.data) ? result.data : []);
+          // Ensure each issue has an id field (map _id to id if needed)
+          const issuesData = Array.isArray(result.data) ? result.data : [];
+          const mappedIssues = issuesData.map((issue: any) => ({
+            ...issue,
+            id: issue.id || issue._id,
+          }));
+          setHighPriorityIssues(mappedIssues);
         }
       }
     } catch (error) {
@@ -265,7 +277,7 @@ export default function DashboardPage() {
       }
 
       if (response.ok) {
-        const result = await response.json();
+        const result = await safeJsonResponse(response, "dashboard/insights");
         if (result.success && result.data) {
           setAIInsight(result.data);
         }
@@ -557,13 +569,13 @@ export default function DashboardPage() {
             </div>
             <div className="space-y-3">
               {recentIssues.length > 0 ? (
-                <p className="text-white/40 text-sm py-4 text-center">
-                  No recent issues
-                </p>
-              ) : (
                 recentIssues.map((issue) => (
                   <IssueCard key={issue.id} issue={issue} />
                 ))
+              ) : (
+                <p className="text-white/40 text-sm py-4 text-center">
+                  No recent issues
+                </p>
               )}
             </div>
           </motion.div>

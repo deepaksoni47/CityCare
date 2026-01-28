@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
+import { safeJsonResponse } from "@/lib/safeJsonResponse";
 import { VoteButton } from "@/components/voting/VoteButton";
 import {
   Calculator,
@@ -15,14 +16,14 @@ import {
   Building,
   Plug2,
   Droplets,
-  AirVent,
-  WifiPen,
   Brush,
-  RockingChair,
-  Dice1,
   Wrench,
   ChevronLeft,
   ChevronRight,
+  TreePine,
+  Bus,
+  Lightbulb,
+  CloudRain,
 } from "lucide-react";
 
 const getApiBaseUrl = () => {
@@ -32,47 +33,48 @@ const getApiBaseUrl = () => {
   return "";
 };
 
-// Category configurations for CityCare Impact Scorer
+// Category configurations for CityCare Impact Scorer (standardized categories)
 const CATEGORIES = [
-  { value: "Safety", emoji: <Shield />, color: "from-red-600 to-rose-600" },
+  { value: "Roads", emoji: <Building />, color: "from-gray-600 to-slate-600" },
+  { value: "Water", emoji: <Droplets />, color: "from-blue-600 to-cyan-600" },
   {
-    value: "Structural",
-    emoji: <Building />,
-    color: "from-orange-600 to-amber-600",
-  },
-  {
-    value: "Electrical",
+    value: "Electricity",
     emoji: <Plug2 />,
     color: "from-yellow-600 to-amber-600",
   },
   {
-    value: "Plumbing",
-    emoji: <Droplets />,
-    color: "from-blue-600 to-cyan-600",
-  },
-  { value: "HVAC", emoji: <AirVent />, color: "from-cyan-600 to-teal-600" },
-  {
-    value: "Network",
-    emoji: <WifiPen />,
-    color: "from-violet-600 to-purple-600",
-  },
-  {
-    value: "Maintenance",
-    emoji: <Wrench />,
-    color: "from-slate-600 to-gray-600",
-  },
-  {
-    value: "Cleanliness",
+    value: "Sanitation",
     emoji: <Brush />,
     color: "from-green-600 to-emerald-600",
   },
   {
-    value: "Furniture",
-    emoji: <RockingChair />,
-    color: "from-pink-600 to-rose-600",
+    value: "Parks",
+    emoji: <TreePine />,
+    color: "from-green-500 to-teal-600",
   },
-  { value: "Other", emoji: <Dice1 />, color: "from-gray-600 to-slate-600" },
-] as const;
+  {
+    value: "Public_Health",
+    emoji: <Shield />,
+    color: "from-red-600 to-rose-600",
+  },
+  {
+    value: "Transportation",
+    emoji: <Bus />,
+    color: "from-indigo-600 to-blue-600",
+  },
+  {
+    value: "Streetlights",
+    emoji: <Lightbulb />,
+    color: "from-amber-500 to-yellow-600",
+  },
+  {
+    value: "Pollution",
+    emoji: <CloudRain />,
+    color: "from-purple-600 to-violet-600",
+  },
+  { value: "Safety", emoji: <Shield />, color: "from-red-600 to-rose-600" },
+  { value: "Other", emoji: <Wrench />, color: "from-slate-600 to-gray-600" },
+];
 
 interface PriorityScore {
   score: number;
@@ -131,7 +133,7 @@ export default function PriorityPage() {
   // ------------------------
 
   const [formData, setFormData] = useState<PriorityInput>({
-    category: "Safety",
+    category: "Roads",
     severity: 5,
     description: "",
     locationId: "",
@@ -216,7 +218,7 @@ export default function PriorityPage() {
         },
       );
 
-      const data = await response.json();
+      const data = await safeJsonResponse(response, "priority/calculate");
 
       if (response.ok && data.success) {
         setResult(data.data);
@@ -252,7 +254,7 @@ export default function PriorityPage() {
         },
       });
 
-      const data = await response.json();
+      const data = await safeJsonResponse(response, "priority/simulate");
 
       if (response.ok && data.success) {
         setScenarios(data.data);
@@ -265,7 +267,7 @@ export default function PriorityPage() {
   const loadAlgorithm = async () => {
     try {
       const response = await fetch(`${getApiBaseUrl()}/api/priority/explain`);
-      const data = await response.json();
+      const data = await safeJsonResponse(response, "priority/explain");
 
       if (response.ok && data.success) {
         setAlgorithm(data.data);
@@ -314,18 +316,37 @@ export default function PriorityPage() {
         },
       );
 
-      const data = await response.json();
+      const data = await safeJsonResponse(response, "priority/issues");
 
       console.log("API Response:", {
         status: response.status,
         ok: response.ok,
-        data: data,
-        issuesCount: data.data?.length,
+        dataStructure: JSON.stringify(data, null, 2),
+        dataKeys: Object.keys(data),
+        dataDataType: typeof data.data,
+        dataDataKeys: data.data ? Object.keys(data.data) : null,
+        isArray: Array.isArray(data.data),
       });
 
       if (response.ok && data.success) {
-        console.log("Setting issues:", data.data);
-        setIssues(data.data || []);
+        // Check if data.data is an object with an issues array or if it's directly the array
+        const issuesArray = Array.isArray(data.data)
+          ? data.data
+          : data.data?.issues || [];
+
+        // Map _id to id for React components
+        const mappedIssues = issuesArray.map((issue: any) => ({
+          ...issue,
+          id: issue._id || issue.id,
+        }));
+
+        console.log(
+          "Setting issues:",
+          mappedIssues,
+          "Count:",
+          mappedIssues.length,
+        );
+        setIssues(mappedIssues);
       } else {
         console.error("API Error:", response.status, data);
         toast.error(
@@ -350,7 +371,7 @@ export default function PriorityPage() {
     if (viewMode === "explain" && !algorithm) {
       loadAlgorithm();
     }
-    if (viewMode === "priority-list" && issues.length === 0) {
+    if (viewMode === "priority-list") {
       loadIssues();
     }
   }, [viewMode]);
@@ -383,21 +404,23 @@ export default function PriorityPage() {
   };
 
   // --- PAGINATION LOGIC ---
-  const sortedIssues = [...issues].sort((a, b) => {
-    if (sortBy === "score") {
-      const scoreA = a.aiRiskScore || 0;
-      const scoreB = b.aiRiskScore || 0;
-      return sortOrder === "asc" ? scoreA - scoreB : scoreB - scoreA;
-    } else if (sortBy === "category") {
-      return sortOrder === "asc"
-        ? a.category.localeCompare(b.category)
-        : b.category.localeCompare(a.category);
-    } else {
-      return sortOrder === "asc"
-        ? a.status.localeCompare(b.status)
-        : b.status.localeCompare(a.status);
-    }
-  });
+  const sortedIssues = Array.isArray(issues)
+    ? [...issues].sort((a, b) => {
+        if (sortBy === "score") {
+          const scoreA = a.aiRiskScore || 0;
+          const scoreB = b.aiRiskScore || 0;
+          return sortOrder === "asc" ? scoreA - scoreB : scoreB - scoreA;
+        } else if (sortBy === "category") {
+          return sortOrder === "asc"
+            ? a.category.localeCompare(b.category)
+            : b.category.localeCompare(a.category);
+        } else {
+          return sortOrder === "asc"
+            ? a.status.localeCompare(b.status)
+            : b.status.localeCompare(a.status);
+        }
+      })
+    : [];
 
   const totalPages = Math.ceil(sortedIssues.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
@@ -976,9 +999,10 @@ export default function PriorityPage() {
                         {currentIssues.map((issue, index) => {
                           const score = issue.aiRiskScore || 0;
                           const priority = issue.priority || "low";
+                          const issueId = issue.id || issue._id;
                           return (
                             <motion.tr
-                              key={issue.id}
+                              key={issueId || `issue-${index}`}
                               initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ delay: index * 0.03 }}
@@ -1047,7 +1071,7 @@ export default function PriorityPage() {
                               </td>
                               <td className="py-4">
                                 <VoteButton
-                                  issueId={issue.id}
+                                  issueId={issueId}
                                   initialVoteCount={issue.voteCount || 0}
                                   size="sm"
                                   showCount={true}

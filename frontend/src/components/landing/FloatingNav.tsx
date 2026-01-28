@@ -5,7 +5,12 @@ import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation"; // Added usePathname
 import Image from "next/image";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL as string;
+const getApiBaseUrl = () => {
+  if (process.env.NEXT_PUBLIC_API_BASE_URL)
+    return process.env.NEXT_PUBLIC_API_BASE_URL;
+  if (typeof window !== "undefined") return window.location.origin;
+  return "";
+};
 
 export function FloatingNav() {
   const router = useRouter();
@@ -97,7 +102,7 @@ export function FloatingNav() {
 
       if (token) {
         try {
-          await fetch(`${API_BASE_URL}/api/auth/logout`, {
+          await fetch(`${getApiBaseUrl()}/api/auth/logout`, {
             method: "POST",
             headers: {
               Authorization: `Bearer ${token}`,
@@ -158,7 +163,7 @@ export function FloatingNav() {
           </div>
           <div className="hidden sm:flex items-center gap-2">
             <span className="font-bold text-sm md:text-base">
-              <span className="text-emerald-400">City</span>
+              <span className="text--600">City</span>
               <span className="text-emerald-600">Care</span>
             </span>
             <div className="w-px h-6 bg-white/10" />

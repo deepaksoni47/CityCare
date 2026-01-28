@@ -170,9 +170,12 @@ export async function getHeatmapData(
   // Fetch all matching issues with limit
   let issues: IssueType[] = [];
   try {
-    issues = (await IssueModel.find(query)
-      .limit(10000)
-      .lean()) as unknown as IssueType[];
+    const rawIssues = await IssueModel.find(query).limit(10000).lean();
+    // Map MongoDB _id to id field for consistency
+    issues = rawIssues.map((issue: any) => ({
+      ...issue,
+      id: issue._id.toString(),
+    })) as unknown as IssueType[];
   } catch (error: any) {
     console.error("❌ Error fetching heatmap data from MongoDB:", error);
     throw new Error("Failed to fetch heatmap data");
@@ -263,8 +266,8 @@ export async function getHeatmapData(
 
   console.log(`✅ Final filtered issues: ${issues.length}`);
 
-  // Group issues by location
-  const points = aggregateByLocation(issues, config.gridSize);
+  // Group issues by location (skip aggregation if gridSize is 0 or undefined)
+  const points = aggregateByLocation(issues, config.gridSize || 0);
 
   // Apply time decay weighting
   const decayedPoints = applyTimeDecay(points, config.timeDecayFactor);
@@ -296,11 +299,31 @@ export async function getHeatmapData(
 
 /**
  * Aggregate issues by location (group nearby issues)
+ * If gridSize is 0, returns individual points without aggregation
  */
 function aggregateByLocation(
   issues: IssueType[],
   gridSize: number = 50, // meters
 ): HeatmapPoint[] {
+  // If gridSize is 0, return individual points without aggregation
+  if (gridSize === 0) {
+    console.log(
+      `📍 No aggregation (gridSize=0) - creating ${issues.length} individual points`,
+    );
+    return issues
+      .filter((issue) => issue.location?.latitude && issue.location?.longitude)
+      .map((issue) => ({
+        latitude: issue.location!.latitude,
+        longitude: issue.location!.longitude,
+        issues: [issue],
+        weight: 1.0,
+        intensity: 1,
+      }));
+  }
+
+  console.log(
+    `🔄 Aggregating ${issues.length} issues with gridSize=${gridSize}m`,
+  );
   const points: HeatmapPoint[] = [];
   const processed = new Set<string>();
 
@@ -627,7 +650,9 @@ function formatAsGeoJSON(
         highCount,
         mediumCount,
         lowCount,
-        issueIds: point.issues.map((issue) => issue.id),
+        issueIds: point.issues.map(
+          (issue) => issue.id || (issue as any)._id?.toString() || "",
+        ),
       },
     };
   });

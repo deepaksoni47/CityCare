@@ -2,6 +2,8 @@
  * Issue Service
  */
 
+import { safeJsonResponse } from "@/lib/safeJsonResponse";
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL as string;
 
 /**
@@ -31,7 +33,7 @@ export async function updateIssue(issueId: string, updates: any) {
     body: JSON.stringify(updates),
   });
 
-  const data = await response.json();
+  const data = await safeJsonResponse(response, "issues/update");
 
   if (!response.ok) {
     throw {
@@ -62,7 +64,7 @@ export async function deleteIssue(issueId: string) {
     headers,
   });
 
-  const data = await response.json();
+  const data = await safeJsonResponse(response, "issues/delete");
 
   if (!response.ok) {
     throw {

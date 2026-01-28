@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import toast from "react-hot-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { safeJsonResponse } from "@/lib/safeJsonResponse";
 import {
   EnhancedHeatmapSidebar,
   type HeatmapConfig,
@@ -353,7 +354,7 @@ export default function HeatmapPage() {
         throw new Error("Authentication failed. Please log in again.");
       }
 
-      const result = await response.json();
+      const result = await safeJsonResponse(response, "heatmap-enhanced/data");
 
       if (!response.ok) {
         console.error("API Error:", result);
@@ -479,7 +480,7 @@ export default function HeatmapPage() {
 
       if (!response.ok) return;
 
-      const result = await response.json();
+      const result = await safeJsonResponse(response, "heatmap-enhanced/stats");
       if (result.success && result.data) {
         setStatsData(result.data);
       }
@@ -593,7 +594,10 @@ Keep the response concise and actionable.`;
         }),
       });
 
-      const result = await response.json();
+      const result = await safeJsonResponse(
+        response,
+        "heatmap-enhanced/ai-chat",
+      );
 
       if (!response.ok) {
         const errorMessage =

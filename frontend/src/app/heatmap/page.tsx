@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import toast from "react-hot-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { safeJsonResponse } from "@/lib/safeJsonResponse";
 import {
   EnhancedHeatmapSidebar,
   type HeatmapConfig,
@@ -108,9 +109,7 @@ const PRESETS: Record<
     config: {
       timeDecayFactor: 0.5,
       severityWeightMultiplier: 2.0,
-      gridSize: 100,
-      clusterRadius: 200,
-      minClusterSize: 5,
+      gridSize: 0, // Changed to 0 to show individual issues without aggregation
       normalizeWeights: true,
     },
     filters: {
@@ -155,20 +154,18 @@ export default function HeatmapPage() {
   const [aiInsight, setAiInsight] = useState<string | null>(null);
   const [showAiModal, setShowAiModal] = useState(false);
 
-  // UI layer state
+  // UI layer state - Initialize all layers as disabled to show all issues by default
   const [layers, setLayers] = useState({
-    water: true,
-    power: true,
-    wifi: true,
+    infrastructure: false,
+    environment: false,
+    safety: false,
   });
 
-  // Configuration state
+  // Configuration state - Default to showing individual points
   const [config, setConfig] = useState<HeatmapConfig>({
     timeDecayFactor: 0.5,
     severityWeightMultiplier: 2.0,
-    gridSize: 100,
-    clusterRadius: 200,
-    minClusterSize: 5,
+    gridSize: 0, // 0 = no aggregation, show individual issues
     normalizeWeights: true,
   });
 
@@ -190,42 +187,27 @@ export default function HeatmapPage() {
     [[number, number], [number, number]]
   >(createBoundsFromCity(defaultCity));
 
-  // Map UI layer names to backend category names
+  // Map UI layer names to backend category names (matching current standardized categories)
   const layerCategoryMap: Record<string, string[]> = {
-    water: [
+    infrastructure: [
+      "Roads",
       "Water",
-      "Plumbing",
-      "Drainage",
-      "Water Supply",
-      "WATER",
-      "PLUMBING",
-    ],
-    power: [
-      "Power",
-      "Electrical",
       "Electricity",
-      "Power Supply",
-      "POWER",
-      "ELECTRICAL",
-      "ELECTRICITY",
+      "Sanitation",
+      "Streetlights",
+      "Transportation",
     ],
-    wifi: [
-      "Wi-Fi",
-      "Network",
-      "Internet",
-      "Connectivity",
-      "WiFi",
-      "WIFI",
-      "NETWORK",
-    ],
+    environment: ["Parks", "Pollution"],
+    safety: ["Safety", "Public_Health"],
   };
 
   // Build categories array from active layers
   const getActiveCategories = useCallback(() => {
     const categories: string[] = [];
-    if (layers.water) categories.push(...layerCategoryMap.water);
-    if (layers.power) categories.push(...layerCategoryMap.power);
-    if (layers.wifi) categories.push(...layerCategoryMap.wifi);
+    if (layers.infrastructure)
+      categories.push(...layerCategoryMap.infrastructure);
+    if (layers.environment) categories.push(...layerCategoryMap.environment);
+    if (layers.safety) categories.push(...layerCategoryMap.safety);
     return categories;
   }, [layers]);
 
@@ -353,7 +335,7 @@ export default function HeatmapPage() {
         throw new Error("Authentication failed. Please log in again.");
       }
 
-      const result = await response.json();
+      const result = await safeJsonResponse(response, "heatmap/data");
 
       if (!response.ok) {
         console.error("API Error:", result);
@@ -369,21 +351,42 @@ export default function HeatmapPage() {
 
       if (result.success && result.data?.type === "FeatureCollection") {
         const features = result.data.features || [];
+        console.log("📦 Raw features from API:", features.length);
+        if (features.length > 0) {
+          console.log(
+            "Sample raw feature:",
+            JSON.stringify(features[0], null, 2),
+          );
+        }
 
         // Convert GeoJSON features to HeatmapPoint format
-        const points: HeatmapPoint[] = features
-          .filter((feature: any) => {
-            const coords = feature.geometry?.coordinates;
-            const props = feature.properties;
-            return (
-              coords &&
-              coords.length === 2 &&
-              typeof coords[0] === "number" &&
-              typeof coords[1] === "number" &&
-              props?.weight !== undefined
-            );
-          })
-          .map((feature: any) => {
+        const allFeatures = features.map((feature: any, idx: number) => {
+          const coords = feature.geometry?.coordinates;
+          const props = feature.properties;
+          const isValid =
+            coords &&
+            coords.length === 2 &&
+            typeof coords[0] === "number" &&
+            typeof coords[1] === "number" &&
+            props?.weight !== undefined;
+
+          if (!isValid && idx < 3) {
+            console.warn(`❌ Invalid feature ${idx}:`, {
+              hasCoords: !!coords,
+              coordsLength: coords?.length,
+              coord0Type: typeof coords?.[0],
+              coord1Type: typeof coords?.[1],
+              hasWeight: props?.weight !== undefined,
+              weight: props?.weight,
+              props,
+            });
+          }
+          return { feature, isValid };
+        });
+
+        const points: HeatmapPoint[] = allFeatures
+          .filter((f) => f.isValid)
+          .map(({ feature }: any) => {
             const [lng, lat] = feature.geometry.coordinates;
             const props = feature.properties;
             return {
@@ -397,12 +400,12 @@ export default function HeatmapPage() {
             };
           });
 
-        console.log("Converted heatmap points:", points.length, "points");
+        console.log("✅ Converted heatmap points:", points.length, "points");
         if (points.length > 0) {
-          console.log("Sample point:", points[0]);
+          console.log("Sample converted point:", points[0]);
         } else {
           console.warn(
-            "No heatmap points after conversion. Check filters and data location.",
+            "⚠️ No heatmap points after conversion. Check filters and data location.",
           );
         }
 
@@ -479,7 +482,7 @@ export default function HeatmapPage() {
 
       if (!response.ok) return;
 
-      const result = await response.json();
+      const result = await safeJsonResponse(response, "heatmap/stats");
       if (result.success && result.data) {
         setStatsData(result.data);
       }
@@ -505,7 +508,9 @@ export default function HeatmapPage() {
   }, [fetchHeatmapData, fetchStats]);
 
   // Handle layer toggle
-  const handleLayerToggle = (layer: "water" | "power" | "wifi") => {
+  const handleLayerToggle = (
+    layer: "infrastructure" | "environment" | "safety",
+  ) => {
     setLayers((prev) => ({
       ...prev,
       [layer]: !prev[layer],
@@ -593,7 +598,7 @@ Keep the response concise and actionable.`;
         }),
       });
 
-      const result = await response.json();
+      const result = await safeJsonResponse(response, "heatmap/ai-chat");
 
       if (!response.ok) {
         const errorMessage =

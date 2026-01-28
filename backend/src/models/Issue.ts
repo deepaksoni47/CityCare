@@ -66,6 +66,10 @@ export interface IIssue extends Document {
   resolvedBy?: Types.ObjectId;
   resolutionNotes?: string;
 
+  // Voting tracking
+  voteCount: number;
+  votedBy: Types.ObjectId[];
+
   // Timestamps
   createdAt: Date;
   updatedAt: Date;
@@ -244,6 +248,18 @@ const IssueSchema = new Schema<IIssue>(
     resolutionNotes: {
       type: String,
       maxlength: 1000,
+    },
+
+    // Voting tracking
+    voteCount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    votedBy: {
+      type: [Schema.Types.ObjectId],
+      ref: "User",
+      default: [],
     },
 
     // Timestamp

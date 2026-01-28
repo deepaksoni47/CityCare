@@ -43,14 +43,14 @@ export interface HeatmapFilters {
 
 interface EnhancedHeatmapSidebarProps {
   layers: {
-    water: boolean;
-    power: boolean;
-    wifi: boolean;
+    infrastructure: boolean;
+    environment: boolean;
+    safety: boolean;
   };
   config: HeatmapConfig;
   filters: HeatmapFilters;
   endpointMode: "data" | "clustered" | "grid";
-  onLayerToggle: (layer: "water" | "power" | "wifi") => void;
+  onLayerToggle: (layer: "infrastructure" | "environment" | "safety") => void;
   onConfigChange: (config: Partial<HeatmapConfig>) => void;
   onFiltersChange: (filters: Partial<HeatmapFilters>) => void;
   onPresetSelect: (preset: PresetMode) => void;
@@ -230,24 +230,24 @@ export function EnhancedHeatmapSidebar({
             {/* Layer Toggles */}
             <div>
               <h3 className="text-sm font-medium text-white/80 mb-3">
-                Infrastructure Layers
+                Category Filters
               </h3>
               <div className="space-y-2">
                 {[
                   {
-                    key: "water" as const,
-                    label: "Water Systems",
+                    key: "infrastructure" as const,
+                    label: "Infrastructure (Roads, Water, Electricity)",
+                    icon: <Building />,
+                  },
+                  {
+                    key: "environment" as const,
+                    label: "Environment (Parks, Pollution)",
                     icon: <Droplet />,
                   },
                   {
-                    key: "power" as const,
-                    label: "Power & Electrical",
-                    icon: <Zap />,
-                  },
-                  {
-                    key: "wifi" as const,
-                    label: "Wi-Fi & Network",
-                    icon: <Wifi />,
+                    key: "safety" as const,
+                    label: "Safety & Health",
+                    icon: <ShieldAlert />,
                   },
                 ].map((layer) => (
                   <label

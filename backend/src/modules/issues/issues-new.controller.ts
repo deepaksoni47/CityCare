@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { Issue } from "../../models/Issue";
 import { Zone } from "../../models/Zone";
 import mongoose from "mongoose";
+import * as rewardsService from "../rewards/rewards.service";
 
 /**
  * Create a new issue
@@ -62,19 +63,58 @@ export async function createNewIssue(req: Request, res: Response) {
       });
     }
 
-    // Verify zone belongs to user's city
-    const zone = await Zone.findById(zoneId);
-    if (!zone || zone.cityId.toString() !== userCityId.toString()) {
-      return res.status(403).json({
-        error: "Forbidden",
-        message: "Zone does not belong to your city",
+    // Verify zone belongs to user's city or create it if it doesn't exist
+    // Try to find by ObjectId first, then by code if that fails
+    let zone = null;
+    if (mongoose.Types.ObjectId.isValid(zoneId)) {
+      zone = await Zone.findById(zoneId);
+      if (zone && zone.cityId.toString() !== userCityId.toString()) {
+        return res.status(403).json({
+          error: "Forbidden",
+          message: "Zone does not belong to your city",
+        });
+      }
+    } else {
+      // Try to find by code (e.g., "zone_north" -> "NORTH")
+      const zoneCode =
+        zoneId.split("_").pop()?.toUpperCase() || zoneId.toUpperCase();
+      zone = await Zone.findOne({ cityId: userCityId, code: zoneCode });
+
+      // If zone doesn't exist for this city, create it
+      if (!zone) {
+        const zoneName = zoneId
+          .split("_")
+          .slice(1)
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(" ");
+        zone = new Zone({
+          cityId: userCityId,
+          code: zoneCode,
+          name: zoneName || zoneCode,
+          zoneType: "other",
+          centerPoint: {
+            latitude: parseFloat(latitude),
+            longitude: parseFloat(longitude),
+          },
+          area: 1.0, // Default area in square kilometers
+          population: 0,
+          status: "active",
+        });
+        await zone.save();
+      }
+    }
+
+    if (!zone) {
+      return res.status(400).json({
+        error: "Validation error",
+        message: "Invalid zone ID",
       });
     }
 
     // Create issue
     const issue = new Issue({
       cityId: userCityId,
-      zoneId: new mongoose.Types.ObjectId(zoneId),
+      zoneId: zone._id, // Use the actual zone's ObjectId
       title,
       description,
       category,
@@ -95,6 +135,38 @@ export async function createNewIssue(req: Request, res: Response) {
     });
 
     await issue.save();
+
+    // Award points for creating an issue and update user statistics (async, non-blocking)
+    try {
+      const pointsForIssue = 10; // Points for reporting an issue
+      rewardsService
+        .awardPoints(
+          userId,
+          userCityId.toString(),
+          pointsForIssue,
+          "issue_created",
+          "Reported an issue",
+          issue._id.toString(),
+          "issue",
+        )
+        .catch((err) =>
+          console.error("Error awarding points for issue creation:", err),
+        );
+
+      rewardsService
+        .updateUserStatistics(userId, "issuesReported", 1)
+        .catch((err) =>
+          console.error(
+            "Error updating user statistics for issue creation:",
+            err,
+          ),
+        );
+    } catch (err) {
+      console.error(
+        "Failed to initiate reward actions for issue creation:",
+        err,
+      );
+    }
 
     res.status(201).json({
       success: true,
@@ -126,6 +198,7 @@ export async function getAllIssues(req: Request, res: Response) {
       status,
       category,
       severity,
+      reportedBy,
       page = 1,
       limit = 20,
     } = req.query;
@@ -159,6 +232,9 @@ export async function getAllIssues(req: Request, res: Response) {
     if (severity) {
       filter.severity = { $gte: parseInt(severity as string) };
     }
+    if (reportedBy) {
+      filter.reportedBy = new mongoose.Types.ObjectId(reportedBy as string);
+    }
 
     const [issues, total] = await Promise.all([
       Issue.find(filter)
@@ -166,7 +242,8 @@ export async function getAllIssues(req: Request, res: Response) {
         .skip((pageNum - 1) * limitNum)
         .limit(limitNum)
         .populate("reportedBy", "email name")
-        .populate("assignedTo", "email name"),
+        .populate("assignedTo", "email name")
+        .populate("zoneId", "name code"),
       Issue.countDocuments(filter),
     ]);
 
@@ -188,6 +265,58 @@ export async function getAllIssues(req: Request, res: Response) {
       error instanceof Error ? error.message : "Failed to fetch issues";
     res.status(500).json({
       error: "Failed to fetch issues",
+      message: errorMessage,
+    });
+  }
+}
+
+/**
+ * Get high-priority issues
+ * GET /api/issues/priorities
+ */
+export async function getHighPriorityIssues(req: Request, res: Response) {
+  try {
+    const userCityId = req.userData?.cityId;
+    const { limit = 20 } = req.query;
+
+    if (!userCityId) {
+      return res.status(401).json({
+        error: "Unauthorized",
+        message: "User city not found",
+      });
+    }
+
+    const limitNum = Math.min(
+      100,
+      Math.max(1, parseInt(limit as string) || 20),
+    );
+
+    // Filter for high-priority open issues
+    const filter: any = {
+      cityId: new mongoose.Types.ObjectId(userCityId.toString()),
+      status: { $in: ["open", "in_progress"] },
+      priority: { $in: ["high", "critical"] },
+    };
+
+    const issues = await Issue.find(filter)
+      .sort({ severity: -1, createdAt: -1 })
+      .limit(limitNum)
+      .populate("reportedBy", "email name")
+      .populate("assignedTo", "email name")
+      .populate("zoneId", "name code");
+
+    res.json({
+      success: true,
+      data: issues,
+    });
+  } catch (error: unknown) {
+    console.error("Get high-priority issues error:", error);
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : "Failed to fetch high-priority issues";
+    res.status(500).json({
+      error: "Failed to fetch high-priority issues",
       message: errorMessage,
     });
   }

@@ -2,7 +2,16 @@
  * API Service for Voting & Rewards System
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL as string;
+import { safeJsonResponse } from "../safeJsonResponse";
+
+const getApiBaseUrl = () => {
+  if (process.env.NEXT_PUBLIC_API_BASE_URL)
+    return process.env.NEXT_PUBLIC_API_BASE_URL;
+  if (typeof window !== "undefined") return window.location.origin;
+  return "";
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 /**
  * Get auth token from localStorage
@@ -34,7 +43,7 @@ async function apiRequest<T>(
     headers,
   });
 
-  const data = await response.json();
+  const data = await safeJsonResponse(response, `rewards${endpoint}`);
 
   if (!response.ok) {
     throw new Error(data.message || "API request failed");

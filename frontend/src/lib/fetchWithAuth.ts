@@ -1,4 +1,5 @@
 import { clearAuthTokens } from "@/lib/tokenManager";
+import { safeJsonResponse } from "@/lib/safeJsonResponse";
 
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL as string;
 
@@ -80,7 +81,7 @@ export async function fetchWithAuth(
 
   let data: any = {};
   try {
-    data = await response.json();
+    data = await safeJsonResponse(response, "fetchWithAuth");
   } catch (e) {
     data = {};
   }
