@@ -74,7 +74,7 @@ export default function IssueDetailPage() {
       toast.error("Please log in to view issue details");
       router.push("/login");
     }
-  }, [loading, user, router]);
+  }, [loading, user]);
 
   useEffect(() => {
     if (user && issueId && !loading) {
