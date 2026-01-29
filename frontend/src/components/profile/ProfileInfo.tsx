@@ -87,13 +87,13 @@ export default function ProfileInfo({ user, onUpdate }: ProfileInfoProps) {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-semibold text-white">
+        <h2 className="text-2xl font-semibold text-[#0F2A33]">
           Personal Information
         </h2>
         {!isEditing && (
           <button
             onClick={() => setIsEditing(true)}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center"
+            className="px-4 py-2 bg-gradient-to-r from-[#3F7F6B] to-[#2F8F8A] hover:from-[#235347] hover:to-[#3F7F6B] text-white rounded-2xl transition-all shadow-lg shadow-[#3F7F6B]/20 flex items-center"
           >
             <svg
               className="w-4 h-4 mr-2"
@@ -114,13 +114,13 @@ export default function ProfileInfo({ user, onUpdate }: ProfileInfoProps) {
       </div>
 
       {error && (
-        <div className="mb-4 p-4 bg-red-900/50 border border-red-500 rounded-lg text-red-200">
+        <div className="mb-4 p-4 bg-red-500/10 border border-red-500/30 rounded-2xl text-red-600">
           {error}
         </div>
       )}
 
       {success && (
-        <div className="mb-4 p-4 bg-green-900/50 border border-green-500 rounded-lg text-green-200">
+        <div className="mb-4 p-4 bg-[#3F7F6B]/10 border border-[#3F7F6B]/30 rounded-2xl text-[#235347]">
           {success}
         </div>
       )}
@@ -128,18 +128,18 @@ export default function ProfileInfo({ user, onUpdate }: ProfileInfoProps) {
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Email (Read-only) */}
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-[#355E6B] mb-2">
             Email Address
           </label>
-          <div className="px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-gray-400">
+          <div className="px-4 py-3 bg-white/30 border border-white/20 rounded-2xl text-[#7A9DA8] shadow-inner">
             {user.email}
           </div>
-          <p className="mt-1 text-xs text-gray-500">Email cannot be changed</p>
+          <p className="mt-1 text-xs text-[#7A9DA8]">Email cannot be changed</p>
         </div>
 
         {/* Name */}
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-[#355E6B] mb-2">
             Full Name
           </label>
           {isEditing ? (
@@ -149,11 +149,11 @@ export default function ProfileInfo({ user, onUpdate }: ProfileInfoProps) {
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
               }
-              className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500 transition-colors"
+              className="w-full px-4 py-3 bg-white/40 border border-white/20 rounded-2xl text-[#0F2A33] focus:outline-none focus:border-[#3F7F6B] focus:ring-2 focus:ring-[#3F7F6B]/20 transition-colors shadow-inner"
               required
             />
           ) : (
-            <div className="px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white">
+            <div className="px-4 py-3 bg-white/30 border border-white/20 rounded-2xl text-[#0F2A33] shadow-inner">
               {user.name}
             </div>
           )}
@@ -161,7 +161,7 @@ export default function ProfileInfo({ user, onUpdate }: ProfileInfoProps) {
 
         {/* Phone */}
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-[#355E6B] mb-2">
             Phone Number
           </label>
           {isEditing ? (
@@ -172,10 +172,10 @@ export default function ProfileInfo({ user, onUpdate }: ProfileInfoProps) {
                 setFormData({ ...formData, phone: e.target.value })
               }
               placeholder="+1234567890"
-              className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500 transition-colors"
+              className="w-full px-4 py-3 bg-white/40 border border-white/20 rounded-2xl text-[#0F2A33] focus:outline-none focus:border-[#3F7F6B] focus:ring-2 focus:ring-[#3F7F6B]/20 transition-colors shadow-inner"
             />
           ) : (
-            <div className="px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white">
+            <div className="px-4 py-3 bg-white/30 border border-white/20 rounded-2xl text-[#0F2A33] shadow-inner">
               {user.phone || "Not provided"}
             </div>
           )}
@@ -183,11 +183,11 @@ export default function ProfileInfo({ user, onUpdate }: ProfileInfoProps) {
 
         {/* Role (Read-only) */}
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-[#355E6B] mb-2">
             Role
           </label>
-          <div className="px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg">
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-900/50 text-blue-300 border border-blue-700">
+          <div className="px-4 py-3 bg-white/30 border border-white/20 rounded-2xl shadow-inner">
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-[#26658C]/15 text-[#26658C] border border-[#26658C]/30">
               {roleLabels[user.role] || user.role}
             </span>
           </div>
@@ -195,10 +195,10 @@ export default function ProfileInfo({ user, onUpdate }: ProfileInfoProps) {
 
         {/* City (Read-only) */}
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-[#355E6B] mb-2">
             City
           </label>
-          <div className="px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white">
+          <div className="px-4 py-3 bg-white/30 border border-white/20 rounded-2xl text-[#0F2A33] shadow-inner">
             {user.cityId}
           </div>
         </div>
@@ -209,7 +209,7 @@ export default function ProfileInfo({ user, onUpdate }: ProfileInfoProps) {
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white rounded-lg transition-colors font-medium"
+              className="flex-1 px-6 py-3 bg-gradient-to-r from-[#3F7F6B] to-[#2F8F8A] hover:from-[#235347] hover:to-[#3F7F6B] disabled:bg-[#7A9DA8] text-white rounded-2xl transition-all font-medium shadow-lg shadow-[#3F7F6B]/20"
             >
               {loading ? "Saving..." : "Save Changes"}
             </button>
@@ -217,7 +217,7 @@ export default function ProfileInfo({ user, onUpdate }: ProfileInfoProps) {
               type="button"
               onClick={handleCancel}
               disabled={loading}
-              className="flex-1 px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors font-medium"
+              className="flex-1 px-6 py-3 bg-gradient-to-r from-[#548FB3] to-[#26658C] hover:from-[#26658C] hover:to-[#023859] text-white rounded-2xl transition-all font-medium shadow-lg shadow-[#26658C]/20"
             >
               Cancel
             </button>

@@ -76,16 +76,18 @@ export default function UserPreferences({
 
   return (
     <div>
-      <h2 className="text-2xl font-semibold text-white mb-6">Preferences</h2>
+      <h2 className="text-2xl font-semibold text-[#0F2A33] mb-6">
+        Preferences
+      </h2>
 
       {error && (
-        <div className="mb-4 p-4 bg-red-900/50 border border-red-500 rounded-lg text-red-200">
+        <div className="mb-4 p-4 bg-red-500/10 border border-red-500/30 rounded-2xl text-red-600">
           {error}
         </div>
       )}
 
       {success && (
-        <div className="mb-4 p-4 bg-green-900/50 border border-green-500 rounded-lg text-green-200">
+        <div className="mb-4 p-4 bg-[#3F7F6B]/10 border border-[#3F7F6B]/30 rounded-2xl text-[#235347]">
           {success}
         </div>
       )}
@@ -93,9 +95,9 @@ export default function UserPreferences({
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Notifications Section */}
         <div>
-          <h3 className="text-lg font-medium text-white mb-4 flex items-center">
+          <h3 className="text-lg font-medium text-[#0F2A33] mb-4 flex items-center">
             <svg
-              className="w-5 h-5 mr-2 text-blue-400"
+              className="w-5 h-5 mr-2 text-[#26658C]"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -112,12 +114,12 @@ export default function UserPreferences({
 
           <div className="space-y-4">
             {/* Email Notifications */}
-            <div className="flex items-center justify-between p-4 bg-gray-700/30 rounded-lg">
+            <div className="flex items-center justify-between p-4 bg-white/30 rounded-2xl border border-white/20 shadow-sm">
               <div className="flex-1">
-                <label className="text-white font-medium block mb-1">
+                <label className="text-[#0F2A33] font-medium block mb-1">
                   Email Notifications
                 </label>
-                <p className="text-sm text-gray-400">
+                <p className="text-sm text-[#7A9DA8]">
                   Receive email updates about issue status changes
                 </p>
               </div>
@@ -130,7 +132,9 @@ export default function UserPreferences({
                   })
                 }
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  preferences.emailNotifications ? "bg-blue-600" : "bg-gray-600"
+                  preferences.emailNotifications
+                    ? "bg-[#3F7F6B]"
+                    : "bg-[#A3C6BE]"
                 }`}
               >
                 <span
@@ -144,12 +148,12 @@ export default function UserPreferences({
             </div>
 
             {/* Push Notifications */}
-            <div className="flex items-center justify-between p-4 bg-gray-700/30 rounded-lg">
+            <div className="flex items-center justify-between p-4 bg-white/30 rounded-2xl border border-white/20 shadow-sm">
               <div className="flex-1">
-                <label className="text-white font-medium block mb-1">
+                <label className="text-[#0F2A33] font-medium block mb-1">
                   Push Notifications
                 </label>
-                <p className="text-sm text-gray-400">
+                <p className="text-sm text-[#7A9DA8]">
                   Receive push notifications in your browser
                 </p>
               </div>
@@ -162,7 +166,9 @@ export default function UserPreferences({
                   })
                 }
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  preferences.pushNotifications ? "bg-blue-600" : "bg-gray-600"
+                  preferences.pushNotifications
+                    ? "bg-[#3F7F6B]"
+                    : "bg-[#A3C6BE]"
                 }`}
               >
                 <span
@@ -179,9 +185,9 @@ export default function UserPreferences({
 
         {/* Appearance Section */}
         <div>
-          <h3 className="text-lg font-medium text-white mb-4 flex items-center">
+          <h3 className="text-lg font-medium text-[#0F2A33] mb-4 flex items-center">
             <svg
-              className="w-5 h-5 mr-2 text-blue-400"
+              className="w-5 h-5 mr-2 text-[#26658C]"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -199,7 +205,7 @@ export default function UserPreferences({
           <div className="space-y-4">
             {/* Theme Selection */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-[#355E6B] mb-2">
                 Theme
               </label>
               <div className="grid grid-cols-3 gap-3">
@@ -208,14 +214,14 @@ export default function UserPreferences({
                   onClick={() =>
                     setPreferences({ ...preferences, theme: "light" })
                   }
-                  className={`p-4 rounded-lg border-2 transition-all ${
+                  className={`p-4 rounded-2xl border-2 transition-all shadow-sm ${
                     preferences.theme === "light"
-                      ? "border-blue-500 bg-blue-900/30"
-                      : "border-gray-600 bg-gray-700/30 hover:border-gray-500"
+                      ? "border-[#3F7F6B] bg-[#3F7F6B]/15"
+                      : "border-[#A3C6BE] bg-white/30 hover:border-[#8EB6B9]"
                   }`}
                 >
                   <svg
-                    className="w-8 h-8 mx-auto mb-2 text-yellow-400"
+                    className="w-8 h-8 mx-auto mb-2 text-[#6FCFC3]"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -227,7 +233,9 @@ export default function UserPreferences({
                       d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
                     />
                   </svg>
-                  <span className="text-sm text-white font-medium">Light</span>
+                  <span className="text-sm text-[#0F2A33] font-medium">
+                    Light
+                  </span>
                 </button>
 
                 <button
@@ -235,14 +243,14 @@ export default function UserPreferences({
                   onClick={() =>
                     setPreferences({ ...preferences, theme: "dark" })
                   }
-                  className={`p-4 rounded-lg border-2 transition-all ${
+                  className={`p-4 rounded-2xl border-2 transition-all shadow-sm ${
                     preferences.theme === "dark"
-                      ? "border-blue-500 bg-blue-900/30"
-                      : "border-gray-600 bg-gray-700/30 hover:border-gray-500"
+                      ? "border-[#26658C] bg-[#26658C]/15"
+                      : "border-[#A3C6BE] bg-white/30 hover:border-[#8EB6B9]"
                   }`}
                 >
                   <svg
-                    className="w-8 h-8 mx-auto mb-2 text-blue-400"
+                    className="w-8 h-8 mx-auto mb-2 text-[#548FB3]"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -254,7 +262,9 @@ export default function UserPreferences({
                       d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
                     />
                   </svg>
-                  <span className="text-sm text-white font-medium">Dark</span>
+                  <span className="text-sm text-[#0F2A33] font-medium">
+                    Dark
+                  </span>
                 </button>
 
                 <button
@@ -262,14 +272,14 @@ export default function UserPreferences({
                   onClick={() =>
                     setPreferences({ ...preferences, theme: "system" })
                   }
-                  className={`p-4 rounded-lg border-2 transition-all ${
+                  className={`p-4 rounded-2xl border-2 transition-all shadow-sm ${
                     preferences.theme === "system"
-                      ? "border-blue-500 bg-blue-900/30"
-                      : "border-gray-600 bg-gray-700/30 hover:border-gray-500"
+                      ? "border-[#2F8F8A] bg-[#2F8F8A]/15"
+                      : "border-[#A3C6BE] bg-white/30 hover:border-[#8EB6B9]"
                   }`}
                 >
                   <svg
-                    className="w-8 h-8 mx-auto mb-2 text-gray-400"
+                    className="w-8 h-8 mx-auto mb-2 text-[#7A9DA8]"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -281,10 +291,12 @@ export default function UserPreferences({
                       d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
                     />
                   </svg>
-                  <span className="text-sm text-white font-medium">System</span>
+                  <span className="text-sm text-[#0F2A33] font-medium">
+                    System
+                  </span>
                 </button>
               </div>
-              <p className="mt-2 text-xs text-gray-500">
+              <p className="mt-2 text-xs text-[#7A9DA8]">
                 System theme follows your operating system&apos;s appearance
                 settings
               </p>
@@ -294,9 +306,9 @@ export default function UserPreferences({
 
         {/* Language Section */}
         <div>
-          <h3 className="text-lg font-medium text-white mb-4 flex items-center">
+          <h3 className="text-lg font-medium text-[#0F2A33] mb-4 flex items-center">
             <svg
-              className="w-5 h-5 mr-2 text-blue-400"
+              className="w-5 h-5 mr-2 text-[#26658C]"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -312,7 +324,7 @@ export default function UserPreferences({
           </h3>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-[#355E6B] mb-2">
               Interface Language
             </label>
             <select
@@ -320,7 +332,7 @@ export default function UserPreferences({
               onChange={(e) =>
                 setPreferences({ ...preferences, language: e.target.value })
               }
-              className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500 transition-colors"
+              className="w-full px-4 py-3 bg-white/40 border border-white/20 rounded-2xl text-[#0F2A33] focus:outline-none focus:border-[#3F7F6B] focus:ring-2 focus:ring-[#3F7F6B]/20 transition-colors shadow-inner"
             >
               <option value="en">English</option>
               <option value="hi">हिन्दी (Hindi)</option>
@@ -331,11 +343,11 @@ export default function UserPreferences({
         </div>
 
         {/* Submit Button */}
-        <div className="pt-4 border-t border-gray-700">
+        <div className="pt-4 border-t border-[#A3C6BE]/30">
           <button
             type="submit"
             disabled={loading}
-            className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white rounded-lg transition-colors font-medium"
+            className="w-full px-6 py-3 bg-gradient-to-r from-[#3F7F6B] to-[#2F8F8A] hover:from-[#235347] hover:to-[#3F7F6B] disabled:bg-[#7A9DA8] text-white rounded-2xl transition-all font-medium shadow-lg shadow-[#3F7F6B]/20"
           >
             {loading ? "Saving..." : "Save Preferences"}
           </button>

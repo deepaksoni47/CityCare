@@ -814,11 +814,11 @@ export default function ReportPage() {
 
   if (!isAuthenticated) {
     return (
-      <div className="relative min-h-screen bg-[#050814]">
+      <div className="relative min-h-screen bg-gradient-to-br from-[#DDF3E6] to-[#CFEAF0]">
         <div className="flex items-center justify-center h-screen">
           <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-violet-500 mb-4"></div>
-            <p className="text-white/60">Checking authentication...</p>
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-[#548FB3]/20 border-t-[#548FB3] mb-4"></div>
+            <p className="text-[#355E6B]">Checking authentication...</p>
           </div>
         </div>
       </div>
@@ -826,11 +826,11 @@ export default function ReportPage() {
   }
 
   return (
-    <div className="relative min-h-screen bg-[#050814] text-white">
-      {/* Ambient background */}
+    <div className="relative min-h-screen bg-gradient-to-br from-[#DDF3E6] via-[#CFEAF0] to-[#DDF3E6] text-[#0F2A33]">
+      {/* Ambient background - soft, muted gradients */}
       <div className="fixed inset-0 -z-10">
-        <div className="absolute top-20 left-20 w-96 h-96 bg-violet-500/10 rounded-full blur-3xl animate-pulse-slow" />
-        <div className="absolute bottom-40 right-20 w-80 h-80 bg-fuchsia-500/10 rounded-full blur-3xl animate-pulse-slower" />
+        <div className="absolute top-20 left-20 w-96 h-96 bg-[#3F7F6B]/8 rounded-full blur-3xl" />
+        <div className="absolute bottom-40 right-20 w-80 h-80 bg-[#548FB3]/8 rounded-full blur-3xl" />
       </div>
 
       <main className="pt-24 pb-12 px-4 md:px-6 lg:px-8 max-w-4xl mx-auto">
@@ -840,11 +840,11 @@ export default function ReportPage() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <h1 className="text-4xl md:text-5xl font-bold mb-2">
-            <span className="gradient-heading">Report an Issue</span>
+          <h1 className="text-4xl md:text-5xl font-bold mb-2 bg-gradient-to-r from-[#26658C] to-[#3F7F6B] bg-clip-text text-transparent">
+            Report an Issue
           </h1>
-          <p className="text-white/60 text-lg">
-            Help us maintain campus infrastructure by reporting issues
+          <p className="text-[#355E6B] text-lg font-light">
+            Help us maintain city infrastructure by reporting issues
           </p>
         </motion.div>
 
@@ -853,20 +853,20 @@ export default function ReportPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className={`mb-6 p-4 rounded-xl border ${
+          className={`mb-6 p-4 rounded-3xl border-0 transition-all ${
             location.latitude && location.longitude
-              ? "bg-green-950/40 border-green-500/30"
+              ? "bg-gradient-to-br from-[#DDF3E6] to-[#BFE3D5] shadow-lg shadow-[#3F7F6B]/10"
               : location.error
-                ? "bg-rose-950/40 border-rose-500/30"
-                : "bg-yellow-950/40 border-yellow-500/30"
+                ? "bg-gradient-to-br from-[#CFEAF0] to-[#BFE3D5] shadow-lg shadow-[#548FB3]/10"
+                : "bg-gradient-to-br from-[#BFE3D5] to-[#9ECFC2] shadow-lg shadow-[#2F8F8A]/10"
           }`}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-white/40 to-white/20 flex items-center justify-center shadow-lg shadow-white/10">
                 {location.latitude && location.longitude ? (
                   <svg
-                    className="w-5 h-5 text-green-400"
+                    className="w-5 h-5 text-[#3F7F6B]"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -886,7 +886,7 @@ export default function ReportPage() {
                   </svg>
                 ) : (
                   <svg
-                    className="w-5 h-5 text-yellow-400"
+                    className="w-5 h-5 text-[#548FB3]"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -901,7 +901,7 @@ export default function ReportPage() {
                 )}
               </div>
               <div>
-                <p className="font-medium text-white">
+                <p className="font-semibold text-[#0F2A33]">
                   {location.latitude && location.longitude
                     ? "Location Access Granted"
                     : location.isRequesting
@@ -910,7 +910,7 @@ export default function ReportPage() {
                         ? "Location Access Required"
                         : "Requesting Location..."}
                 </p>
-                <p className="text-sm text-white/60">
+                <p className="text-sm text-[#355E6B]">
                   {location.latitude && location.longitude
                     ? `Lat: ${location.latitude.toFixed(6)}, Lng: ${location.longitude.toFixed(6)}`
                     : location.error ||
@@ -922,7 +922,7 @@ export default function ReportPage() {
               !location.isRequesting && (
                 <button
                   onClick={requestLocation}
-                  className="px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium transition-colors"
+                  className="px-4 py-2 rounded-2xl bg-gradient-to-r from-[#3F7F6B] to-[#2F8F8A] hover:from-[#2F8F8A] hover:to-[#235347] text-white text-sm font-semibold transition-all shadow-lg shadow-[#3F7F6B]/20"
                 >
                   Retry
                 </button>
@@ -936,12 +936,15 @@ export default function ReportPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
           onSubmit={handleSubmit}
-          className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6 md:p-8 space-y-6"
+          className="bg-gradient-to-br from-[#BFE3D5] to-[#9ECFC2] backdrop-blur-xl rounded-3xl p-6 md:p-8 space-y-6 shadow-2xl shadow-[#2F8F8A]/15"
         >
           {/* Title */}
           <div>
-            <label htmlFor="title" className="block text-sm font-medium mb-2">
-              Issue Title <span className="text-rose-400">*</span>
+            <label
+              htmlFor="title"
+              className="block text-sm font-semibold mb-3 text-[#0F2A33]"
+            >
+              Issue Title <span className="text-[#235347]">*</span>
             </label>
             <input
               type="text"
@@ -953,9 +956,9 @@ export default function ReportPage() {
               minLength={5}
               maxLength={200}
               placeholder="e.g., Large pothole on Main Street near market"
-              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 outline-none transition-all text-white placeholder-white/40"
+              className="w-full px-5 py-3 rounded-2xl bg-white/70 border border-white/50 focus:border-[#3F7F6B] focus:ring-2 focus:ring-[#3F7F6B]/20 outline-none transition-all text-[#0F2A33] placeholder-[#7A9DA8] shadow-lg shadow-white/20 font-light"
             />
-            <p className="mt-1 text-xs text-white/40">
+            <p className="mt-2 text-xs text-[#7A9DA8] font-light">
               {formData.title.length}/200 characters
             </p>
           </div>
@@ -964,9 +967,9 @@ export default function ReportPage() {
           <div>
             <label
               htmlFor="description"
-              className="block text-sm font-medium mb-2"
+              className="block text-sm font-semibold mb-3 text-[#0F2A33]"
             >
-              Description <span className="text-rose-400">*</span>
+              Description <span className="text-[#235347]">*</span>
             </label>
             <textarea
               id="description"
@@ -978,26 +981,26 @@ export default function ReportPage() {
               maxLength={2000}
               rows={6}
               placeholder="Describe the issue in detail, including severity, location landmarks, and any immediate risks..."
-              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 outline-none transition-all text-white placeholder-white/40 resize-none"
+              className="w-full px-5 py-3 rounded-2xl bg-white/70 border border-white/50 focus:border-[#3F7F6B] focus:ring-2 focus:ring-[#3F7F6B]/20 outline-none transition-all text-[#0F2A33] placeholder-[#7A9DA8] resize-none shadow-lg shadow-white/20 font-light"
             />
-            <p className="mt-1 text-xs text-white/40">
+            <p className="mt-2 text-xs text-[#7A9DA8] font-light">
               {formData.description.length}/2000 characters
             </p>
           </div>
 
           {/* Voice Recording */}
           <div>
-            <label className="block text-sm font-medium mb-2">
+            <label className="block text-sm font-semibold mb-3 text-[#0F2A33]">
               Voice Recording{" "}
-              <span className="text-white/40 text-xs">
+              <span className="text-[#7A9DA8] text-xs font-light">
                 (Optional - AI will transcribe)
               </span>
             </label>
             <div className="space-y-3">
               {/* Info banner */}
-              <div className="p-3 rounded-lg bg-amber-950/40 border border-amber-500/30 flex items-start gap-2">
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-[#CFEAF0] to-[#BFE3D5] border border-[#8EB6B9]/40 flex items-start gap-3 shadow-lg shadow-[#8EB6B9]/10">
                 <svg
-                  className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5"
+                  className="w-5 h-5 text-[#548FB3] flex-shrink-0 mt-0.5"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -1010,10 +1013,10 @@ export default function ReportPage() {
                   />
                 </svg>
                 <div className="flex-1">
-                  <p className="text-xs text-amber-300">
+                  <p className="text-xs text-[#26658C] font-semibold">
                     <strong>⚠️ Note:</strong> Voice recognition is subject to
                     rate limiting.
-                    <strong className="block mt-1">
+                    <strong className="block mt-1 font-light">
                       Recommended: Just type your issue above instead.
                     </strong>
                   </p>
@@ -1026,7 +1029,7 @@ export default function ReportPage() {
                     type="button"
                     onClick={startRecording}
                     disabled={isProcessingVoice}
-                    className="flex-1 px-4 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-white flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 px-4 py-3 rounded-2xl bg-gradient-to-r from-[#BFE3D5] to-[#9ECFC2] border border-white/40 hover:from-[#9ECFC2] hover:to-[#78B6A8] transition-all text-[#0F2A33] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed font-semibold shadow-lg shadow-[#3F7F6B]/10"
                   >
                     <svg
                       className="w-5 h-5"
@@ -1049,7 +1052,7 @@ export default function ReportPage() {
                   <button
                     type="button"
                     onClick={stopRecording}
-                    className="flex-1 px-4 py-3 rounded-xl bg-rose-600 hover:bg-rose-700 border border-rose-500/30 transition-all text-white flex items-center justify-center gap-2 animate-pulse"
+                    className="flex-1 px-4 py-3 rounded-2xl bg-gradient-to-r from-[#235347] to-[#165832] hover:from-[#165832] hover:to-[#0d4620] border border-[#3F7F6B]/40 transition-all text-white flex items-center justify-center gap-2 animate-pulse font-semibold shadow-lg shadow-[#235347]/20"
                   >
                     <div className="w-3 h-3 bg-white rounded-full animate-ping"></div>
                     Stop Recording
@@ -1065,7 +1068,7 @@ export default function ReportPage() {
                         const audio = new Audio(url);
                         audio.play();
                       }}
-                      className="flex-1 px-4 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-white flex items-center justify-center gap-2"
+                      className="flex-1 px-4 py-3 rounded-2xl bg-gradient-to-r from-[#BFE3D5] to-[#9ECFC2] border border-white/40 hover:from-[#9ECFC2] hover:to-[#78B6A8] transition-all text-[#0F2A33] flex items-center justify-center gap-2 font-semibold shadow-lg shadow-[#3F7F6B]/10"
                     >
                       <svg
                         className="w-5 h-5"
@@ -1091,7 +1094,7 @@ export default function ReportPage() {
                     <button
                       type="button"
                       onClick={clearVoiceRecording}
-                      className="px-4 py-3 rounded-xl bg-rose-600/20 hover:bg-rose-600/30 border border-rose-500/30 transition-all text-rose-400 flex items-center justify-center"
+                      className="px-4 py-3 rounded-2xl bg-gradient-to-r from-[#D8E9E4] to-[#C5DEF0] hover:from-[#C5DEF0] hover:to-[#B8D4E5] border border-[#8EB6B9]/40 transition-all text-[#26658C] flex items-center justify-center font-semibold shadow-lg shadow-[#548FB3]/10"
                     >
                       <svg
                         className="w-5 h-5"
@@ -1112,19 +1115,19 @@ export default function ReportPage() {
               </div>
 
               {isProcessingVoice && (
-                <div className="p-3 rounded-lg bg-violet-950/40 border border-violet-500/30 flex items-center gap-3">
-                  <div className="w-5 h-5 border-2 border-violet-400/30 border-t-violet-400 rounded-full animate-spin"></div>
-                  <span className="text-sm text-violet-300">
+                <div className="p-3 rounded-2xl bg-gradient-to-r from-[#BFE3D5] to-[#CFEAF0] border border-[#3F7F6B]/30 flex items-center gap-3 shadow-lg shadow-[#3F7F6B]/10">
+                  <div className="w-5 h-5 border-2 border-[#548FB3]/30 border-t-[#548FB3] rounded-full animate-spin"></div>
+                  <span className="text-sm text-[#26658C] font-semibold">
                     AI is transcribing your voice...
                   </span>
                 </div>
               )}
 
               {voiceTranscript && (
-                <div className="p-4 rounded-lg bg-green-950/40 border border-green-500/30">
+                <div className="p-4 rounded-2xl bg-gradient-to-r from-[#BFE3D5] to-[#9ECFC2] border border-[#3F7F6B]/40 shadow-lg shadow-[#3F7F6B]/15">
                   <div className="flex items-start gap-2">
                     <svg
-                      className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5"
+                      className="w-5 h-5 text-[#3F7F6B] flex-shrink-0 mt-0.5"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -1137,10 +1140,12 @@ export default function ReportPage() {
                       />
                     </svg>
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-green-300 mb-1">
+                      <p className="text-sm font-semibold text-[#235347] mb-1">
                         Voice Transcription:
                       </p>
-                      <p className="text-sm text-white/80">{voiceTranscript}</p>
+                      <p className="text-sm text-[#0F2A33] font-light">
+                        {voiceTranscript}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -1152,9 +1157,9 @@ export default function ReportPage() {
           <div>
             <label
               htmlFor="category"
-              className="block text-sm font-medium mb-2"
+              className="block text-sm font-semibold mb-3 text-[#0F2A33]"
             >
-              Category <span className="text-rose-400">*</span>
+              Category <span className="text-[#235347]">*</span>
             </label>
             <select
               id="category"
@@ -1162,10 +1167,10 @@ export default function ReportPage() {
               value={formData.category}
               onChange={handleInputChange}
               required
-              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 outline-none transition-all text-white"
+              className="w-full px-5 py-3 rounded-2xl bg-white/70 border border-white/50 focus:border-[#3F7F6B] focus:ring-2 focus:ring-[#3F7F6B]/20 outline-none transition-all text-[#0F2A33] font-light shadow-lg shadow-white/20"
             >
               {CATEGORIES.map((cat) => (
-                <option key={cat} value={cat} className="bg-[#1a1a2e]">
+                <option key={cat} value={cat} className="bg-[#DDF3E6]">
                   {cat}
                 </option>
               ))}
@@ -1176,9 +1181,9 @@ export default function ReportPage() {
           <div>
             <label
               htmlFor="locationId"
-              className="block text-sm font-medium mb-2"
+              className="block text-sm font-semibold mb-3 text-[#0F2A33]"
             >
-              Location / Zone <span className="text-rose-400">*</span>
+              Location / Zone <span className="text-[#235347]">*</span>
             </label>
             <select
               id="locationId"
@@ -1186,16 +1191,16 @@ export default function ReportPage() {
               value={formData.locationId}
               onChange={handleInputChange}
               required
-              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 outline-none transition-all text-white"
+              className="w-full px-5 py-3 rounded-2xl bg-white/70 border border-white/50 focus:border-[#3F7F6B] focus:ring-2 focus:ring-[#3F7F6B]/20 outline-none transition-all text-[#0F2A33] font-light shadow-lg shadow-white/20"
             >
-              <option value="" className="bg-[#1a1a2e]">
+              <option value="" className="bg-[#DDF3E6]">
                 Select a location
               </option>
               {LOCATIONS.map((location) => (
                 <option
                   key={location.id}
                   value={location.id}
-                  className="bg-[#1a1a2e]"
+                  className="bg-[#DDF3E6]"
                 >
                   {location.name}
                 </option>
@@ -1205,9 +1210,14 @@ export default function ReportPage() {
 
           {/* Zone (Optional) */}
           <div>
-            <label htmlFor="zone" className="block text-sm font-medium mb-2">
+            <label
+              htmlFor="zone"
+              className="block text-sm font-semibold mb-3 text-[#0F2A33]"
+            >
               Specific Area{" "}
-              <span className="text-white/40 text-xs">(Optional)</span>
+              <span className="text-[#7A9DA8] text-xs font-light">
+                (Optional)
+              </span>
             </label>
             <input
               type="text"
@@ -1216,15 +1226,15 @@ export default function ReportPage() {
               value={formData.zone}
               onChange={handleInputChange}
               placeholder="e.g., Near bus stop, opposite park gate, street number 15"
-              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 outline-none transition-all text-white placeholder-white/40"
+              className="w-full px-5 py-3 rounded-2xl bg-white/70 border border-white/50 focus:border-[#3F7F6B] focus:ring-2 focus:ring-[#3F7F6B]/20 outline-none transition-all text-[#0F2A33] placeholder-[#7A9DA8] shadow-lg shadow-white/20 font-light"
             />
           </div>
 
           {/* Image Upload */}
           <div>
-            <label className="block text-sm font-medium mb-2">
+            <label className="block text-sm font-semibold mb-3 text-[#0F2A33]">
               Images{" "}
-              <span className="text-white/40 text-xs">
+              <span className="text-[#7A9DA8] text-xs font-light">
                 (Optional, max 5 - AI will analyze)
               </span>
             </label>
@@ -1252,7 +1262,7 @@ export default function ReportPage() {
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isAnalyzingImage}
-                  className="flex-1 px-4 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-white flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-3 rounded-2xl bg-gradient-to-r from-[#BFE3D5] to-[#9ECFC2] border border-white/40 hover:from-[#9ECFC2] hover:to-[#78B6A8] transition-all text-[#0F2A33] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed font-semibold shadow-lg shadow-[#3F7F6B]/10"
                 >
                   <svg
                     className="w-5 h-5"
@@ -1276,7 +1286,7 @@ export default function ReportPage() {
                   type="button"
                   onClick={() => cameraInputRef.current?.click()}
                   disabled={isAnalyzingImage}
-                  className="px-4 py-3 rounded-xl bg-white/6 border border-white/8 hover:bg-white/10 transition-all text-white flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-3 rounded-2xl bg-gradient-to-r from-[#CFEAF0] to-[#BFE3D5] border border-white/40 hover:from-[#BFE3D5] hover:to-[#9ECFC2] transition-all text-[#0F2A33] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed font-semibold shadow-lg shadow-[#548FB3]/10"
                 >
                   <svg
                     className="w-5 h-5"
@@ -1301,15 +1311,15 @@ export default function ReportPage() {
                 </button>
               </div>
 
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-xs text-[#7A9DA8] mt-1 font-light">
                 You can select images from your device or use the Camera button
                 to take a new photo.
               </p>
               {aiImageAnalysis && (
-                <div className="p-4 rounded-lg bg-blue-950/40 border border-blue-500/30">
+                <div className="p-4 rounded-2xl bg-gradient-to-r from-[#CFEAF0] to-[#BFE3D5] border border-[#548FB3]/40 shadow-lg shadow-[#548FB3]/15">
                   <div className="flex items-start gap-2">
                     <svg
-                      className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5"
+                      className="w-5 h-5 text-[#548FB3] flex-shrink-0 mt-0.5"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -1322,10 +1332,12 @@ export default function ReportPage() {
                       />
                     </svg>
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-blue-300 mb-1">
+                      <p className="text-sm font-semibold text-[#26658C] mb-1">
                         🤖 AI Image Analysis:
                       </p>
-                      <p className="text-sm text-white/80">{aiImageAnalysis}</p>
+                      <p className="text-sm text-[#0F2A33] font-light">
+                        {aiImageAnalysis}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -1338,12 +1350,12 @@ export default function ReportPage() {
                       <img
                         src={URL.createObjectURL(file)}
                         alt={`Preview ${index + 1}`}
-                        className="w-full h-32 object-cover rounded-lg"
+                        className="w-full h-32 object-cover rounded-2xl shadow-lg shadow-[#3F7F6B]/15"
                       />
                       <button
                         type="button"
                         onClick={() => removeImage(index)}
-                        className="absolute top-2 right-2 w-6 h-6 rounded-full bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute top-2 right-2 w-6 h-6 rounded-full bg-gradient-to-r from-[#235347] to-[#165832] hover:from-[#165832] hover:to-[#0d4620] text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg shadow-[#235347]/30"
                       >
                         <svg
                           className="w-4 h-4"
@@ -1373,7 +1385,7 @@ export default function ReportPage() {
               disabled={
                 isSubmitting || !location.latitude || !location.longitude
               }
-              className="w-full px-6 py-4 rounded-xl bg-gradient-to-r from-violet-500  to-indigo-600 hover:from-indigo-600 hover:to-violet-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold transition-all shadow-lg shadow-violet-500/25 flex items-center justify-center gap-2"
+              className="w-full px-6 py-4 rounded-2xl bg-gradient-to-r from-[#3F7F6B] to-[#2F8F8A] hover:from-[#2F8F8A] hover:to-[#235347] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold transition-all shadow-2xl shadow-[#3F7F6B]/25 flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
                 <>
@@ -1400,7 +1412,7 @@ export default function ReportPage() {
               )}
             </button>
             {(!location.latitude || !location.longitude) && (
-              <p className="mt-2 text-xs text-rose-400 text-center">
+              <p className="mt-2 text-xs text-[#235347] text-center font-semibold">
                 Location access is required to submit an issue
               </p>
             )}
