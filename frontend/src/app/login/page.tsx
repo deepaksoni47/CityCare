@@ -38,7 +38,7 @@ export default function LoginPage() {
     CITY_OPTIONS[0];
 
   return (
-    <main className="relative min-h-screen bg-gradient-to-br from-[#DDF3E6] via-[#CFEAF0] to-[#BFE3D5] text-[#0F2A33] overflow-hidden flex items-center justify-center px-4">
+    <main className=" relative min-h-screen bg-gradient-to-br from-[#DDF3E6] via-[#CFEAF0] to-[#BFE3D5] text-[#0F2A33] overflow-hidden flex items-center justify-center px-4">
       {/* Ambient background effects */}
       <div className="fixed inset-0 -z-10 overflow-hidden">
         <div className="absolute top-[-10%] left-[-10%] w-[40rem] h-[40rem] bg-[#7CBFD0]/20 rounded-full blur-3xl" />
@@ -46,8 +46,8 @@ export default function LoginPage() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[50rem] h-[50rem] bg-[#2F8F8A]/10 rounded-full blur-3xl" />
       </div>
 
-      <section className="relative z-10 w-full max-w-md">
-        <div className="mb-8 text-center">
+      <section className="relative z-10 w-full max-w-md ">
+        <div className="mb-8 text-center pt-40">
           <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-[#0F2A33]">
             Welcome to
             <span className="ml-2 bg-gradient-to-r from-[#3F7F6B] via-[#2F8F8A] to-[#26658C] bg-clip-text text-transparent">
