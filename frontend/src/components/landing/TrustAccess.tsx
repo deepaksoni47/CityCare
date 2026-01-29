@@ -5,39 +5,39 @@ import { useRef } from "react";
 
 // Card color/gradient/icon/badge maps (move outside component for type safety)
 const cardGradients: Record<string, string> = {
-  blue: "from-cyan-400/20 via-cyan-600/10 to-blue-900/10",
-  emerald: "from-emerald-400/20 via-emerald-600/10 to-emerald-900/10",
-  purple: "from-fuchsia-400/20 via-purple-600/10 to-purple-900/10",
+  blue: "from-[#7CBFD0]/20 via-[#548FB3]/15 to-[#26658C]/10",
+  emerald: "from-[#6FCFC3]/20 via-[#3F7F6B]/15 to-[#235347]/10",
+  purple: "from-[#8EB6B9]/20 via-[#2F8F8A]/15 to-[#023859]/10",
 };
 const cardShadows: Record<string, string> = {
-  blue: "shadow-cyan-400/20",
-  emerald: "shadow-emerald-400/20",
-  purple: "shadow-fuchsia-400/20",
+  blue: "shadow-[#548FB3]/20",
+  emerald: "shadow-[#3F7F6B]/20",
+  purple: "shadow-[#2F8F8A]/20",
 };
 const iconBg: Record<string, string> = {
-  blue: "bg-cyan-400/90",
-  emerald: "bg-emerald-400/90",
-  purple: "bg-fuchsia-400/90",
+  blue: "bg-[#548FB3]/90",
+  emerald: "bg-[#3F7F6B]/90",
+  purple: "bg-[#2F8F8A]/90",
 };
 const iconBorder: Record<string, string> = {
-  blue: "border-cyan-400",
-  emerald: "border-emerald-400",
-  purple: "border-fuchsia-400",
+  blue: "border-[#548FB3]",
+  emerald: "border-[#3F7F6B]",
+  purple: "border-[#2F8F8A]",
 };
 const iconGlow: Record<string, string> = {
-  blue: "shadow-[0_0_16px_0_rgba(34,211,238,0.25)]",
-  emerald: "shadow-[0_0_16px_0_rgba(52,211,153,0.22)]",
-  purple: "shadow-[0_0_16px_0_rgba(232,121,249,0.22)]",
+  blue: "shadow-[0_0_16px_0_rgba(84,143,179,0.25)]",
+  emerald: "shadow-[0_0_16px_0_rgba(63,127,107,0.25)]",
+  purple: "shadow-[0_0_16px_0_rgba(47,143,138,0.25)]",
 };
 const badgeBg: Record<string, string> = {
-  blue: "bg-cyan-400/20 border-cyan-400/40",
-  emerald: "bg-emerald-400/20 border-emerald-400/40",
-  purple: "bg-fuchsia-400/20 border-fuchsia-400/40",
+  blue: "bg-[#7CBFD0]/20 border-[#548FB3]/40",
+  emerald: "bg-[#6FCFC3]/20 border-[#3F7F6B]/40",
+  purple: "bg-[#8EB6B9]/20 border-[#2F8F8A]/40",
 };
 const badgeText: Record<string, string> = {
-  blue: "text-cyan-300",
-  emerald: "text-emerald-300",
-  purple: "text-fuchsia-300",
+  blue: "text-[#26658C]",
+  emerald: "text-[#235347]",
+  purple: "text-[#023859]",
 };
 
 const roles = [
@@ -124,7 +124,7 @@ export function TrustAccess() {
   return (
     <section ref={ref} className="relative py-20 px-6 overflow-hidden">
       {/* Background Grid */}
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:100px_100px] -z-10" />
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(84,143,179,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(84,143,179,0.08)_1px,transparent_1px)] bg-[size:100px_100px] -z-10" />
 
       <div className="max-w-7xl mx-auto">
         {/* Section Header */}
@@ -135,10 +135,10 @@ export function TrustAccess() {
           className="text-center mb-20"
         >
           <h2 className="text-4xl md:text-6xl font-bold mb-7">
-            <span className="text-white">Who Can</span>{" "}
-            <span className="text-[#bcb8ff]">Use It</span>
+            <span className="text-[#0F2A33]">Who Can</span>{" "}
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#3F7F6B] via-[#2F8F8A] to-[#26658C]">Use It</span>
           </h2>
-          <p className="text-lg text-white/60 max-w-2xl mx-auto mb-8">
+          <p className="text-lg text-[#355E6B] max-w-2xl mx-auto mb-8">
             Role-based access. Verified actions. Full audit trail.
           </p>
 
@@ -151,10 +151,11 @@ export function TrustAccess() {
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={isInView ? { opacity: 1, scale: 1 } : {}}
                   transition={{ duration: 0.7, delay: 0.2 + index * 0.1 }}
-                  className="flex items-center gap-2 px-5 py-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 backdrop-blur-sm shadow-md shadow-cyan-400/10"
+                  className="flex items-center gap-2 px-5 py-2 rounded-full border border-[#548FB3]/30 bg-[#7CBFD0]/15 backdrop-blur-sm"
+                  style={{ boxShadow: "0 4px 12px -2px rgba(84, 143, 179, 0.15), inset 0 1px 0 rgba(255,255,255,0.3)" }}
                 >
                   <svg
-                    className="w-5 h-5 text-cyan-300 drop-shadow-[0_0_4px_rgba(94,234,212,0.25)]"
+                    className="w-5 h-5 text-[#26658C]"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -166,7 +167,7 @@ export function TrustAccess() {
                       d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
                     />
                   </svg>
-                  <span className="text-sm text-cyan-100 font-medium tracking-wide">
+                  <span className="text-sm text-[#26658C] font-medium tracking-wide">
                     {badge}
                   </span>
                 </motion.div>
@@ -187,12 +188,12 @@ export function TrustAccess() {
             >
               {/* Card */}
               <div
-                className={`relative h-full p-9 rounded-3xl bg-gradient-to-br ${cardGradients[role.color]} border border-white/10 backdrop-blur-sm overflow-hidden transition-all duration-700 ${cardShadows[role.color]} group-hover:shadow-2xl group-hover:scale-[1.025] group-hover:border-white/20`}
-                style={{ boxShadow: "0 6px 32px 0 rgba(0,0,0,0.10)" }}
+                className={`relative h-full p-9 rounded-3xl bg-gradient-to-br from-[#BFE3D5] to-[#9ECFC2] border border-[#A3C6BE]/40 backdrop-blur-sm overflow-hidden transition-all duration-700 group-hover:scale-[1.025]`}
+                style={{ boxShadow: "0 8px 32px 0 rgba(111, 163, 154, 0.2), inset 0 1px 0 rgba(255,255,255,0.5)" }}
               >
                 {/* Subtle inner gradient on hover */}
                 <div
-                  className={`absolute inset-0 pointer-events-none transition-all duration-700 opacity-0 group-hover:opacity-100 bg-gradient-to-tr ${cardGradients[role.color]}`}
+                  className={`absolute inset-0 pointer-events-none transition-all duration-700 opacity-0 group-hover:opacity-100 bg-gradient-to-tr from-[#9ECFC2]/50 to-[#78B6A8]/30`}
                 />
 
                 {/* Content */}
@@ -209,12 +210,12 @@ export function TrustAccess() {
 
                   {/* Title */}
                   <div className="text-center">
-                    <h3 className="text-2xl font-bold text-white mb-2">
+                    <h3 className="text-2xl font-bold text-[#0F2A33] mb-2">
                       {role.title}
                     </h3>
                     <div
                       className={`inline-block px-4 py-1.5 rounded-full border font-semibold text-base shadow-sm ${badgeBg[role.color]}`}
-                      style={{ boxShadow: "0 1px 6px 0 rgba(0,0,0,0.08)" }}
+                      style={{ boxShadow: "0 2px 8px 0 rgba(111, 163, 154, 0.15), inset 0 1px 0 rgba(255,255,255,0.3)" }}
                     >
                       <span
                         className={`${badgeText[role.color]} font-semibold tracking-wide`}
@@ -225,7 +226,7 @@ export function TrustAccess() {
                   </div>
 
                   {/* Description */}
-                  <p className="text-white/70 leading-relaxed text-center">
+                  <p className="text-[#355E6B] leading-relaxed text-center">
                     {role.description}
                   </p>
 
@@ -233,7 +234,7 @@ export function TrustAccess() {
                 </div>
 
                 {/* Corner Accent */}
-                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-white/10 to-transparent pointer-events-none" />
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-white/20 to-transparent pointer-events-none" />
               </div>
             </motion.div>
           ))}
@@ -244,13 +245,14 @@ export function TrustAccess() {
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8, delay: 0.8 }}
-          className="mt-16 p-8 rounded-3xl border border-white/10 bg-gradient-to-br from-violet-500/5 to-fuchsia-500/5 backdrop-blur-sm"
+          className="mt-16 p-8 rounded-3xl border border-[#A3C6BE]/40 bg-gradient-to-br from-[#BFE3D5] to-[#9ECFC2]"
+          style={{ boxShadow: "0 8px 32px 0 rgba(111, 163, 154, 0.2), inset 0 1px 0 rgba(255,255,255,0.5)" }}
         >
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-4">
-              <div className="p-4 rounded-2xl border-2 border-violet-400 shadow-lg">
+              <div className="p-4 rounded-2xl border-2 border-[#26658C]" style={{ boxShadow: "0 4px 12px rgba(38, 101, 140, 0.2)" }}>
                 <svg
-                  className="w-6 h-6 text-white"
+                  className="w-6 h-6 text-[#26658C]"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -264,10 +266,10 @@ export function TrustAccess() {
                 </svg>
               </div>
               <div>
-                <h4 className="text-lg font-bold text-white mb-1">
+                <h4 className="text-lg font-bold text-[#0F2A33] mb-1">
                   Enterprise-Grade Security
                 </h4>
-                <p className="text-white/50 text-sm">
+                <p className="text-[#355E6B] text-sm">
                   Firebase Authentication • Role-based permissions • End-to-end
                   encryption
                 </p>
@@ -275,7 +277,8 @@ export function TrustAccess() {
             </div>
             <a
               href="/security"
-              className="px-6 py-3 rounded-full border border-white/20 hover:border-white/40 text-white font-medium transition-all hover:bg-white/5"
+              className="px-6 py-3 rounded-full border border-[#26658C]/30 hover:border-[#26658C]/60 text-[#0F2A33] font-medium transition-all hover:bg-[#78B6A8]/30"
+              style={{ boxShadow: "inset 0 1px 0 rgba(255,255,255,0.3)" }}
             >
               Security Details
             </a>

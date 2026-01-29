@@ -25,40 +25,52 @@ export function InteractiveCampusMap() {
   const getIssueColor = (type: Issue["type"]) => {
     switch (type) {
       case "critical":
-        return "from-red-500 to-orange-500";
+        return "from-[#EF4444] to-[#B91C1C]"; // Hot Red - urgent/critical
       case "warning":
-        return "from-amber-500 to-yellow-500";
+        return "from-[#F97316] to-[#EA580C]"; // Hot Orange - warning
       case "info":
-        return "from-violet-500 to-purple-600";
+        return "from-[#548FB3] to-[#26658C]"; // City Blue
     }
   };
 
   return (
-    <div className="relative w-full aspect-square max-w-2xl mx-auto">
+    <div className="relative w-full aspect-square max-w-[550px] mx-auto">
       {/* Main Map Container */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1 }}
-        className="relative w-full h-full rounded-3xl overflow-hidden border border-white/10 bg-gradient-to-br from-slate-900/50 to-slate-800/30 backdrop-blur-xl shadow-2xl"
+        className="relative w-full h-full rounded-3xl overflow-hidden border border-[#A3C6BE]/40 bg-gradient-to-br from-[#BFE3D5] to-[#9ECFC2] backdrop-blur-xl"
+        style={{
+          boxShadow: "0 8px 32px -4px rgba(111, 163, 154, 0.25), 0 4px 16px -2px rgba(84, 143, 179, 0.15), inset 0 1px 0 rgba(255,255,255,0.5)"
+        }}
       >
         {/* Grid Overlay */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:50px_50px]" />
+        <div 
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `
+              linear-gradient(to right, rgba(84,143,179,0.15) 1px, transparent 1px),
+              linear-gradient(to bottom, rgba(84,143,179,0.15) 1px, transparent 1px)
+            `,
+            backgroundSize: '40px 40px'
+          }}
+        />
 
         {/* Animated Heatmap Base */}
-        <svg className="absolute inset-0 w-full h-full opacity-20">
+        <svg className="absolute inset-0 w-full h-full opacity-30">
           <defs>
             <radialGradient id="heat1" cx="30%" cy="40%">
-              <stop offset="0%" stopColor="#ef4444" stopOpacity="0.6" />
-              <stop offset="100%" stopColor="#ef4444" stopOpacity="0" />
+              <stop offset="0%" stopColor="#3F7F6B" stopOpacity="0.6" />
+              <stop offset="100%" stopColor="#3F7F6B" stopOpacity="0" />
             </radialGradient>
             <radialGradient id="heat2" cx="60%" cy="50%">
-              <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.4" />
-              <stop offset="100%" stopColor="#f59e0b" stopOpacity="0" />
+              <stop offset="0%" stopColor="#2F8F8A" stopOpacity="0.5" />
+              <stop offset="100%" stopColor="#2F8F8A" stopOpacity="0" />
             </radialGradient>
             <radialGradient id="heat3" cx="45%" cy="70%">
-              <stop offset="0%" stopColor="#ef4444" stopOpacity="0.5" />
-              <stop offset="100%" stopColor="#ef4444" stopOpacity="0" />
+              <stop offset="0%" stopColor="#548FB3" stopOpacity="0.5" />
+              <stop offset="100%" stopColor="#548FB3" stopOpacity="0" />
             </radialGradient>
           </defs>
           <circle cx="30%" cy="40%" r="20%" fill="url(#heat1)" />
@@ -74,9 +86,10 @@ export function InteractiveCampusMap() {
             y="25"
             width="20"
             height="15"
-            fill="none"
-            stroke="rgba(255,255,255,0.2)"
-            strokeWidth="0.3"
+            fill="rgba(84, 143, 179, 0.08)"
+            stroke="rgba(38, 101, 140, 0.4)"
+            strokeWidth="0.5"
+            rx="2"
             initial={{ pathLength: 0 }}
             animate={{ pathLength: 1 }}
             transition={{ duration: 2, delay: 0.5 }}
@@ -86,9 +99,10 @@ export function InteractiveCampusMap() {
             y="40"
             width="25"
             height="18"
-            fill="none"
-            stroke="rgba(255,255,255,0.2)"
-            strokeWidth="0.3"
+            fill="rgba(63, 127, 107, 0.08)"
+            stroke="rgba(35, 83, 71, 0.4)"
+            strokeWidth="0.5"
+            rx="2"
             initial={{ pathLength: 0 }}
             animate={{ pathLength: 1 }}
             transition={{ duration: 2, delay: 0.7 }}
@@ -98,9 +112,10 @@ export function InteractiveCampusMap() {
             y="60"
             width="22"
             height="20"
-            fill="none"
-            stroke="rgba(255,255,255,0.2)"
-            strokeWidth="0.3"
+            fill="rgba(47, 143, 138, 0.08)"
+            stroke="rgba(47, 143, 138, 0.4)"
+            strokeWidth="0.5"
+            rx="2"
             initial={{ pathLength: 0 }}
             animate={{ pathLength: 1 }}
             transition={{ duration: 2, delay: 0.9 }}
@@ -162,12 +177,12 @@ export function InteractiveCampusMap() {
               transition={{ duration: 0.2 }}
               className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap pointer-events-none"
             >
-              <div className="px-3 py-1.5 rounded-lg bg-black/90 backdrop-blur-md border border-white/20 shadow-xl">
+              <div className="px-3 py-1.5 rounded-xl bg-[#023859]/95 backdrop-blur-md border border-[#548FB3]/30 shadow-xl">
                 <span className="text-xs font-medium text-white">
                   {issue.label}
                 </span>
               </div>
-              <div className="w-2 h-2 bg-black/90 rotate-45 mx-auto -mt-1 border-r border-b border-white/20" />
+              <div className="w-2 h-2 bg-[#023859]/95 rotate-45 mx-auto -mt-1 border-r border-b border-[#548FB3]/30" />
             </motion.div>
           </motion.div>
         ))}
@@ -182,31 +197,31 @@ export function InteractiveCampusMap() {
             repeat: Infinity,
             ease: "linear",
           }}
-          className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-50"
+          className="absolute left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#b91c1c] to-transparent opacity-60"
         />
 
         {/* Corner Brackets */}
-        <div className="absolute top-4 left-4 w-8 h-8 border-l-2 border-t-2 border-cyan-400/50" />
-        <div className="absolute top-4 right-4 w-8 h-8 border-r-2 border-t-2 border-cyan-400/50" />
-        <div className="absolute bottom-4 left-4 w-8 h-8 border-l-2 border-b-2 border-cyan-400/50" />
-        <div className="absolute bottom-4 right-4 w-8 h-8 border-r-2 border-b-2 border-cyan-400/50" />
+        <div className="absolute top-4 left-4 w-8 h-8 border-l-2 border-t-2 border-[#26658C]/50 rounded-tl-lg" />
+        <div className="absolute top-4 right-4 w-8 h-8 border-r-2 border-t-2 border-[#26658C]/50 rounded-tr-lg" />
+        <div className="absolute bottom-4 left-4 w-8 h-8 border-l-2 border-b-2 border-[#26658C]/50 rounded-bl-lg" />
+        <div className="absolute bottom-4 right-4 w-8 h-8 border-r-2 border-b-2 border-[#26658C]/50 rounded-br-lg" />
 
         {/* Info Overlay */}
         <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
           <div className="space-y-1">
-            <div className="text-xs text-white/40">Bilaspur, Chhattisgarh</div>
-            <div className="text-sm font-semibold text-white">
+            <div className="text-xs text-[#355E6B]/70">Bilaspur, Chhattisgarh</div>
+            <div className="text-sm font-semibold text-[#0F2A33]">
               22.0836°N, 82.1540°E
             </div>
           </div>
-          <div className="flex gap-2 items-center">
+          <div className="flex gap-3 items-center">
             <div className="flex items-center gap-1.5">
-              <div className="w-2 h-2 rounded-full bg-gradient-to-r from-red-500 to-orange-500" />
-              <span className="text-xs text-white/60">Critical</span>
+              <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-[#EF4444] to-[#B91C1C]" />
+              <span className="text-xs text-[#355E6B]">Critical</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-2 h-2 rounded-full bg-gradient-to-r from-amber-500 to-yellow-500" />
-              <span className="text-xs text-white/60">Warning</span>
+              <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-[#F97316] to-[#EA580C]" />
+              <span className="text-xs text-[#355E6B]">Warning</span>
             </div>
           </div>
         </div>
@@ -217,13 +232,16 @@ export function InteractiveCampusMap() {
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 1.5, duration: 0.8 }}
-        className="absolute -right-4 top-1/4 bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-2xl"
+        className="absolute -right-4 top-1/4 bg-gradient-to-br from-[#BFE3D5] to-[#9ECFC2] backdrop-blur-xl border border-[#A3C6BE]/40 rounded-2xl p-4"
+        style={{
+          boxShadow: "0 8px 24px -4px rgba(111, 163, 154, 0.3), inset 0 1px 0 rgba(255,255,255,0.5)"
+        }}
       >
-        <div className="text-xs text-white/40 mb-2">Active Issues</div>
-        <div className="text-3xl font-bold text-white mb-1">
+        <div className="text-xs text-[#355E6B]/70 mb-2">Active Issues</div>
+        <div className="text-3xl font-bold text-[#0F2A33] mb-1">
           {mockIssues.length}
         </div>
-        <div className="flex items-center gap-1 text-xs text-red-400">
+        <div className="flex items-center gap-1 text-xs text-[#3F7F6B]">
           <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
             <path
               fillRule="evenodd"

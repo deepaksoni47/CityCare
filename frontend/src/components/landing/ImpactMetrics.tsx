@@ -181,19 +181,19 @@ export function ImpactMetrics() {
   return (
     <section id="impact" className="relative py-20 px-6 overflow-hidden">
       {/* Subtle background grid */}
-      <div className="absolute inset-0 -z-10 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:100px_100px]" />
+      <div className="absolute inset-0 -z-10 bg-[linear-gradient(rgba(84,143,179,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(84,143,179,0.08)_1px,transparent_1px)] bg-[size:100px_100px]" />
       <div className="max-w-6xl mx-auto">
         {/* Section Header */}
         <div className="text-center mb-10">
-          <h2 className="text-4xl md:text-6xl font-bold mb-3 text-[#f5f6fa]">
-            Numbers That <span className="text-[#bcb8ff]">Actually Matter</span>
+          <h2 className="text-4xl md:text-6xl font-bold mb-3 text-[#0F2A33]">
+            Numbers That <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#3F7F6B] via-[#2F8F8A] to-[#26658C]">Actually Matter</span>
           </h2>
-          <p className="text-lg max-w-2xl mx-auto text-[#aeb6c2] mb-2">
+          <p className="text-lg max-w-2xl mx-auto text-[#355E6B] mb-2">
             Real impact. Measured daily. Verified continuously.
           </p>
         </div>
         {/* Subtle horizontal anchor */}
-        <div className="w-full h-px bg-[#bcb8ff11] mb-8" />
+        <div className="w-full h-px bg-gradient-to-r from-transparent via-[#548FB3]/20 to-transparent mb-8" />
         {/* System Metrics Readout */}
         <div
           className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 relative"
@@ -202,16 +202,16 @@ export function ImpactMetrics() {
           {/* Metrics as floating cards */}
           {/* Issues Tracked */}
           <div
-            className="bg-[#181a22] border border-white/10 rounded-2xl shadow-xl p-8 flex flex-col items-start relative"
+            className="bg-gradient-to-br from-[#BFE3D5] to-[#9ECFC2] border border-[#A3C6BE]/40 rounded-2xl p-8 flex flex-col items-start relative"
             style={{
-              boxShadow: "0 4px 32px 0 rgba(20,22,30,0.13)",
+              boxShadow: "0 8px 24px -4px rgba(111, 163, 154, 0.2), inset 0 1px 0 rgba(255,255,255,0.5)",
               minHeight: 240,
             }}
           >
             <div className="flex items-center gap-2 mb-2">
-              <span className="inline-flex items-center justify-center w-10 h-10 rounded-full border-2 border-[#bcb8ff] mr-2">
+              <span className="inline-flex items-center justify-center w-10 h-10 rounded-full border-2 border-[#548FB3] mr-2" style={{ boxShadow: "0 4px 12px rgba(84, 143, 179, 0.2)" }}>
                 <svg
-                  className="w-5 h-5 text-[#bcb8ff]"
+                  className="w-5 h-5 text-[#548FB3]"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -225,42 +225,42 @@ export function ImpactMetrics() {
                 </svg>
               </span>
               <span
-                className="text-7xl font-extrabold text-[#f5f6fa] tracking-tight"
+                className="text-7xl font-extrabold text-[#0F2A33] tracking-tight"
                 style={{ fontVariantNumeric: "tabular-nums" }}
               >
                 100
               </span>
-              <span className="text-3xl font-bold text-[#bcb8ff]">+</span>
+              <span className="text-3xl font-bold text-[#548FB3]">+</span>
             </div>
             <div
-              className="text-xs text-[#b2b7c2] mt-1 tracking-wider uppercase"
-              style={{ letterSpacing: "0.09em", opacity: 0.7 }}
+              className="text-xs text-[#355E6B] mt-1 tracking-wider uppercase"
+              style={{ letterSpacing: "0.09em" }}
             >
               Issues Tracked
             </div>
             <div
-              className="text-[13px] text-[#aeb6c2] mt-0.5"
-              style={{ opacity: 0.7 }}
+              className="text-[13px] text-[#355E6B] mt-0.5"
+              style={{ opacity: 0.8 }}
             >
               Real-time monitoring across all infrastructure
             </div>
-            <div className="absolute left-0 top-full mt-2 w-20 h-px bg-[#bcb8ff22]" />
-            <div className="absolute left-0 top-full mt-4 text-[11px] text-[#b2b7c2]/60 tracking-tight">
+            <div className="absolute left-0 top-full mt-2 w-20 h-px bg-[#548FB3]/30" />
+            <div className="absolute left-0 top-full mt-4 text-[11px] text-[#7A9DA8] tracking-tight">
               Updated: Now
             </div>
           </div>
           {/* Faster Resolution */}
           <div
-            className="bg-[#181a22] border border-white/10 rounded-2xl shadow-xl p-8 flex flex-col items-center relative"
+            className="bg-gradient-to-br from-[#BFE3D5] to-[#9ECFC2] border border-[#A3C6BE]/40 rounded-2xl p-8 flex flex-col items-center relative"
             style={{
-              boxShadow: "0 4px 32px 0 rgba(20,22,30,0.13)",
+              boxShadow: "0 8px 24px -4px rgba(111, 163, 154, 0.2), inset 0 1px 0 rgba(255,255,255,0.5)",
               minHeight: 240,
             }}
           >
             <div className="flex items-center gap-2 mb-2">
-              <span className="inline-flex items-center justify-center w-10 h-10 rounded-full border-2 border-[#7be7c6] mr-2">
+              <span className="inline-flex items-center justify-center w-10 h-10 rounded-full border-2 border-[#3F7F6B] mr-2" style={{ boxShadow: "0 4px 12px rgba(63, 127, 107, 0.2)" }}>
                 <svg
-                  className="w-5 h-5 text-[#7be7c6]"
+                  className="w-5 h-5 text-[#3F7F6B]"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -273,40 +273,40 @@ export function ImpactMetrics() {
                   />
                 </svg>
               </span>
-              <span className="text-7xl font-extrabold text-[#f5f6fa] tracking-tight">
+              <span className="text-7xl font-extrabold text-[#0F2A33] tracking-tight">
                 42
               </span>
-              <span className="text-3xl font-bold text-[#7be7c6]">%</span>
+              <span className="text-3xl font-bold text-[#3F7F6B]">%</span>
             </div>
             <div
-              className="text-xs text-[#b2b7c2] mt-1 tracking-wider uppercase"
-              style={{ letterSpacing: "0.09em", opacity: 0.7 }}
+              className="text-xs text-[#355E6B] mt-1 tracking-wider uppercase"
+              style={{ letterSpacing: "0.09em" }}
             >
               Faster Resolution
             </div>
             <div
-              className="text-[13px] text-[#aeb6c2] mt-0.5"
-              style={{ opacity: 0.7 }}
+              className="text-[13px] text-[#355E6B] mt-0.5"
+              style={{ opacity: 0.8 }}
             >
               Avg. time reduced through intelligent prioritization
             </div>
-            <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-16 h-px bg-[#7be7c622]" />
-            <div className="absolute left-1/2 -translate-x-1/2 top-full mt-4 text-[11px] text-[#b2b7c2]/60 tracking-tight">
+            <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-16 h-px bg-[#3F7F6B]/30" />
+            <div className="absolute left-1/2 -translate-x-1/2 top-full mt-4 text-[11px] text-[#7A9DA8] tracking-tight">
               Updated: Now
             </div>
           </div>
           {/* High-Risk Zones */}
           <div
-            className="bg-[#181a22] border border-white/10 rounded-2xl shadow-xl p-8 flex flex-col items-end relative"
+            className="bg-gradient-to-br from-[#BFE3D5] to-[#9ECFC2] border border-[#A3C6BE]/40 rounded-2xl p-8 flex flex-col items-end relative"
             style={{
-              boxShadow: "0 4px 32px 0 rgba(20,22,30,0.13)",
+              boxShadow: "0 8px 24px -4px rgba(111, 163, 154, 0.2), inset 0 1px 0 rgba(255,255,255,0.5)",
               minHeight: 240,
             }}
           >
             <div className="flex items-center gap-2 mb-2">
-              <span className="inline-flex items-center justify-center w-10 h-10 rounded-full border-2 border-[#f7b955] mr-2">
+              <span className="inline-flex items-center justify-center w-10 h-10 rounded-full border-2 border-[#2F8F8A] mr-2" style={{ boxShadow: "0 4px 12px rgba(47, 143, 138, 0.2)" }}>
                 <svg
-                  className="w-5 h-5 text-[#f7b955]"
+                  className="w-5 h-5 text-[#2F8F8A]"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -319,39 +319,39 @@ export function ImpactMetrics() {
                   />
                 </svg>
               </span>
-              <span className="text-7xl font-extrabold text-[#f5f6fa] tracking-tight">
+              <span className="text-7xl font-extrabold text-[#0F2A33] tracking-tight">
                 89
               </span>
             </div>
             <div
-              className="text-xs text-[#b2b7c2] mt-1 tracking-wider uppercase"
-              style={{ letterSpacing: "0.09em", opacity: 0.7 }}
+              className="text-xs text-[#355E6B] mt-1 tracking-wider uppercase"
+              style={{ letterSpacing: "0.09em" }}
             >
               High-Risk Zones
             </div>
             <div
-              className="text-[13px] text-[#aeb6c2] mt-0.5"
-              style={{ opacity: 0.7 }}
+              className="text-[13px] text-[#355E6B] mt-0.5"
+              style={{ opacity: 0.8 }}
             >
               Identified early through predictive pattern analysis
             </div>
-            <div className="absolute right-0 top-full mt-2 w-14 h-px bg-[#f7b95522]" />
-            <div className="absolute right-0 top-full mt-4 text-[11px] text-[#b2b7c2]/60 tracking-tight">
+            <div className="absolute right-0 top-full mt-2 w-14 h-px bg-[#2F8F8A]/30" />
+            <div className="absolute right-0 top-full mt-4 text-[11px] text-[#7A9DA8] tracking-tight">
               Updated: Now
             </div>
           </div>
           {/* Prediction Accuracy */}
           <div
-            className="bg-[#181a22] border border-white/10 rounded-2xl shadow-xl p-8 flex flex-col items-end relative"
+            className="bg-gradient-to-br from-[#BFE3D5] to-[#9ECFC2] border border-[#A3C6BE]/40 rounded-2xl p-8 flex flex-col items-end relative"
             style={{
-              boxShadow: "0 4px 32px 0 rgba(20,22,30,0.13)",
+              boxShadow: "0 8px 24px -4px rgba(111, 163, 154, 0.2), inset 0 1px 0 rgba(255,255,255,0.5)",
               minHeight: 240,
             }}
           >
             <div className="flex items-center gap-2 mb-2">
-              <span className="inline-flex items-center justify-center w-10 h-10 rounded-full border-2 border-[#e48fcf] mr-2">
+              <span className="inline-flex items-center justify-center w-10 h-10 rounded-full border-2 border-[#26658C] mr-2" style={{ boxShadow: "0 4px 12px rgba(38, 101, 140, 0.2)" }}>
                 <svg
-                  className="w-5 h-5 text-[#e48fcf]"
+                  className="w-5 h-5 text-[#26658C]"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -364,34 +364,34 @@ export function ImpactMetrics() {
                   />
                 </svg>
               </span>
-              <span className="text-7xl font-extrabold text-[#f5f6fa] tracking-tight">
+              <span className="text-7xl font-extrabold text-[#0F2A33] tracking-tight">
                 94
               </span>
-              <span className="text-3xl font-bold text-[#e48fcf]">%</span>
+              <span className="text-3xl font-bold text-[#26658C]">%</span>
             </div>
             <div
-              className="text-xs text-[#b2b7c2] mt-1 tracking-wider uppercase"
-              style={{ letterSpacing: "0.09em", opacity: 0.7 }}
+              className="text-xs text-[#355E6B] mt-1 tracking-wider uppercase"
+              style={{ letterSpacing: "0.09em" }}
             >
               Prediction Accuracy
             </div>
             <div
-              className="text-[13px] text-[#aeb6c2] mt-0.5"
-              style={{ opacity: 0.7 }}
+              className="text-[13px] text-[#355E6B] mt-0.5"
+              style={{ opacity: 0.8 }}
             >
               Rolling model performance validated against actual failures
             </div>
-            <div className="absolute right-0 top-full mt-2 w-14 h-px bg-[#e48fcf22]" />
-            <div className="absolute right-0 top-full mt-4 text-[11px] text-[#b2b7c2]/60 tracking-tight">
+            <div className="absolute right-0 top-full mt-2 w-14 h-px bg-[#26658C]/30" />
+            <div className="absolute right-0 top-full mt-4 text-[11px] text-[#7A9DA8] tracking-tight">
               Updated: Now
             </div>
           </div>
         </div>
         {/* Bottom Note */}
         <div className="mt-20 text-center">
-          <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm">
-            <span className="w-2 h-2 rounded-full bg-[#bcb8ff] opacity-60 animate-pulse" />
-            <span className="text-white/70 text-sm">
+          <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-[#A3C6BE]/40 bg-[#9ECFC2]/50 backdrop-blur-sm" style={{ boxShadow: "inset 0 1px 0 rgba(255,255,255,0.4)" }}>
+            <span className="w-2 h-2 rounded-full bg-[#3F7F6B] opacity-80 animate-pulse" />
+            <span className="text-[#0F2A33] text-sm">
               Metrics updated in real-time across all active infrastructure
             </span>
           </div>

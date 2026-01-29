@@ -84,8 +84,8 @@ export function ValueProposition() {
     >
       {/* Background Elements */}
       <div className="absolute inset-0 -z-10">
-        <div className="absolute top-1/4 left-10 w-72 h-72 bg-blue-500/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-10 w-80 h-80 bg-lavender-400/10 rounded-full blur-3xl" />
+        <div className="absolute top-1/4 left-10 w-72 h-72 bg-[#548FB3]/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-10 w-80 h-80 bg-[#3F7F6B]/10 rounded-full blur-3xl" />
       </div>
 
       <div className="max-w-7xl mx-auto">
@@ -102,15 +102,15 @@ export function ValueProposition() {
             transition={{ duration: 0.6 }}
             className="inline-block mb-4"
           >
-            <span className="px-4 py-2 rounded-full border border-cyan-400/15 bg-cyan-900/10 text-cyan-300/80 text-sm font-medium">
+            <span className="px-4 py-2 rounded-full border border-[#548FB3]/30 bg-[#7CBFD0]/15 text-[#26658C] text-sm font-medium" style={{ boxShadow: "inset 0 1px 2px rgba(255,255,255,0.3)" }}>
               Why This System Exists
             </span>
           </motion.div>
           <h2 className="text-4xl md:text-6xl font-bold mb-6">
-            <span className="text-white">Built Different.</span>{" "}
-            <span className="gradient-heading">Built Better.</span>
+            <span className="text-[#0F2A33]">Built Different.</span>{" "}
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#3F7F6B] via-[#2F8F8A] to-[#26658C]">Built Better.</span>
           </h2>
-          <p className="text-lg text-[#aeb6c2] max-w-2xl mx-auto">
+          <p className="text-lg text-[#355E6B] max-w-2xl mx-auto">
             Not another dashboard. A complete intelligence platform designed for
             the complexity of modern city infrastructure.
           </p>
@@ -122,16 +122,16 @@ export function ValueProposition() {
             let accent = "";
             let iconColor = "";
             if (index === 0) {
-              accent = "#a18aff";
-              iconColor = "#a18aff";
+              accent = "#548FB3"; // City Blue Primary
+              iconColor = "#548FB3";
             }
             if (index === 1) {
-              accent = "#e48fcf";
-              iconColor = "#e48fcf";
+              accent = "#2F8F8A"; // Bridge Teal
+              iconColor = "#2F8F8A";
             }
             if (index === 2) {
-              accent = "#f7b955";
-              iconColor = "#f7b955";
+              accent = "#3F7F6B"; // Care Green Primary
+              iconColor = "#3F7F6B";
             }
             return (
               <motion.div
@@ -142,7 +142,7 @@ export function ValueProposition() {
                 className="group relative"
                 style={{
                   boxShadow:
-                    "0 1.5px 8px 0 rgba(10,12,20,0.13), 0 0.5px 0 0 #23242a inset",
+                    "0 8px 24px -4px rgba(111, 163, 154, 0.2), inset 0 1px 0 rgba(255,255,255,0.5)",
                   borderRadius: "1.5rem",
                 }}
               >
@@ -150,8 +150,8 @@ export function ValueProposition() {
                   className="relative h-full p-8 overflow-hidden"
                   style={{
                     background:
-                      "linear-gradient(180deg, #181a22 90%, #15161c 100%)",
-                    boxShadow: "inset 0 1.5px 8px 0 rgba(255,255,255,0.04)",
+                      "linear-gradient(180deg, #BFE3D5 0%, #9ECFC2 100%)",
+                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.4)",
                     borderRadius: "1.5rem",
                   }}
                 >
@@ -160,7 +160,7 @@ export function ValueProposition() {
                     style={{
                       borderRadius: "1.5rem",
                       boxShadow:
-                        "inset 0 2px 8px 0 rgba(255,255,255,0.07), inset 0 -2px 8px 0 rgba(0,0,0,0.13)",
+                        "inset 0 2px 8px 0 rgba(255,255,255,0.3), inset 0 -2px 8px 0 rgba(111, 163, 154, 0.15)",
                     }}
                   />
                   <div className="relative z-10 flex flex-col gap-6">
@@ -211,13 +211,13 @@ export function ValueProposition() {
                       </div>
                     </div>
                     <h3
-                      className="text-2xl font-extrabold text-white leading-tight tracking-tight"
+                      className="text-2xl font-extrabold text-[#0F2A33] leading-tight tracking-tight"
                       style={{ fontWeight: 800 }}
                     >
                       {feature.title}
                     </h3>
                     <p
-                      className="text-[#b2b7c2] text-base leading-relaxed"
+                      className="text-[#355E6B] text-base leading-relaxed"
                       style={{
                         lineHeight: 1.6,
                         fontWeight: 400,
@@ -244,7 +244,7 @@ export function ValueProposition() {
                     className="hidden md:block absolute top-1/2 -right-4 w-8 h-px"
                     style={{
                       background:
-                        "linear-gradient(90deg, #fff2 0%, transparent 100%)",
+                        "linear-gradient(90deg, rgba(84, 143, 179, 0.3) 0%, transparent 100%)",
                     }}
                   />
                 )}

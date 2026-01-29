@@ -43,8 +43,11 @@ export function FinalCTA() {
       {/* Subtle radial light background */}
       <div className="absolute inset-0 -z-10 flex items-center justify-center">
         <div
-          className="w-[600px] h-[600px] rounded-full bg-gradient-radial from-violet-500/20 via-transparent to-transparent opacity-80"
-          style={{ filter: "blur(8px)" }}
+          className="w-[600px] h-[600px] rounded-full opacity-80"
+          style={{ 
+            background: "radial-gradient(circle, rgba(84, 143, 179, 0.15) 0%, rgba(47, 143, 138, 0.1) 40%, transparent 70%)",
+            filter: "blur(8px)" 
+          }}
         />
       </div>
 
@@ -65,7 +68,7 @@ export function FinalCTA() {
               cx="80"
               cy="80"
               r="68"
-              stroke="#bcb8ff33"
+              stroke="rgba(84, 143, 179, 0.3)"
               strokeWidth="1.5"
               fill="none"
             />
@@ -87,8 +90,8 @@ export function FinalCTA() {
                   height: 12,
                   borderRadius: "50%",
                   background:
-                    "linear-gradient(90deg, #bcb8ff 60%, #a18aff 100%)",
-                  boxShadow: "0 0 0 1px #bcb8ff44",
+                    "linear-gradient(90deg, #3F7F6B 0%, #2F8F8A 50%, #548FB3 100%)",
+                  boxShadow: "0 0 0 1px rgba(47, 143, 138, 0.4)",
                   zIndex: 2,
                   transition: "background 0.2s",
                 }}
@@ -110,8 +113,8 @@ export function FinalCTA() {
                   y2="64"
                   gradientUnits="userSpaceOnUse"
                 >
-                  <stop stopColor="#bcb8ff" />
-                  <stop offset="1" stopColor="#a18aff" />
+                  <stop stopColor="#2F8F8A" />
+                  <stop offset="1" stopColor="#26658C" />
                 </linearGradient>
               </defs>
               <g>
@@ -119,13 +122,13 @@ export function FinalCTA() {
                 <path
                   d="M32 8C36 20 36 44 32 56C28 44 28 20 32 8Z"
                   fill="url(#rocket-gradient)"
-                  stroke="#bcb8ff"
+                  stroke="#3F7F6B"
                   strokeWidth="2"
                 />
                 {/* Fins */}
                 <path
                   d="M32 56L24 60L32 48L40 60L32 56Z"
-                  fill="#bcb8ff"
+                  fill="#6FCFC3"
                   fillOpacity="0.7"
                 />
                 {/* Window */}
@@ -134,8 +137,8 @@ export function FinalCTA() {
                   cy="28"
                   r="5"
                   fill="#fff"
-                  fillOpacity="0.7"
-                  stroke="#bcb8ff"
+                  fillOpacity="0.8"
+                  stroke="#548FB3"
                   strokeWidth="1.5"
                 />
               </g>
@@ -154,11 +157,11 @@ export function FinalCTA() {
               initial={{ opacity: 0, y: 20 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="text-5xl md:text-7xl font-bold text-white leading-tight"
+              className="text-5xl md:text-7xl font-bold text-[#0F2A33] leading-tight"
               style={{ letterSpacing: "-0.01em", lineHeight: 1.1 }}
             >
               Stop Reacting. <br />
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#bcb8ff] via-[#a18aff] to-[#bcb8ff]">
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#3F7F6B] via-[#2F8F8A] to-[#26658C]">
                 Start Anticipating.
               </span>
             </motion.h2>
@@ -166,7 +169,7 @@ export function FinalCTA() {
               initial={{ opacity: 0, y: 20 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.8, delay: 0.4 }}
-              className="text-xl text-white/50 max-w-2xl mx-auto"
+              className="text-xl text-[#355E6B] max-w-2xl mx-auto"
             >
               Built for cities that take infrastructure seriously.
             </motion.p>
@@ -181,12 +184,15 @@ export function FinalCTA() {
             <Link href={buttonLink}>
               <motion.div
                 whileHover={{
-                  boxShadow: "0 0 0 4px #60a5fa33, 0 0 32px #60a5fa22",
+                  boxShadow: "0 0 0 4px rgba(63, 127, 107, 0.2), 0 8px 32px rgba(47, 143, 138, 0.25)",
                   scale: 1.03,
                 }}
                 whileTap={{ scale: 0.97 }}
-                className={`relative inline-flex items-center gap-3 px-12 py-6 rounded-full text-white text-xl font-bold shadow-xl transition-all duration-300 group cursor-pointer ${isAuth ? "bg-gradient-to-r from-blue-900 via-blue-800 to-blue-700" : "bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-500"}`}
-                style={{ transition: "box-shadow 0.3s" }}
+                className={`relative inline-flex items-center gap-3 px-12 py-6 rounded-full text-white text-xl font-bold transition-all duration-300 group cursor-pointer ${isAuth ? "bg-gradient-to-r from-[#235347] via-[#3F7F6B] to-[#2F8F8A]" : "bg-gradient-to-r from-[#235347] via-[#3F7F6B] to-[#2F8F8A]"}`}
+                style={{ 
+                  transition: "box-shadow 0.3s",
+                  boxShadow: "0 8px 24px -4px rgba(63, 127, 107, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)"
+                }}
               >
                 <span className="relative z-10">
                   {isLoading ? "Checking..." : buttonText}
@@ -209,7 +215,7 @@ export function FinalCTA() {
           </motion.div>
         </motion.div>
         {/* Trust Indicators (minimal, static) */}
-        <div className="flex flex-wrap justify-center items-center gap-8 pt-12 opacity-60">
+        <div className="flex flex-wrap justify-center items-center gap-8 pt-12 opacity-80">
           {[
             {
               icon: (
@@ -217,7 +223,7 @@ export function FinalCTA() {
                   width="22"
                   height="22"
                   fill="none"
-                  stroke="#bcb8ff"
+                  stroke="#3F7F6B"
                   strokeWidth="1.5"
                   viewBox="0 0 24 24"
                 >
@@ -233,7 +239,7 @@ export function FinalCTA() {
                   width="22"
                   height="22"
                   fill="none"
-                  stroke="#bcb8ff"
+                  stroke="#2F8F8A"
                   strokeWidth="1.5"
                   viewBox="0 0 24 24"
                 >
@@ -249,7 +255,7 @@ export function FinalCTA() {
                   width="22"
                   height="22"
                   fill="none"
-                  stroke="#bcb8ff"
+                  stroke="#548FB3"
                   strokeWidth="1.5"
                   viewBox="0 0 24 24"
                 >
@@ -265,7 +271,7 @@ export function FinalCTA() {
                   width="22"
                   height="22"
                   fill="none"
-                  stroke="#bcb8ff"
+                  stroke="#26658C"
                   strokeWidth="1.5"
                   viewBox="0 0 24 24"
                 >
@@ -278,7 +284,7 @@ export function FinalCTA() {
           ].map((item, index) => (
             <div key={item.label} className="flex items-center gap-2">
               <span>{item.icon}</span>
-              <span className="text-white/60 text-sm font-medium">
+              <span className="text-[#355E6B] text-sm font-medium">
                 {item.label}
               </span>
             </div>

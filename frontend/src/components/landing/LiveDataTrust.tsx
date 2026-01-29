@@ -6,17 +6,17 @@ export function LiveDataTrust() {
   return (
     <section ref={ref} className="relative py-20 px-6 overflow-hidden">
       {/* Subtle grid background */}
-      <div className="absolute inset-0 -z-10 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:100px_100px]" />
+      <div className="absolute inset-0 -z-10 bg-[linear-gradient(rgba(84,143,179,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(84,143,179,0.08)_1px,transparent_1px)] bg-[size:100px_100px]" />
       <div className="max-w-5xl mx-auto">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-6xl font-bold mb-6 text-[#f5f6fa]">
+          <h2 className="text-4xl md:text-6xl font-bold mb-6 text-[#0F2A33]">
             Built on{" "}
-            <span className="text-[#bcb8ff]">
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#3F7F6B] via-[#2F8F8A] to-[#26658C]">
               Verified Spatial Intelligence
             </span>
           </h2>
-          <p className="text-lg max-w-2xl mx-auto text-[#aeb6c2]">
+          <p className="text-lg max-w-2xl mx-auto text-[#355E6B]">
             The system operates on precise spatial boundaries, hierarchies, and
             real-world layouts. Accuracy, validation, and structure are
             foundational—never optional.
@@ -47,21 +47,20 @@ export function LiveDataTrust() {
               className="p-7 rounded-2xl"
               style={{
                 background:
-                  "linear-gradient(120deg, #20222a 80%, #23243a 100%)",
+                  "linear-gradient(145deg, #BFE3D5 0%, #9ECFC2 100%)",
                 boxShadow:
-                  "inset 0 2px 10px 0 rgba(20,22,30,0.13), 0 0.5px 0 0 #23242a inset",
-                border: "1.5px solid #23243a",
+                  "0 8px 24px -4px rgba(111, 163, 154, 0.2), inset 0 1px 0 rgba(255,255,255,0.5)",
+                border: "1px solid rgba(163, 198, 190, 0.4)",
               }}
             >
               <div
-                className="text-xs font-semibold uppercase tracking-widest text-[#b2b7c2]/60 mb-2"
-                style={{ opacity: 0.6, letterSpacing: "0.13em" }}
+                className="text-xs font-semibold uppercase tracking-widest text-[#26658C] mb-2"
+                style={{ opacity: 0.8, letterSpacing: "0.13em" }}
               >
                 {layer.label}
               </div>
               <div
-                className="text-[15px] text-[#b2b7c2] leading-relaxed"
-                style={{ opacity: 0.88 }}
+                className="text-[15px] text-[#355E6B] leading-relaxed"
               >
                 {layer.desc}
               </div>
@@ -81,14 +80,13 @@ export function LiveDataTrust() {
               className="p-5 rounded-xl"
               style={{
                 background:
-                  "linear-gradient(120deg, #20222a 80%, #23243a 100%)",
-                boxShadow: "inset 0 1.5px 8px 0 rgba(20,22,30,0.10)",
-                border: "1.5px solid #23243a",
+                  "linear-gradient(145deg, #9ECFC2 0%, #78B6A8 100%)",
+                boxShadow: "0 4px 16px -2px rgba(111, 163, 154, 0.2), inset 0 1px 0 rgba(255,255,255,0.4)",
+                border: "1px solid rgba(163, 198, 190, 0.4)",
               }}
             >
               <div
-                className="text-xs text-[#b2b7c2]/70 tracking-wide"
-                style={{ opacity: 0.7 }}
+                className="text-xs text-[#0F2A33] tracking-wide font-medium"
               >
                 {guarantee}
               </div>
@@ -99,31 +97,3 @@ export function LiveDataTrust() {
     </section>
   );
 }
-{
-  /* System Guarantees */
-}
-<div className="grid md:grid-cols-4 gap-6">
-  {[
-    "Boundary-locked issue reporting",
-    "Location-aware validation",
-    "Hierarchical spatial mapping",
-    "Multi-city ready architecture",
-  ].map((guarantee) => (
-    <div
-      key={guarantee}
-      className="p-5 rounded-xl"
-      style={{
-        background: "linear-gradient(120deg, #20222a 80%, #23243a 100%)",
-        boxShadow: "inset 0 1.5px 8px 0 rgba(20,22,30,0.10)",
-        border: "1.5px solid #23243a",
-      }}
-    >
-      <div
-        className="text-xs text-[#b2b7c2]/70 tracking-wide"
-        style={{ opacity: 0.7 }}
-      >
-        {guarantee}
-      </div>
-    </div>
-  ))}
-</div>;

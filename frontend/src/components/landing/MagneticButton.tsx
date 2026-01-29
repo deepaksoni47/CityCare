@@ -47,21 +47,28 @@ export function MagneticButton({
         transition-all duration-300
         ${
           isPrimary
-            ? "bg-[#3566b8] hover:bg-[#29518e]"
-            : "border-2 border-white/20 hover:border-white/40"
+            ? "bg-gradient-to-br from-[#3F7F6B] to-[#235347] hover:from-[#235347] hover:to-[#165832]"
+            : "bg-gradient-to-br from-[#BFE3D5] to-[#9ECFC2] border border-[#A3C6BE]/50 hover:border-[#78B6A8]"
         }
       `}
+      style={{
+        boxShadow: isPrimary
+          ? "0 6px 20px -4px rgba(63, 127, 107, 0.4), 0 4px 12px -2px rgba(35, 83, 71, 0.3), inset 0 1px 0 rgba(255,255,255,0.2)"
+          : "0 4px 16px -4px rgba(111, 163, 154, 0.3), inset 0 1px 0 rgba(255,255,255,0.5)"
+      }}
     >
-      {/* No animated background or glow for primary */}
-      {isPrimary && null}
+      {/* Hover glow effect */}
+      {isPrimary && (
+        <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br from-[#6FCFC3]/20 to-transparent" />
+      )}
       <div
         className={`
           absolute inset-0 rounded-full pointer-events-none
-          ${isPrimary ? "" : "bg-white/20"}
+          ${isPrimary ? "" : "bg-white/10"}
         `}
       />
 
-      <span className="relative z-10 flex items-center gap-2 text-white">
+      <span className={`relative z-10 flex items-center gap-2 ${isPrimary ? "text-white" : "text-[#0F2A33]"}`}>
         {children}
       </span>
 
@@ -70,10 +77,15 @@ export function MagneticButton({
         className="absolute inset-0 rounded-full pointer-events-none"
         initial={false}
         animate={{
-          boxShadow: [
-            "0 0 0 0 rgba(6, 182, 212, 0)",
-            "0 0 0 10px rgba(6, 182, 212, 0)",
-          ],
+          boxShadow: isPrimary
+            ? [
+                "0 0 0 0 rgba(111, 207, 195, 0)",
+                "0 0 0 10px rgba(111, 207, 195, 0)",
+              ]
+            : [
+                "0 0 0 0 rgba(63, 127, 107, 0)",
+                "0 0 0 10px rgba(63, 127, 107, 0)",
+              ],
         }}
         transition={{
           duration: 0.6,

@@ -61,17 +61,17 @@ export function HowItWorks() {
       className="relative py-20 px-6 overflow-hidden"
     >
       {/* Background Grid */}
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:100px_100px] -z-10" />
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(84,143,179,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(84,143,179,0.08)_1px,transparent_1px)] bg-[size:100px_100px] -z-10" />
 
       <div className="max-w-7xl mx-auto">
         {/* Section Header */}
         <div className="text-center mb-20">
           <h2 className="text-4xl md:text-6xl font-bold mb-6">
-            <span className="text-[#f5f6fa]">How It </span>
+            <span className="text-[#0F2A33]">How It </span>
             <span
               className="bg-clip-text text-transparent"
               style={{
-                background: "linear-gradient(90deg, #bcb8ff 0%, #a18aff 100%)",
+                background: "linear-gradient(90deg, #3F7F6B 0%, #2F8F8A 50%, #26658C 100%)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 filter: "none",
@@ -80,7 +80,7 @@ export function HowItWorks() {
               Actually Works
             </span>
           </h2>
-          <p className="text-lg max-w-2xl mx-auto" style={{ color: "#aeb6c2" }}>
+          <p className="text-lg max-w-2xl mx-auto" style={{ color: "#355E6B" }}>
             From incident to insight. Four steps. Zero confusion.
           </p>
         </div>
@@ -92,19 +92,19 @@ export function HowItWorks() {
             className="hidden md:block absolute top-24 left-0 right-0 h-px"
             style={{
               background:
-                "linear-gradient(90deg, #bcb8ff11 0%, #a18aff11 100%)",
+                "linear-gradient(90deg, rgba(63, 127, 107, 0.2) 0%, rgba(47, 143, 138, 0.2) 50%, rgba(84, 143, 179, 0.2) 100%)",
             }}
           />
           {steps.map((step, index) => {
             // Editorial, system-driven, embedded process cards
-            // Slight tonal progression by step index
-            const baseBg = ["#191a20", "#1a1b22", "#1b1c24", "#1c1d26"][index];
+            // Clay surface progression by step index
+            const baseBg = ["#BFE3D5", "#B5DFD0", "#ABDACB", "#9ECFC2"][index];
             const insetShadow =
-              "inset 0 1.5px 8px 0 rgba(10,12,20,0.13), inset 0 0.5px 0 0 #23242a";
+              "0 8px 24px -4px rgba(111, 163, 154, 0.2), inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -1px 4px rgba(111, 163, 154, 0.1)";
             const accentEdge =
               index === 0
                 ? ""
-                : `linear-gradient(180deg, #aeb6c2 0%, transparent 100%)`;
+                : `linear-gradient(180deg, #3F7F6B 0%, transparent 100%)`;
             return (
               <div
                 key={step.number}
@@ -143,17 +143,16 @@ export function HowItWorks() {
                 <div
                   className="w-10 h-10 mb-4 flex items-center justify-center rounded-full"
                   style={{
-                    background: "#181a1f",
-                    opacity: 0.7,
+                    background: "linear-gradient(135deg, #9ECFC2 0%, #78B6A8 100%)",
+                    boxShadow: "0 4px 12px -2px rgba(111, 163, 154, 0.3), inset 0 1px 0 rgba(255,255,255,0.4)",
                     marginBottom: 18,
                     alignSelf: "flex-start",
                   }}
                 >
                   <span
                     style={{
-                      color: "#aeb6c2",
+                      color: "#235347",
                       fontSize: 20,
-                      opacity: 0.5,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -168,7 +167,8 @@ export function HowItWorks() {
                   style={{
                     letterSpacing: "0.13em",
                     fontWeight: 600,
-                    opacity: 0.38,
+                    color: "#355E6B",
+                    opacity: 0.7,
                     textTransform: "uppercase",
                     marginBottom: 2,
                   }}
@@ -179,7 +179,7 @@ export function HowItWorks() {
                 <h3
                   className="text-lg font-bold mb-2"
                   style={{
-                    color: "#f5f6fa",
+                    color: "#0F2A33",
                     fontWeight: 700,
                     letterSpacing: 0.01,
                     marginBottom: 8,
@@ -191,7 +191,7 @@ export function HowItWorks() {
                 <p
                   className="text-[15px] mb-3"
                   style={{
-                    color: "#b2b7c2",
+                    color: "#355E6B",
                     lineHeight: 1.75,
                     fontWeight: 400,
                     maxWidth: 340,
@@ -204,8 +204,7 @@ export function HowItWorks() {
                 <span
                   className="inline-block text-xs italic px-2 py-1 rounded"
                   style={{
-                    color: "#aeb6c2",
-                    opacity: 0.6,
+                    color: "#7A9DA8",
                     fontWeight: 400,
                     marginTop: 2,
                     background: "none",
@@ -222,16 +221,16 @@ export function HowItWorks() {
         {/* Bottom CTA */}
         <div className="mt-16 text-center">
           <p
-            className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-[#191a22] border border-[#23243a] text-[#f5f6fa] font-semibold transition-colors duration-200 hover:bg-[#23243a] hover:border-[#2a2b38]"
-            style={{ boxShadow: "none" }}
+            className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-[#9ECFC2] border border-[#A3C6BE] text-[#0F2A33] font-semibold transition-colors duration-200 hover:bg-[#78B6A8] hover:border-[#6FA39A]"
+            style={{ boxShadow: "0 4px 16px -2px rgba(111, 163, 154, 0.25), inset 0 1px 0 rgba(255,255,255,0.4)" }}
           >
             <span>Scroll to Explore</span>
             <svg
               className="w-6 h-6"
               fill="none"
               viewBox="0 0 24 24"
-              stroke="#aeb6c2"
-              style={{ opacity: 0.18 }}
+              stroke="#355E6B"
+              style={{ opacity: 0.6 }}
             >
               <path
                 strokeLinecap="round"

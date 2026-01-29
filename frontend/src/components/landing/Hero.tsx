@@ -20,14 +20,14 @@ export function Hero() {
     <section className="relative min-h-screen flex items-center justify-center px-6 pt-24 pb-20 overflow-hidden">
       {/* Spotlight Effect */}
       <div
-        className="absolute inset-0 opacity-30 pointer-events-none"
+        className="absolute inset-0 opacity-40 pointer-events-none"
         style={{
-          background: `radial-gradient(600px circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(59, 130, 246, 0.15), transparent 40%)`,
+          background: `radial-gradient(600px circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(84, 143, 179, 0.25), transparent 40%)`,
         }}
       />
 
       {/* Grid Background */}
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:100px_100px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,black,transparent)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(84,143,179,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(84,143,179,0.08)_1px,transparent_1px)] bg-[size:100px_100px] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,black,transparent)]" />
 
       <div className="relative z-10 max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
         {/* Left Content */}
@@ -43,19 +43,19 @@ export function Hero() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.8 }}
-              className="text-5xl md:text-7xl font-extrabold leading-[1.12] tracking-tight text-left"
+              className="text-5xl md:text-7xl font-extrabold leading-[1.12] tracking-tight text-left text-[#0F2A33]"
             >
               City Infrastructure
               <br />
-              <span className="gradient-heading">Seen Clearly</span>.<br />
-              <span className="gradient-heading">Fixed Proactively</span>.
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#3F7F6B] via-[#2F8F8A] to-[#26658C]">Seen Clearly</span>.<br />
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#3F7F6B] via-[#2F8F8A] to-[#26658C]">Fixed Proactively</span>.
             </motion.h1>
 
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.8 }}
-              className="text-lg md:text-xl text-secondary max-w-xl leading-relaxed font-normal"
+              className="text-lg md:text-xl text-[#355E6B] max-w-xl leading-relaxed font-normal"
             >
               Monitor, prioritize, and resolve city infrastructure issues fast.
               Built for clarity and control.
@@ -99,7 +99,7 @@ export function Hero() {
         transition={{ delay: 1.5, duration: 1 }}
         className="absolute bottom-10 left-1/2 -translate-x-1/2"
       >
-        <div className="flex flex-col items-center gap-2 text-white/40">
+        <div className="flex flex-col items-center gap-2 text-[#355E6B]/70">
           <span className="text-xs uppercase tracking-widest">
             Scroll to explore
           </span>
