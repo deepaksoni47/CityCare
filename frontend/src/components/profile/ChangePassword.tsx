@@ -87,12 +87,12 @@ export default function ChangePassword() {
 
   return (
     <div>
-      <h2 className="text-2xl font-semibold text-white mb-6">
+      <h2 className="text-2xl font-semibold text-[#0F2A33] mb-6">
         Change Password
       </h2>
 
       {error && (
-        <div className="mb-4 p-4 bg-red-900/50 border border-red-500 rounded-lg text-red-200 flex items-start">
+        <div className="mb-4 p-4 bg-red-500/10 border border-red-500/30 rounded-2xl text-red-600 flex items-start">
           <svg
             className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0"
             fill="currentColor"
@@ -109,7 +109,7 @@ export default function ChangePassword() {
       )}
 
       {success && (
-        <div className="mb-4 p-4 bg-green-900/50 border border-green-500 rounded-lg text-green-200 flex items-start">
+        <div className="mb-4 p-4 bg-[#3F7F6B]/10 border border-[#3F7F6B]/30 rounded-2xl text-[#235347] flex items-start">
           <svg
             className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0"
             fill="currentColor"
@@ -128,7 +128,7 @@ export default function ChangePassword() {
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Current Password */}
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-[#355E6B] mb-2">
             Current Password
           </label>
           <div className="relative">
@@ -138,13 +138,13 @@ export default function ChangePassword() {
               onChange={(e) =>
                 setFormData({ ...formData, currentPassword: e.target.value })
               }
-              className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500 transition-colors pr-12"
+              className="w-full px-4 py-3 bg-white/40 border border-white/20 rounded-2xl text-[#0F2A33] focus:outline-none focus:border-[#3F7F6B] focus:ring-2 focus:ring-[#3F7F6B]/20 transition-colors pr-12 shadow-inner"
               required
             />
             <button
               type="button"
               onClick={() => togglePasswordVisibility("current")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-300"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7A9DA8] hover:text-[#355E6B]"
             >
               {showPasswords.current ? (
                 <svg
@@ -187,7 +187,7 @@ export default function ChangePassword() {
 
         {/* New Password */}
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-[#355E6B] mb-2">
             New Password
           </label>
           <div className="relative">
@@ -197,14 +197,14 @@ export default function ChangePassword() {
               onChange={(e) =>
                 setFormData({ ...formData, newPassword: e.target.value })
               }
-              className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500 transition-colors pr-12"
+              className="w-full px-4 py-3 bg-white/40 border border-white/20 rounded-2xl text-[#0F2A33] focus:outline-none focus:border-[#3F7F6B] focus:ring-2 focus:ring-[#3F7F6B]/20 transition-colors pr-12 shadow-inner"
               required
               minLength={6}
             />
             <button
               type="button"
               onClick={() => togglePasswordVisibility("new")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-300"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7A9DA8] hover:text-[#355E6B]"
             >
               {showPasswords.new ? (
                 <svg
@@ -243,12 +243,12 @@ export default function ChangePassword() {
               )}
             </button>
           </div>
-          <p className="mt-1 text-xs text-gray-500">Minimum 6 characters</p>
+          <p className="mt-1 text-xs text-[#7A9DA8]">Minimum 6 characters</p>
         </div>
 
         {/* Confirm New Password */}
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
+          <label className="block text-sm font-medium text-[#355E6B] mb-2">
             Confirm New Password
           </label>
           <div className="relative">
@@ -258,13 +258,13 @@ export default function ChangePassword() {
               onChange={(e) =>
                 setFormData({ ...formData, confirmPassword: e.target.value })
               }
-              className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500 transition-colors pr-12"
+              className="w-full px-4 py-3 bg-white/40 border border-white/20 rounded-2xl text-[#0F2A33] focus:outline-none focus:border-[#3F7F6B] focus:ring-2 focus:ring-[#3F7F6B]/20 transition-colors pr-12 shadow-inner"
               required
             />
             <button
               type="button"
               onClick={() => togglePasswordVisibility("confirm")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-300"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#7A9DA8] hover:text-[#355E6B]"
             >
               {showPasswords.confirm ? (
                 <svg
@@ -307,8 +307,8 @@ export default function ChangePassword() {
 
         {/* Password Strength Indicator */}
         {formData.newPassword && (
-          <div className="p-4 bg-gray-700/50 rounded-lg">
-            <p className="text-sm text-gray-300 mb-2">Password strength:</p>
+          <div className="p-4 bg-white/30 rounded-2xl shadow-inner">
+            <p className="text-sm text-[#355E6B] mb-2">Password strength:</p>
             <div className="flex space-x-1">
               {[...Array(4)].map((_, i) => {
                 const strength = formData.newPassword.length;
@@ -323,13 +323,13 @@ export default function ChangePassword() {
                     className={`h-2 flex-1 rounded ${
                       isActive
                         ? strength >= 12
-                          ? "bg-green-500"
+                          ? "bg-[#3F7F6B]"
                           : strength >= 10
-                            ? "bg-yellow-500"
+                            ? "bg-[#6FCFC3]"
                             : strength >= 8
-                              ? "bg-orange-500"
-                              : "bg-red-500"
-                        : "bg-gray-600"
+                              ? "bg-[#8EB6B9]"
+                              : "bg-[#7A9DA8]"
+                        : "bg-[#A3C6BE]"
                     }`}
                   />
                 );
@@ -342,15 +342,15 @@ export default function ChangePassword() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white rounded-lg transition-colors font-medium"
+          className="w-full px-6 py-3 bg-gradient-to-r from-[#3F7F6B] to-[#2F8F8A] hover:from-[#235347] hover:to-[#3F7F6B] disabled:bg-[#7A9DA8] text-white rounded-2xl transition-all font-medium shadow-lg shadow-[#3F7F6B]/20"
         >
           {loading ? "Changing Password..." : "Change Password"}
         </button>
       </form>
 
       {/* Security Tips */}
-      <div className="mt-6 p-4 bg-blue-900/20 border border-blue-700 rounded-lg">
-        <h3 className="text-sm font-medium text-blue-300 mb-2 flex items-center">
+      <div className="mt-6 p-4 bg-white/30 border border-white/20 rounded-2xl shadow-inner">
+        <h3 className="text-sm font-medium text-[#26658C] mb-2 flex items-center">
           <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
             <path
               fillRule="evenodd"
@@ -360,7 +360,7 @@ export default function ChangePassword() {
           </svg>
           Password Security Tips
         </h3>
-        <ul className="text-xs text-gray-400 space-y-1">
+        <ul className="text-xs text-[#7A9DA8] space-y-1">
           <li>• Use at least 12 characters for stronger security</li>
           <li>
             • Include uppercase and lowercase letters, numbers, and symbols

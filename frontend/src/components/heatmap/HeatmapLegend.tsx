@@ -20,15 +20,15 @@ export function HeatmapLegend() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3 }}
-      className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-[1000] bg-black/80 backdrop-blur-xl border border-white/10 rounded-xl md:rounded-2xl shadow-2xl w-auto md:w-64"
+      className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-[1000] bg-gradient-to-br from-[#BFE3D5] to-[#9ECFC2] border border-white/40 rounded-xl md:rounded-2xl shadow-2xl shadow-[#3F7F6B]/10 w-auto md:w-64"
     >
       {/* Mobile: Compact Toggle Button */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="md:hidden w-full flex items-center justify-between p-3 text-white"
+        className="md:hidden w-full flex items-center justify-between p-3 text-[#0F2A33]"
       >
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded bg-gradient-to-br from-blue-500 via-yellow-500 to-red-500" />
+          <div className="w-6 h-6 rounded bg-gradient-to-br from-[#548FB3] via-[#3F7F6B] to-[#2F8F8A]" />
           <span className="text-sm font-semibold">Heat Intensity</span>
         </div>
         <svg
@@ -50,29 +50,29 @@ export function HeatmapLegend() {
 
       {/* Desktop: Always Visible / Mobile: Collapsible */}
       <div className={`${isExpanded ? "block" : "hidden"} md:block p-4`}>
-        <h3 className="text-sm font-semibold text-white mb-3 hidden md:block">
+        <h3 className="text-sm font-semibold text-[#0F2A33] mb-3 hidden md:block">
           Heat Intensity
         </h3>
         <div className="space-y-2">
           {gradientStops.map((stop, index) => (
             <div key={index} className="flex items-center gap-2 md:gap-3">
               <div
-                className="w-6 h-6 md:w-8 md:h-8 rounded-lg border border-white/20 flex-shrink-0"
+                className="w-6 h-6 md:w-8 md:h-8 rounded-lg border border-white/40 flex-shrink-0"
                 style={{
                   background: `linear-gradient(135deg, ${stop.color}, ${stop.color})`,
                 }}
               />
               <div className="flex-1">
-                <div className="text-xs font-medium text-white">
+                <div className="text-xs font-medium text-[#0F2A33]">
                   {stop.label}
                 </div>
-                <div className="text-xs text-white/60">{stop.intensity}</div>
+                <div className="text-xs text-[#355E6B]">{stop.intensity}</div>
               </div>
             </div>
           ))}
         </div>
-        <div className="mt-3 md:mt-4 pt-3 md:pt-4 border-t border-white/10">
-          <p className="text-xs text-white/60 leading-relaxed">
+        <div className="mt-3 md:mt-4 pt-3 md:pt-4 border-t border-white/40">
+          <p className="text-xs text-[#355E6B] leading-relaxed">
             Intensity is calculated from issue severity, priority, and recency.
             Red zones indicate critical city infrastructure issues requiring
             immediate attention.

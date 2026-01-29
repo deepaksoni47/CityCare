@@ -17,33 +17,41 @@ export function BadgeCard({
   earnedAt,
 }: BadgeCardProps) {
   const rarityColors = {
-    common: "from-gray-400 to-gray-600",
-    rare: "from-blue-400 to-blue-600",
-    epic: "from-lavender-400 to-lavender-300",
-    legendary: "from-yellow-400 to-orange-600",
+    common: "from-[#9ECFC2] to-[#BFE3D5]",
+    rare: "from-[#7CBFD0] to-[#6FCFC3]",
+    epic: "from-[#548FB3] to-[#2F8F8A]",
+    legendary: "from-[#26658C] to-[#3F7F6B]",
+  };
+
+  const rarityCardBackgrounds = {
+    common: "from-[#BFE3D5]/70 to-[#DDF3E6]/70",
+    rare: "from-[#CFEAF0]/70 to-[#BFE3D5]/70",
+    epic: "from-[#BFE3D5]/70 to-[#9ECFC2]/70",
+    legendary: "from-[#9ECFC2]/70 to-[#78B6A8]/70",
   };
 
   const rarityBorders = {
-    common: "border-gray-300",
-    rare: "border-blue-400",
-    epic: "border-purple-400",
-    legendary: "border-yellow-400",
+    common: "border-[#A3C6BE]/60",
+    rare: "border-[#7CBFD0]/50",
+    epic: "border-[#2F8F8A]/50",
+    legendary: "border-[#26658C]/50",
   };
 
   const rarityGlow = {
-    common: "shadow-gray-300/50",
-    rare: "shadow-blue-400/50",
-    epic: "shadow-purple-400/50",
-    legendary: "shadow-yellow-400/50",
+    common: "shadow-[#A3C6BE]/40",
+    rare: "shadow-[#7CBFD0]/40",
+    epic: "shadow-[#2F8F8A]/40",
+    legendary: "shadow-[#26658C]/40",
   };
 
   return (
     <div
       className={`
-        relative p-4 rounded-xl border-2 transition-all
-        ${earned ? rarityBorders[badge.rarity] : "border-gray-300"}
+        relative p-4 rounded-2xl border-2 transition-all bg-gradient-to-br
+        ${earned ? rarityCardBackgrounds[badge.rarity] : "from-[#DDF3E6]/60 to-[#CFEAF0]/60"}
+        ${earned ? rarityBorders[badge.rarity] : "border-[#A3C6BE]/40"}
         ${earned ? "shadow-lg " + rarityGlow[badge.rarity] : "shadow-sm"}
-        ${!earned ? "opacity-60 grayscale" : ""}
+        ${!earned ? "opacity-70 grayscale" : ""}
         hover:scale-105
       `}
     >
@@ -51,8 +59,8 @@ export function BadgeCard({
       <div className="flex justify-center mb-3">
         <div
           className={`
-            w-16 h-16 rounded-full flex items-center justify-center text-3xl
-            ${earned ? `bg-gradient-to-br ${rarityColors[badge.rarity]}` : "bg-gray-300"}
+            w-16 h-16 rounded-full flex items-center justify-center text-3xl shadow-inner
+            ${earned ? `bg-gradient-to-br ${rarityColors[badge.rarity]}` : "bg-[#A3C6BE]/60"}
           `}
         >
           {badge.icon}
@@ -60,17 +68,17 @@ export function BadgeCard({
       </div>
 
       {/* Badge Name */}
-      <h3 className="text-center font-semibold text-gray-900 mb-1">
+      <h3 className="text-center font-semibold text-[#0F2A33] mb-1">
         {badge.name}
       </h3>
 
       {/* Badge Description */}
-      <p className="text-xs text-center text-gray-600 mb-2 line-clamp-2">
+      <p className="text-xs text-center text-[#355E6B] mb-2 line-clamp-2">
         {badge.description}
       </p>
 
       {/* Badge Details */}
-      <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
+      <div className="flex items-center justify-between text-xs text-[#7A9DA8] mb-2">
         <span className="capitalize">{badge.rarity}</span>
         <span>{badge.pointsAwarded} pts</span>
       </div>
@@ -78,13 +86,13 @@ export function BadgeCard({
       {/* Progress Bar (if not earned) */}
       {!earned && progress !== undefined && (
         <div className="mt-2">
-          <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+          <div className="w-full h-2 bg-white/50 rounded-full overflow-hidden shadow-inner">
             <div
               className={`h-full bg-gradient-to-r ${rarityColors[badge.rarity]} transition-all`}
               style={{ width: `${Math.min(progress, 100)}%` }}
             />
           </div>
-          <p className="text-xs text-center text-gray-500 mt-1">
+          <p className="text-xs text-center text-[#7A9DA8] mt-1">
             {Math.round(progress)}% complete
           </p>
         </div>
@@ -92,7 +100,7 @@ export function BadgeCard({
 
       {/* Earned Date */}
       {earned && earnedAt && (
-        <p className="text-xs text-center text-gray-500 mt-2">
+        <p className="text-xs text-center text-[#7A9DA8] mt-2">
           Earned {new Date(earnedAt).toLocaleDateString()}
         </p>
       )}
@@ -101,7 +109,7 @@ export function BadgeCard({
       {!earned && (
         <div className="absolute top-2 right-2">
           <svg
-            className="w-5 h-5 text-gray-400"
+            className="w-5 h-5 text-[#7A9DA8]"
             fill="currentColor"
             viewBox="0 0 20 20"
           >
@@ -134,7 +142,10 @@ export function BadgesGrid({ userId: _userId }: { userId?: string }) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {[...Array(8)].map((_, i) => (
-          <div key={i} className="h-64 bg-gray-200 animate-pulse rounded-xl" />
+          <div
+            key={i}
+            className="h-64 bg-gradient-to-br from-[#BFE3D5]/70 to-[#DDF3E6]/70 animate-pulse rounded-2xl border border-white/30"
+          />
         ))}
       </div>
     );
@@ -142,7 +153,7 @@ export function BadgesGrid({ userId: _userId }: { userId?: string }) {
 
   if (badges.length === 0) {
     return (
-      <div className="text-center py-12 text-gray-500">
+      <div className="text-center py-12 text-[#7A9DA8]">
         No badges available yet
       </div>
     );

@@ -19,25 +19,25 @@ import { HeatmapLegend } from "./HeatmapLegend";
 
 // Custom marker icons for different categories
 const createCustomIcon = (category?: string[]) => {
-  let color = "#8b5cf6"; // Default purple
+  let color = "#548FB3"; // Default City Blue
   let icon = "⚡";
 
   if (category && category.length > 0) {
     const cat = category[0].toLowerCase();
     if (cat.includes("water") || cat.includes("plumb")) {
-      color = "#06b6d4"; // Cyan
+      color = "#7CBFD0"; // City Blue Soft
       icon = "💧";
     } else if (cat.includes("power") || cat.includes("electric")) {
-      color = "#f59e0b"; // Amber
+      color = "#26658C"; // City Blue Strong
       icon = "⚡";
     } else if (cat.includes("wifi") || cat.includes("network")) {
-      color = "#10b981"; // Green
+      color = "#3F7F6B"; // Care Green Primary
       icon = "📡";
     } else if (cat.includes("hvac") || cat.includes("ac")) {
-      color = "#3b82f6"; // Blue
+      color = "#023859"; // City Blue Deep
       icon = "❄️";
     } else if (cat.includes("maintenance")) {
-      color = "#6366f1"; // Indigo
+      color = "#2F8F8A"; // Blue-Green Teal
       icon = "🔧";
     }
   }
@@ -60,7 +60,7 @@ const createCustomIcon = (category?: string[]) => {
           background: ${color};
           border-radius: 50% 50% 50% 0;
           transform: rotate(-45deg);
-          box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.2);
           border: 3px solid white;
         "></div>
         <div style="
@@ -68,7 +68,7 @@ const createCustomIcon = (category?: string[]) => {
           font-size: 18px;
           transform: rotate(0deg);
           z-index: 10;
-          filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
+          filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2));
         ">${icon}</div>
       </div>
     `,
@@ -306,10 +306,10 @@ export function HeatmapContainer({
       >
         <RecenterHandler center={center} />
 
-        {/* Dark theme tile layer (CartoDB Dark Matter) */}
+        {/* Light theme tile layer (CartoDB Positron) */}
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
           subdomains="abcd"
           maxZoom={19}
         />
@@ -331,13 +331,13 @@ export function HeatmapContainer({
           filteredData.map((point, index) => {
             const severityColor = point.avgSeverity
               ? point.avgSeverity >= 8
-                ? "#ef4444" // Red
+                ? "#023859" // City Blue Dark - Critical
                 : point.avgSeverity >= 6
-                  ? "#f59e0b" // Orange
+                  ? "#26658C" // City Blue Strong - High
                   : point.avgSeverity >= 4
-                    ? "#eab308" // Yellow
-                    : "#22c55e" // Green
-              : "#8b5cf6"; // Purple default
+                    ? "#548FB3" // City Blue Primary - Medium
+                    : "#3F7F6B" // Care Green Primary - Low/Healthy
+              : "#7A9DA8"; // Civic Muted - Unknown
 
             const categoryIcon =
               point.categories && point.categories.length > 0
@@ -366,7 +366,7 @@ export function HeatmapContainer({
                     className="min-w-[280px] rounded-lg overflow-hidden"
                     style={{
                       background:
-                        "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                        "linear-gradient(135deg, #3F7F6B 0%, #26658C 100%)",
                     }}
                   >
                     {/* Header */}
@@ -396,13 +396,13 @@ export function HeatmapContainer({
                     </div>
 
                     {/* Body */}
-                    <div className="px-4 py-3 bg-white">
+                    <div className="px-4 py-3 bg-gradient-to-br from-[#DDF3E6] to-[#CFEAF0]">
                       {point.issueCount && (
-                        <div className="flex items-center justify-between mb-2 pb-2 border-b border-gray-200">
-                          <span className="text-sm font-medium text-gray-700">
+                        <div className="flex items-center justify-between mb-2 pb-2 border-b border-[#A3C6BE]/40">
+                          <span className="text-sm font-medium text-[#355E6B]">
                             Total Issues
                           </span>
-                          <span className="text-lg font-bold text-purple-600">
+                          <span className="text-lg font-bold text-[#0F2A33]">
                             {point.issueCount}
                           </span>
                         </div>
@@ -411,7 +411,7 @@ export function HeatmapContainer({
                       {point.avgSeverity && (
                         <div className="mb-3">
                           <div className="flex items-center justify-between mb-1">
-                            <span className="text-sm font-medium text-gray-700">
+                            <span className="text-sm font-medium text-[#355E6B]">
                               Severity Level
                             </span>
                             <span
@@ -421,7 +421,10 @@ export function HeatmapContainer({
                               {point.avgSeverity.toFixed(1)}/10
                             </span>
                           </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                          <div
+                            className="w-full rounded-full h-2 overflow-hidden"
+                            style={{ background: "rgba(163,198,190,0.3)" }}
+                          >
                             <div
                               className="h-full rounded-full transition-all duration-300"
                               style={{
@@ -433,7 +436,7 @@ export function HeatmapContainer({
                         </div>
                       )}
 
-                      <div className="flex items-center gap-2 text-xs text-gray-500 mt-3 pt-2 border-t border-gray-100">
+                      <div className="flex items-center gap-2 text-xs text-[#7A9DA8] mt-3 pt-2 border-t border-[#A3C6BE]/40">
                         <svg
                           className="w-4 h-4"
                           fill="none"
@@ -454,7 +457,7 @@ export function HeatmapContainer({
 
                       {/* Action Buttons */}
                       {point.issueIds && point.issueIds.length > 0 && (
-                        <div className="mt-3 pt-2 border-t border-gray-100">
+                        <div className="mt-3 pt-2 border-t border-[#A3C6BE]/40">
                           {point.issueIds.length === 1 ? (
                             // Single issue - show view button
                             <button
@@ -462,7 +465,7 @@ export function HeatmapContainer({
                                 e.stopPropagation();
                                 router.push(`/issues/${point.issueIds![0]}`);
                               }}
-                              className="w-full px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                              className="w-full px-3 py-2 bg-gradient-to-r from-[#3F7F6B] to-[#2F8F8A] text-white text-sm font-medium rounded-lg hover:from-[#2F8F8A] hover:to-[#235347] transition-all"
                             >
                               View Issue
                             </button>
@@ -476,7 +479,7 @@ export function HeatmapContainer({
                                   `/issues?issueIds=${issueIdsParam}`,
                                 );
                               }}
-                              className="w-full px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                              className="w-full px-3 py-2 bg-gradient-to-r from-[#3F7F6B] to-[#2F8F8A] text-white text-sm font-medium rounded-lg hover:from-[#2F8F8A] hover:to-[#235347] transition-all"
                             >
                               View {point.issueIds.length} Issues
                             </button>
@@ -506,8 +509,7 @@ export function HeatmapContainer({
           whileTap={{ scale: 0.95 }}
           onClick={handleAIInsight}
           disabled={isLoading}
-          // className="fixed top-24 right-6 z-[1000] px-6 py-3 bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 text-white font-medium rounded-xl shadow-lg shadow-violet-500/25 hover:shadow-xl hover:shadow-fuchsia-500/30 transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
-          className="fixed top-24 right-6 z-[1000] px-6 py-3 bg-gradient-to-r from-violet-600 to-fuchsia-600 border-2 text-white font-medium rounded-xl shadow-lg shadow-violet-500/25 hover:shadow-xl hover:shadow-fuchsia-500/30 transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
+          className="fixed top-24 right-6 z-[1000] px-6 py-3 bg-gradient-to-r from-[#3F7F6B] via-[#2F8F8A] to-[#26658C] border-2 border-white/30 text-white font-medium rounded-xl shadow-lg shadow-[#3F7F6B]/25 hover:shadow-xl hover:shadow-[#26658C]/30 transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
         >
           {isLoading ? (
             <>

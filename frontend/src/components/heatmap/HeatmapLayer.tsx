@@ -30,15 +30,12 @@ export function HeatmapLayer({
   minOpacity = 0.2,
   max = 1.5,
   gradient = {
-    0.0: "#1e1b4b", // Dark indigo
-    0.1: "#4c1d95", // Deep purple
-    0.25: "#6d28d9", // Purple
-    0.4: "#a855f7", // Light purple
-    0.55: "#d946ef", // Fuchsia
-    0.7: "#ec4899", // Pink
-    0.82: "#f43f5e", // Rose
-    0.92: "#ef4444", // Red
-    1.0: "#dc2626", // Dark red
+    0.0: "#0000FF", // Blue - Low (0-20%)
+    0.2: "#00FFFF", // Cyan - Moderate (20-40%)
+    0.4: "#00FF00", // Green - Medium (40-60%)
+    0.6: "#FFFF00", // Yellow - High (60-80%)
+    0.8: "#FFA500", // Orange - Very High (80-90%)
+    1.0: "#FF0000", // Red - Critical (90-100%)
   },
 }: HeatmapLayerProps) {
   const map = useMap();

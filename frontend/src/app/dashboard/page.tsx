@@ -291,45 +291,45 @@ export default function DashboardPage() {
   const getRoleBadgeColor = (role?: string) => {
     switch (role?.toLowerCase()) {
       case "admin":
-        return "bg-rose-500/20 text-rose-300 border-rose-500/50";
+        return "bg-[#023859]/20 text-[#26658C] border-[#26658C]/50";
       case "agency":
-        return "bg-violet-500/20 text-violet-300 border-violet-500/50";
+        return "bg-[#3F7F6B]/20 text-[#3F7F6B] border-[#3F7F6B]/50";
       case "volunteer":
-        return "bg-blue-500/20 text-blue-300 border-blue-500/50";
+        return "bg-[#548FB3]/20 text-[#548FB3] border-[#548FB3]/50";
       case "citizen":
-        return "bg-cyan-500/20 text-cyan-300 border-cyan-500/50";
+        return "bg-[#7CBFD0]/20 text-[#26658C] border-[#7CBFD0]/50";
       default:
-        return "bg-emerald-500/20 text-emerald-300 border-emerald-500/50";
+        return "bg-[#2F8F8A]/20 text-[#2F8F8A] border-[#2F8F8A]/50";
     }
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority?.toLowerCase()) {
       case "critical":
-        return "text-rose-400 bg-rose-950/40 border-rose-500/30";
+        return "text-[#011C40] bg-[#26658C]/20 border-[#023859]/50";
       case "high":
-        return "text-orange-400 bg-orange-950/40 border-orange-500/30";
+        return "text-[#023859] bg-[#548FB3]/20 border-[#26658C]/50";
       case "medium":
-        return "text-yellow-400 bg-yellow-950/40 border-yellow-500/30";
+        return "text-[#26658C] bg-[#7CBFD0]/20 border-[#548FB3]/50";
       case "low":
-        return "text-green-400 bg-green-950/40 border-green-500/30";
+        return "text-[#2F8F8A] bg-[#3F7F6B]/20 border-[#3F7F6B]/50";
       default:
-        return "text-white/60 bg-white/5 border-white/10";
+        return "text-[#355E6B] bg-white/30 border-white/40";
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
       case "open":
-        return "text-blue-400 bg-blue-950/40";
+        return "text-[#26658C] bg-[#548FB3]/20";
       case "in_progress":
-        return "text-violet-400 bg-violet-950/40";
+        return "text-[#2F8F8A] bg-[#3F7F6B]/20";
       case "resolved":
-        return "text-green-400 bg-green-950/40";
+        return "text-[#235347] bg-[#3F7F6B]/20";
       case "closed":
-        return "text-gray-400 bg-gray-950/40";
+        return "text-[#7A9DA8] bg-[#BFE3D5]/40";
       default:
-        return "text-white/60 bg-white/5";
+        return "text-[#355E6B] bg-white/30";
     }
   };
 
@@ -351,11 +351,11 @@ export default function DashboardPage() {
   // --- Render Loading or block unauthorized ---
   if (isLoading) {
     return (
-      <div className="relative min-h-screen bg-[#050814]">
+      <div className="relative min-h-screen bg-gradient-to-br from-[#DDF3E6] to-[#CFEAF0]">
         <div className="flex items-center justify-center h-screen">
           <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-violet-500 mb-4"></div>
-            <p className="text-white/60">Loading dashboard...</p>
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-[#548FB3]/20 border-t-[#548FB3] mb-4"></div>
+            <p className="text-[#355E6B]">Loading dashboard...</p>
           </div>
         </div>
       </div>
@@ -371,11 +371,11 @@ export default function DashboardPage() {
   const isManager = ["admin", "facility_manager"].includes(user?.role || "");
 
   return (
-    <div className="relative min-h-screen bg-[#050814] text-white">
+    <div className="relative min-h-screen bg-gradient-to-br from-[#DDF3E6] via-[#CFEAF0] to-[#DDF3E6] text-[#0F2A33] pb-20 lg:pb-0">
       {/* Background Ambience */}
       <div className="fixed inset-0 -z-10">
-        <div className="absolute top-20 left-20 w-96 h-96 bg-violet-500/10 rounded-full blur-3xl animate-pulse-slow" />
-        <div className="absolute bottom-40 right-20 w-80 h-80 bg-fuchsia-500/10 rounded-full blur-3xl animate-pulse-slower" />
+        <div className="absolute top-20 left-20 w-96 h-96 bg-[#3F7F6B]/8 rounded-full blur-3xl" />
+        <div className="absolute bottom-40 right-20 w-80 h-80 bg-[#548FB3]/8 rounded-full blur-3xl" />
       </div>
 
       <main className="pt-24 pb-12 px-4 md:px-6 lg:px-8 max-w-7xl mx-auto">
@@ -391,7 +391,7 @@ export default function DashboardPage() {
             </h1>
             <div className="flex items-center gap-3 mt-2">
               <span>
-                <span className="mr-3 gradient-heading bg-clip-text text-transparent text-4xl md:text-5xl font-bold mb-2">
+                <span className="mr-3 bg-gradient-to-r from-[#26658C] to-[#3F7F6B] bg-clip-text text-transparent text-4xl md:text-5xl font-bold mb-2">
                   {user?.name || "User"}
                 </span>
                 <span
@@ -401,7 +401,7 @@ export default function DashboardPage() {
                 </span>
               </span>
             </div>
-            <p className="text-white/60 text-lg">
+            <p className="text-[#355E6B] text-lg font-light">
               Infrastructure Intelligence System
             </p>
           </div>
@@ -419,25 +419,25 @@ export default function DashboardPage() {
               label="Total Issues"
               value={stats.total}
               icon=<BadgeAlert />
-              gradient="from-blue-500 to-cyan-500"
+              gradient="from-[#548FB3] to-[#26658C]"
             />
             <StatCard
               label="Open"
               value={stats.open}
               icon=<SquareArrowOutUpRight />
-              gradient="from-rose-500 to-pink-500"
+              gradient="from-[#7CBFD0] to-[#548FB3]"
             />
             <StatCard
               label="In Progress"
               value={stats.inProgress}
               icon=<Workflow />
-              gradient="from-yellow-500 to-orange-500"
+              gradient="from-[#2F8F8A] to-[#3F7F6B]"
             />
             <StatCard
               label="Resolved"
               value={stats.resolved}
               icon=<MapPinCheck />
-              gradient="from-green-500 to-emerald-500"
+              gradient="from-[#3F7F6B] to-[#235347]"
             />
           </motion.div>
         ) : (
@@ -445,11 +445,13 @@ export default function DashboardPage() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-8 p-6 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between"
+            className="mb-8 p-6 rounded-3xl bg-gradient-to-br from-[#BFE3D5] to-[#9ECFC2] border border-white/40 shadow-lg shadow-[#3F7F6B]/10 flex items-center justify-between"
           >
             <div>
-              <h3 className="text-xl font-semibold mb-1">My Activity</h3>
-              <p className="text-white/60 text-sm">
+              <h3 className="text-xl font-semibold mb-1 text-[#0F2A33]">
+                My Activity
+              </h3>
+              <p className="text-[#355E6B] text-sm font-light">
                 You have reported {recentIssues.length} active issues recently.
               </p>
             </div>
@@ -468,7 +470,9 @@ export default function DashboardPage() {
           transition={{ delay: 0.2 }}
           className="mb-8"
         >
-          <h2 className="text-2xl font-semibold mb-4">Quick Actions</h2>
+          <h2 className="text-2xl font-semibold mb-4 text-[#0F2A33]">
+            Quick Actions
+          </h2>
           <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Action 1: Report (Everyone) */}
             <QuickActionCard
@@ -476,14 +480,14 @@ export default function DashboardPage() {
               description="Visualize infrastructure issues on city map"
               icon="🗺️"
               href="/heatmap"
-              gradient="from-violet-600 to-fuchsia-600"
+              gradient="from-[#548FB3] to-[#26658C]"
             />
             <QuickActionCard
               title="Report Issue"
               description="Report a new infrastructure issue"
               icon="📝"
               href="/report"
-              gradient="from-emerald-600 to-teal-600"
+              gradient="from-[#3F7F6B] to-[#2F8F8A]"
             />
 
             {/* Action 2: Role Based */}
@@ -493,7 +497,7 @@ export default function DashboardPage() {
                 description="View critical issues requiring attention"
                 icon="⚡"
                 href="/priorities"
-                gradient="from-orange-600 to-red-600"
+                gradient="from-[#26658C] to-[#023859]"
               />
             ) : (
               <QuickActionCard
@@ -501,7 +505,7 @@ export default function DashboardPage() {
                 description="Track status of your reported issues"
                 icon="📋"
                 href="/issues"
-                gradient="from-blue-600 to-indigo-600"
+                gradient="from-[#7CBFD0] to-[#548FB3]"
               />
             )}
 
@@ -511,7 +515,7 @@ export default function DashboardPage() {
               description="View community rankings and achievements"
               icon="🏆"
               href="/profile?tab=leaderboard"
-              gradient="from-yellow-600 to-orange-600"
+              gradient="from-[#2F8F8A] to-[#3F7F6B]"
             />
           </div>
         </motion.div>
@@ -523,15 +527,15 @@ export default function DashboardPage() {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3 }}
-            className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6"
+            className="bg-gradient-to-br from-[#BFE3D5] to-[#9ECFC2] border border-white/40 rounded-3xl p-6 shadow-lg shadow-[#3F7F6B]/10"
           >
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold">
+              <h2 className="text-xl font-semibold text-[#0F2A33]">
                 {isManager ? "High Priority Issues" : "Active Alerts"}
               </h2>
               <Link
                 href="/priority"
-                className="text-sm text-violet-400 hover:text-violet-300 transition-colors"
+                className="text-sm text-[#3F7F6B] hover:text-[#235347] transition-colors font-semibold"
               >
                 View all →
               </Link>
@@ -542,7 +546,7 @@ export default function DashboardPage() {
                   .slice(0, 5)
                   .map((issue) => <IssueCard key={issue.id} issue={issue} />)
               ) : (
-                <p className="text-white/40 text-sm py-4 text-center">
+                <p className="text-[#355E6B] text-sm py-4 text-center font-medium">
                   No high-priority alerts
                 </p>
               )}
@@ -554,15 +558,15 @@ export default function DashboardPage() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.4 }}
-            className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-6"
+            className="bg-gradient-to-br from-[#BFE3D5] to-[#9ECFC2] border border-white/40 rounded-3xl p-6 shadow-lg shadow-[#3F7F6B]/10"
           >
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold">
+              <h2 className="text-xl font-semibold text-[#0F2A33]">
                 {isManager ? "Recent Reports" : "My Recent Reports"}
               </h2>
               <Link
                 href="/issues"
-                className="text-sm text-violet-400 hover:text-violet-300 transition-colors"
+                className="text-sm text-[#3F7F6B] hover:text-[#235347] transition-colors font-semibold"
               >
                 View all →
               </Link>
@@ -573,7 +577,7 @@ export default function DashboardPage() {
                   <IssueCard key={issue.id} issue={issue} />
                 ))
               ) : (
-                <p className="text-white/40 text-sm py-4 text-center">
+                <p className="text-[#355E6B] text-sm py-4 text-center font-medium">
                   No recent issues
                 </p>
               )}
@@ -587,18 +591,20 @@ export default function DashboardPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className="mt-6 bg-gradient-to-br from-violet-950/40 to-fuchsia-950/40 backdrop-blur-xl border border-violet-500/20 rounded-2xl p-6"
+            className="mt-6 bg-gradient-to-br from-[#BFE3D5] to-[#9ECFC2] border border-white/40 rounded-3xl p-6 shadow-lg shadow-[#3F7F6B]/10"
           >
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center flex-shrink-0">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#3F7F6B] to-[#2F8F8A] flex items-center justify-center flex-shrink-0 shadow-md">
                 <span className="text-2xl">🤖</span>
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-semibold mb-2">AI Insights</h3>
-                <p className="text-white/80 text-sm leading-relaxed mb-3">
+                <h3 className="text-lg font-semibold mb-2 text-[#0F2A33]">
+                  AI Insights
+                </h3>
+                <p className="text-[#355E6B] text-sm leading-relaxed mb-3">
                   {aiInsight.insights}
                 </p>
-                <p className="text-xs text-white/40">
+                <p className="text-xs text-[#7A9DA8]">
                   Analyzed {aiInsight.analyzedIssues} issues •{" "}
                   {new Date(aiInsight.timestamp).toLocaleDateString()}
                 </p>
@@ -613,7 +619,7 @@ export default function DashboardPage() {
   // Sub-components (kept same as your original code)
   function StatCard({ label, value, icon, gradient }: any) {
     return (
-      <div className="bg-black/40 backdrop-blur-xl border border-white/20 rounded-xl p-4">
+      <div className="bg-gradient-to-br from-[#BFE3D5] to-[#9ECFC2] border border-white/40 rounded-2xl p-4 shadow-lg shadow-[#3F7F6B]/10">
         <div className="flex items-center justify-between mb-2 gap-4">
           <span className="w-2 h-5 md:text-2xl">{icon}</span>
           <span
@@ -622,7 +628,7 @@ export default function DashboardPage() {
             {value}
           </span>
         </div>
-        <p className="text-xs text-white/60">{label}</p>
+        <p className="text-xs text-[#355E6B] font-medium">{label}</p>
       </div>
     );
   }
@@ -633,11 +639,11 @@ export default function DashboardPage() {
         <motion.div
           whileHover={{ scale: 1.02, y: -2 }}
           whileTap={{ scale: 0.98 }}
-          className={`bg-gradient-to-br ${gradient} rounded-xl p-6 cursor-pointer transition-all hover:shadow-lg hover:shadow-violet-500/25 h-full`}
+          className={`bg-gradient-to-br ${gradient} rounded-2xl p-6 cursor-pointer transition-all hover:shadow-xl hover:shadow-[#3F7F6B]/20 h-full`}
         >
           <div className="text-3xl mb-3">{icon}</div>
           <h3 className="font-semibold text-white mb-1">{title}</h3>
-          <p className="text-white/80 text-sm">{description}</p>
+          <p className="text-white/90 text-sm font-light">{description}</p>
         </motion.div>
       </Link>
     );
@@ -648,10 +654,10 @@ export default function DashboardPage() {
       <Link href={`/issues/${issue.id}`}>
         <motion.div
           whileHover={{ scale: 1.01 }}
-          className="bg-white/5 hover:bg-white/10 border border-white/20 rounded-xl p-4 transition-all cursor-pointer mb-3"
+          className="bg-white/60 hover:bg-white/80 border border-white/60 rounded-2xl p-4 transition-all cursor-pointer mb-3 shadow-sm hover:shadow-md"
         >
           <div className="flex items-start justify-between mb-2">
-            <h4 className="font-medium text-white text-sm flex-1 line-clamp-1">
+            <h4 className="font-medium text-[#0F2A33] text-sm flex-1 line-clamp-1">
               {issue.title}
             </h4>
             <span
@@ -660,7 +666,7 @@ export default function DashboardPage() {
               {issue.priority}
             </span>
           </div>
-          <div className="flex items-center gap-3 text-xs text-white/60">
+          <div className="flex items-center gap-3 text-xs text-[#355E6B]">
             <span className="capitalize">{issue.category}</span>
             <span>•</span>
             <span
@@ -671,7 +677,7 @@ export default function DashboardPage() {
             <span>•</span>
             <span>Severity: {issue.severity}/10</span>
           </div>
-          <p className="text-xs text-white/40 mt-2">
+          <p className="text-xs text-[#7A9DA8] mt-2">
             {formatDate(issue.createdAt)}
           </p>
         </motion.div>
