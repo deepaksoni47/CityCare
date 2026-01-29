@@ -20,9 +20,10 @@ services:
       GOOGLE_GEMINI_API_KEY: ${GOOGLE_GEMINI_API_KEY}
       # Application config
       API_BASE_URL: ${API_BASE_URL:-http://localhost:3001}
-      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3000}
+      # ALLOWED_ORIGINS must include your production frontend domain
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
     env_file:
-      - .env
+      - .env.production
     expose:
       - "3001"
     networks:
@@ -45,15 +46,16 @@ services:
       backend:
         condition: service_healthy
     environment:
-      # Backend API
-      NEXT_PUBLIC_API_BASE_URL: http://backend:3001
+      # Backend API - CRITICAL: This must be your actual production domain for browsers
+      # The frontend needs this URL to be accessible from the browser
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL}
       # Firebase Web SDK
       NEXT_PUBLIC_FIREBASE_API_KEY: ${NEXT_PUBLIC_FIREBASE_API_KEY}
       NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN}
       NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${NEXT_PUBLIC_FIREBASE_PROJECT_ID}
       NEXT_PUBLIC_FIREBASE_APP_ID: ${NEXT_PUBLIC_FIREBASE_APP_ID}
     env_file:
-      - .env
+      - .env.production
     expose:
       - "3000"
     networks:
