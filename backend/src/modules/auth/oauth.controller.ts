@@ -52,7 +52,7 @@ export function handleGoogleCallbackRedirect(req: Request, res: Response) {
     }
 
     // state contains the cityId
-    const cityId = state || "bilaspur";
+    const cityId = typeof state === "string" ? state : "bilaspur";
 
     // Redirect to frontend callback handler
     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
