@@ -85,7 +85,7 @@ export async function createNewIssue(req: Request, res: Response) {
         const zoneName = zoneId
           .split("_")
           .slice(1)
-          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
           .join(" ");
         zone = new Zone({
           cityId: userCityId,
