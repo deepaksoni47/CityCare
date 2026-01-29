@@ -96,7 +96,7 @@ export default function ProfilePage() {
         <div className="absolute bottom-[-10%] right-[-10%] w-[36rem] h-[36rem] bg-[#7CBFD0]/5 rounded-full blur-3xl" />
       </div>
 
-      <div className="container mx-auto px-4 pt-24 md:pt-32 pb-20">
+      <div className="container mx-auto px-4 pt-5 md:pt-32 pb-20">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <motion.div

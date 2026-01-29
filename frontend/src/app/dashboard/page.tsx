@@ -378,7 +378,7 @@ export default function DashboardPage() {
         <div className="absolute bottom-40 right-20 w-80 h-80 bg-[#548FB3]/8 rounded-full blur-3xl" />
       </div>
 
-      <main className="pt-24 pb-12 px-4 md:px-6 lg:px-8 max-w-7xl mx-auto">
+      <main className="pt-5 md:pt-32 pb-12 px-4 md:px-6 lg:px-8 max-w-7xl mx-auto">
         {/* Header with Role Badge */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
