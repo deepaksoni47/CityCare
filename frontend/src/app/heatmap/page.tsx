@@ -637,11 +637,11 @@ Keep the response concise and actionable.`;
 
   if (isLoading) {
     return (
-      <div className="relative min-h-screen bg-[#050814]">
+      <div className="relative min-h-screen bg-gradient-to-br from-[#DDF3E6] to-[#CFEAF0]">
         <div className="flex items-center justify-center h-screen">
           <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-violet-500 mb-4"></div>
-            <p className="text-white/60">Loading heatmap data...</p>
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-[#548FB3]/20 border-t-[#548FB3] mb-4"></div>
+            <p className="text-[#355E6B]">Loading heatmap data...</p>
           </div>
         </div>
       </div>
@@ -649,7 +649,12 @@ Keep the response concise and actionable.`;
   }
 
   return (
-    <div className="relative min-h-screen bg-[#050814] overflow-hidden">
+    <div className="relative min-h-screen bg-gradient-to-br from-[#DDF3E6] via-[#CFEAF0] to-[#DDF3E6] overflow-hidden">
+      {/* Background Ambience */}
+      <div className="fixed inset-0 -z-10">
+        <div className="absolute top-20 left-20 w-96 h-96 bg-[#3F7F6B]/8 rounded-full blur-3xl" />
+        <div className="absolute bottom-40 right-20 w-80 h-80 bg-[#548FB3]/8 rounded-full blur-3xl" />
+      </div>
       {/* Main heatmap container */}
       <div className="h-screen pt-0 md:pt-0">
         <DynamicHeatmapContainer
@@ -685,12 +690,12 @@ Keep the response concise and actionable.`;
 
       {/* AI Insights Modal */}
       {showAiModal && aiInsight && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-2 md:p-4 bg-black/60 backdrop-blur-sm">
-          <div className="relative w-full max-w-3xl max-h-[90vh] md:max-h-[80vh] bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl md:rounded-2xl shadow-2xl border border-violet-500/20 overflow-hidden">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-2 md:p-4 bg-black/40 backdrop-blur-sm">
+          <div className="relative w-full max-w-3xl max-h-[90vh] md:max-h-[80vh] bg-gradient-to-br from-[#BFE3D5] to-[#9ECFC2] rounded-3xl md:rounded-3xl shadow-2xl border border-white/40 overflow-hidden shadow-lg shadow-[#3F7F6B]/10">
             {/* Header */}
-            <div className="sticky top-0 bg-gradient-to-r from-violet-600 to-indigo-600 px-3 md:px-6 py-3 md:py-4 flex items-center justify-between">
+            <div className="sticky top-0 bg-gradient-to-r from-[#3F7F6B] to-[#2F8F8A] px-3 md:px-6 py-3 md:py-4 flex items-center justify-between">
               <div className="flex items-center gap-2 md:gap-3">
-                <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-white/10 flex items-center justify-center">
+                <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-white/20 flex items-center justify-center">
                   <svg
                     className="w-5 h-5 md:w-6 md:h-6 text-white"
                     fill="none"
@@ -709,14 +714,14 @@ Keep the response concise and actionable.`;
                   <h2 className="text-base md:text-xl font-bold text-white">
                     AI Infrastructure Analysis
                   </h2>
-                  <p className="text-xs md:text-sm text-white/70 hidden sm:block">
+                  <p className="text-xs md:text-sm text-white/80 hidden sm:block">
                     Generated insights from city data
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setShowAiModal(false)}
-                className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 transition-colors flex items-center justify-center text-white"
+                className="w-8 h-8 rounded-lg bg-white/20 hover:bg-white/30 transition-colors flex items-center justify-center text-white"
               >
                 <svg
                   className="w-5 h-5"
@@ -735,16 +740,23 @@ Keep the response concise and actionable.`;
             </div>
 
             {/* Content */}
-            <div className="p-3 md:p-6 overflow-y-auto max-h-[calc(90vh-120px)] md:max-h-[calc(80vh-80px)]">
-              <div className="prose prose-invert prose-violet max-w-none">
-                <div className="text-white/90 leading-relaxed whitespace-pre-wrap">
+            <div
+              className="p-3 md:p-6 overflow-y-auto max-h-[calc(90vh-120px)] md:max-h-[calc(80vh-80px)]"
+              style={{
+                WebkitOverflowScrolling: "touch",
+                touchAction: "pan-y",
+                overscrollBehavior: "contain",
+              }}
+            >
+              <div className="prose prose-lg max-w-none">
+                <div className="text-[#0F2A33] leading-relaxed whitespace-pre-wrap">
                   {aiInsight.split("\n").map((line, idx) => {
                     // Bold headers (lines starting with **)
                     if (line.startsWith("**") && line.endsWith("**")) {
                       return (
                         <h3
                           key={idx}
-                          className="text-lg font-bold text-violet-400 mt-4 mb-2"
+                          className="text-lg font-bold text-[#3F7F6B] mt-4 mb-2"
                         >
                           {line.replace(/\*\*/g, "")}
                         </h3>
@@ -755,16 +767,16 @@ Keep the response concise and actionable.`;
                       return (
                         <div
                           key={idx}
-                          className="bg-violet-500/10 border-l-4 border-violet-500 p-3 my-2 rounded-r"
+                          className="bg-[#3F7F6B]/10 border-l-4 border-[#3F7F6B] p-3 my-2 rounded-r"
                         >
-                          <p className="text-white font-medium">{line}</p>
+                          <p className="text-[#0F2A33] font-medium">{line}</p>
                         </div>
                       );
                     }
                     // Numbered lists
                     if (line.match(/^\d+\./)) {
                       return (
-                        <p key={idx} className="ml-4 my-1 text-white/80">
+                        <p key={idx} className="ml-4 my-1 text-[#355E6B]">
                           {line}
                         </p>
                       );
@@ -772,7 +784,7 @@ Keep the response concise and actionable.`;
                     // Regular text
                     if (line.trim()) {
                       return (
-                        <p key={idx} className="my-2 text-white/80">
+                        <p key={idx} className="my-2 text-[#355E6B]">
                           {line}
                         </p>
                       );
@@ -784,19 +796,19 @@ Keep the response concise and actionable.`;
             </div>
 
             {/* Footer */}
-            <div className="sticky bottom-0 bg-slate-900/80 backdrop-blur px-3 md:px-6 py-3 md:py-4 border-t border-white/10 flex justify-end gap-2 md:gap-3">
+            <div className="sticky bottom-0 bg-[#BFE3D5]/80 backdrop-blur px-3 md:px-6 py-3 md:py-4 border-t border-white/40 flex justify-end gap-2 md:gap-3">
               <button
                 onClick={() => {
                   navigator.clipboard.writeText(aiInsight);
                   toast.success("Copied to clipboard!");
                 }}
-                className="px-3 md:px-4 py-2 text-sm md:text-base rounded-lg bg-violet-600/20 hover:bg-violet-600/30 text-violet-300 transition-colors"
+                className="px-3 md:px-4 py-2 text-sm md:text-base rounded-lg bg-[#3F7F6B]/20 hover:bg-[#3F7F6B]/30 text-[#3F7F6B] transition-colors font-medium"
               >
                 Copy
               </button>
               <button
                 onClick={() => setShowAiModal(false)}
-                className="px-3 md:px-4 py-2 text-sm md:text-base rounded-lg bg-violet-600 hover:bg-violet-700 text-white transition-colors"
+                className="px-3 md:px-4 py-2 text-sm md:text-base rounded-lg bg-gradient-to-r from-[#3F7F6B] to-[#2F8F8A] hover:shadow-lg text-white transition-all font-medium"
               >
                 Close
               </button>
@@ -807,10 +819,10 @@ Keep the response concise and actionable.`;
 
       {/* Error message */}
       {error && (
-        <div className="fixed bottom-4 md:bottom-6 left-4 right-4 md:left-1/2 md:right-auto md:transform md:-translate-x-1/2 z-[1001] px-4 md:px-6 py-3 md:py-4 bg-rose-950/90 backdrop-blur-xl border border-rose-500/30 rounded-xl shadow-lg max-w-md mx-auto">
+        <div className="fixed bottom-4 md:bottom-6 left-4 right-4 md:left-1/2 md:right-auto md:transform md:-translate-x-1/2 z-[1001] px-4 md:px-6 py-3 md:py-4 bg-gradient-to-br from-[#BFE3D5] to-[#9ECFC2] border border-white/40 rounded-2xl shadow-lg shadow-[#3F7F6B]/10 max-w-md mx-auto">
           <div className="flex items-start gap-3">
             <svg
-              className="w-5 h-5 text-rose-400 flex-shrink-0 mt-0.5"
+              className="w-5 h-5 text-[#023859] flex-shrink-0 mt-0.5"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -823,14 +835,14 @@ Keep the response concise and actionable.`;
               />
             </svg>
             <div>
-              <p className="text-sm font-medium text-rose-200 mb-1">
+              <p className="text-sm font-medium text-[#0F2A33] mb-1">
                 Unable to load heatmap
               </p>
-              <p className="text-xs text-rose-300/80">{error}</p>
+              <p className="text-xs text-[#355E6B]">{error}</p>
             </div>
             <button
               onClick={() => setError(null)}
-              className="ml-auto text-rose-400 hover:text-rose-200 transition-colors"
+              className="ml-auto text-[#3F7F6B] hover:text-[#235347] transition-colors"
               aria-label="Dismiss error"
             >
               <svg
@@ -854,10 +866,10 @@ Keep the response concise and actionable.`;
       {/* Empty state */}
       {!isLoading && !error && heatmapData.length === 0 && (
         <div className="fixed inset-0 flex items-center justify-center z-[999] pointer-events-none px-4">
-          <div className="bg-black/60 backdrop-blur-sm border border-white/10 rounded-xl md:rounded-2xl p-6 md:p-8 max-w-md text-center pointer-events-auto">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-violet-500/20 flex items-center justify-center">
+          <div className="bg-gradient-to-br from-[#BFE3D5] to-[#9ECFC2] border border-white/40 rounded-3xl p-6 md:p-8 max-w-md text-center pointer-events-auto shadow-lg shadow-[#3F7F6B]/10">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#3F7F6B]/20 flex items-center justify-center">
               <svg
-                className="w-8 h-8 text-violet-400"
+                className="w-8 h-8 text-[#3F7F6B]"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -870,13 +882,13 @@ Keep the response concise and actionable.`;
                 />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-white mb-2">
+            <h3 className="text-lg font-semibold text-[#0F2A33] mb-2">
               No Heatmap Data
             </h3>
-            <p className="text-sm text-white/60 mb-4">
+            <p className="text-sm text-[#355E6B] mb-4">
               No infrastructure issues found for the selected filters.
             </p>
-            <p className="text-xs text-white/40">
+            <p className="text-xs text-[#7A9DA8]">
               Try adjusting the time range, categories, or severity filters to
               see data.
             </p>

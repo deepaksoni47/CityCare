@@ -35,45 +35,45 @@ const getApiBaseUrl = () => {
 
 // Category configurations for CityCare Impact Scorer (standardized categories)
 const CATEGORIES = [
-  { value: "Roads", emoji: <Building />, color: "from-gray-600 to-slate-600" },
-  { value: "Water", emoji: <Droplets />, color: "from-blue-600 to-cyan-600" },
+  { value: "Roads", emoji: <Building />, color: "from-[#26658C] to-[#548FB3]" },
+  { value: "Water", emoji: <Droplets />, color: "from-[#7CBFD0] to-[#6FCFC3]" },
   {
     value: "Electricity",
     emoji: <Plug2 />,
-    color: "from-yellow-600 to-amber-600",
+    color: "from-[#548FB3] to-[#7CBFD0]",
   },
   {
     value: "Sanitation",
     emoji: <Brush />,
-    color: "from-green-600 to-emerald-600",
+    color: "from-[#3F7F6B] to-[#2F8F8A]",
   },
   {
     value: "Parks",
     emoji: <TreePine />,
-    color: "from-green-500 to-teal-600",
+    color: "from-[#235347] to-[#3F7F6B]",
   },
   {
     value: "Public_Health",
     emoji: <Shield />,
-    color: "from-red-600 to-rose-600",
+    color: "from-[#023859] to-[#26658C]",
   },
   {
     value: "Transportation",
     emoji: <Bus />,
-    color: "from-indigo-600 to-blue-600",
+    color: "from-[#26658C] to-[#548FB3]",
   },
   {
     value: "Streetlights",
     emoji: <Lightbulb />,
-    color: "from-amber-500 to-yellow-600",
+    color: "from-[#7CBFD0] to-[#6FCFC3]",
   },
   {
     value: "Pollution",
     emoji: <CloudRain />,
-    color: "from-purple-600 to-violet-600",
+    color: "from-[#548FB3] to-[#2F8F8A]",
   },
-  { value: "Safety", emoji: <Shield />, color: "from-red-600 to-rose-600" },
-  { value: "Other", emoji: <Wrench />, color: "from-slate-600 to-gray-600" },
+  { value: "Safety", emoji: <Shield />, color: "from-[#023859] to-[#26658C]" },
+  { value: "Other", emoji: <Wrench />, color: "from-[#7A9DA8] to-[#A3C6BE]" },
 ];
 
 interface PriorityScore {
@@ -384,23 +384,23 @@ export default function PriorityPage() {
   const getPriorityColor = (priority: string) => {
     switch (priority.toLowerCase()) {
       case "critical":
-        return "text-red-500 bg-red-500/10 border-red-500/30";
+        return "text-[#023859] bg-[#023859]/10 border-[#023859]/30";
       case "high":
-        return "text-orange-500 bg-orange-500/10 border-orange-500/30";
+        return "text-[#26658C] bg-[#26658C]/10 border-[#26658C]/30";
       case "medium":
-        return "text-yellow-500 bg-yellow-500/10 border-yellow-500/30";
+        return "text-[#3F7F6B] bg-[#3F7F6B]/10 border-[#3F7F6B]/30";
       case "low":
-        return "text-green-500 bg-green-500/10 border-green-500/30";
+        return "text-[#2F8F8A] bg-[#2F8F8A]/10 border-[#2F8F8A]/30";
       default:
-        return "text-white bg-white/5 border-white/10";
+        return "text-[#7A9DA8] bg-[#BFE3D5]/20 border-[#A3C6BE]/30";
     }
   };
 
   const getScoreGradient = (score: number) => {
-    if (score >= 80) return "from-red-500 to-rose-600";
-    if (score >= 60) return "from-orange-500 to-amber-600";
-    if (score >= 40) return "from-yellow-500 to-amber-500";
-    return "from-green-500 to-emerald-600";
+    if (score >= 80) return "from-[#023859] to-[#011C40]";
+    if (score >= 60) return "from-[#26658C] to-[#023859]";
+    if (score >= 40) return "from-[#548FB3] to-[#26658C]";
+    return "from-[#3F7F6B] to-[#2F8F8A]";
   };
 
   // --- PAGINATION LOGIC ---
@@ -433,12 +433,11 @@ export default function PriorityPage() {
   if (!isAuthenticated) return null;
 
   return (
-    <main className="relative min-h-screen bg-[#050814] text-white overflow-hidden pb-20">
+    <main className="relative min-h-screen bg-gradient-to-br from-[#DDF3E6] to-[#CFEAF0] text-[#0F2A33] overflow-hidden pb-20">
       {/* Background effects */}
       <div className="fixed inset-0 -z-10">
-        <div className="absolute top-[-10%] left-[-10%] w-[40rem] h-[40rem] bg-violet-500/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[36rem] h-[36rem] bg-sky-500/10 rounded-full blur-3xl" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_#1f2937_0,_#020617_55%,_#020617_100%)] opacity-60" />
+        <div className="absolute top-[-10%] left-[-10%] w-[40rem] h-[40rem] bg-[#3F7F6B]/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[36rem] h-[36rem] bg-[#7CBFD0]/5 rounded-full blur-3xl" />
       </div>
 
       <div className="container mx-auto px-4 pt-24 md:pt-32 pb-20">
@@ -451,12 +450,12 @@ export default function PriorityPage() {
           >
             <h1 className="text-3xl md:text-5xl font-bold tracking-tight mb-4">
               Impact
-              <span className="gradient-heading bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-[#3F7F6B] to-[#26658C] bg-clip-text text-transparent">
                 {" "}
                 Scorer
               </span>
             </h1>
-            <p className="text-white/60 text-base md:text-lg max-w-2xl mx-auto">
+            <p className="text-[#355E6B] text-base md:text-lg max-w-2xl mx-auto">
               Intelligent scoring system for city infrastructure issue
               prioritization
             </p>
@@ -486,10 +485,10 @@ export default function PriorityPage() {
               <button
                 key={mode}
                 onClick={() => setViewMode(mode as ViewMode)}
-                className={`px-4 md:px-6 py-2 md:py-3 rounded-xl font-medium transition-all text-sm md:text-base flex items-center justify-center gap-2 ${
+                className={`px-4 md:px-6 py-2 md:py-3 rounded-2xl font-medium transition-all text-sm md:text-base flex items-center justify-center gap-2 shadow-lg ${
                   viewMode === mode
-                    ? "bg-gradient-to-r from-indigo-400 to-violet-800 text-white shadow-lg"
-                    : "bg-white/5 text-white/70 hover:bg-white/10"
+                    ? "bg-gradient-to-r from-[#3F7F6B] to-[#2F8F8A] text-white shadow-[#3F7F6B]/20 border border-white/40"
+                    : "bg-gradient-to-br from-[#BFE3D5] to-[#9ECFC2] text-[#355E6B] hover:from-[#9ECFC2] hover:to-[#78B6A8] border border-white/30"
                 }`}
               >
                 {icon}
@@ -509,16 +508,16 @@ export default function PriorityPage() {
                 className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8"
               >
                 {/* Input Form */}
-                <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl md:rounded-3xl p-4 md:p-8">
-                  <h2 className="text-lg md:text-xl font-semibold mb-6 flex items-center gap-2">
-                    <span className="w-1 h-6 bg-violet-500 rounded-full" />
+                <div className="bg-gradient-to-br from-[#BFE3D5] to-[#9ECFC2] backdrop-blur-xl border border-white/40 rounded-3xl md:rounded-3xl p-4 md:p-8 shadow-lg shadow-[#3F7F6B]/10">
+                  <h2 className="text-lg md:text-xl font-semibold mb-6 flex items-center gap-2 text-[#0F2A33]">
+                    <span className="w-1 h-6 bg-[#3F7F6B] rounded-full" />
                     Input Parameters
                   </h2>
 
                   <div className="space-y-6">
                     {/* Category Selection */}
                     <div>
-                      <label className="block text-sm font-medium text-white/70 mb-3">
+                      <label className="block text-sm font-medium text-[#355E6B] mb-3">
                         Issue Category
                       </label>
                       <div className="grid grid-cols-2 gap-2">
@@ -529,10 +528,10 @@ export default function PriorityPage() {
                               setFormData({ ...formData, category: cat.value })
                             }
                             // Added: flex, items-center, justify-center, gap-2
-                            className={`p-3 rounded-xl border transition-all text-sm flex  justify-center gap-2 ${
+                            className={`p-3 rounded-2xl border transition-all text-sm flex justify-center gap-2 shadow-md ${
                               formData.category === cat.value
-                                ? `bg-gradient-to-r ${cat.color} border-transparent text-white shadow-lg`
-                                : "bg-white/5 border-white/10 text-white/70 hover:bg-white/10"
+                                ? `bg-gradient-to-r ${cat.color} border-white/30 text-white shadow-lg`
+                                : "bg-white/30 border-white/20 text-[#355E6B] hover:bg-white/50"
                             }`}
                           >
                             {/* Icon */}
@@ -547,9 +546,9 @@ export default function PriorityPage() {
 
                     {/* Severity Slider */}
                     <div>
-                      <label className="block text-sm font-medium text-white/70 mb-2">
+                      <label className="block text-sm font-medium text-[#355E6B] mb-2">
                         Severity (1-10):{" "}
-                        <span className="text-violet-400 font-bold">
+                        <span className="text-[#3F7F6B] font-bold">
                           {formData.severity}
                         </span>
                       </label>
@@ -564,9 +563,9 @@ export default function PriorityPage() {
                             severity: parseInt(e.target.value),
                           })
                         }
-                        className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-violet-500"
+                        className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#3F7F6B] [&::-webkit-slider-thumb]:shadow-lg"
                       />
-                      <div className="flex justify-between text-xs text-white/40 mt-1">
+                      <div className="flex justify-between text-xs text-[#7A9DA8] mt-1">
                         <span>Minor</span>
                         <span>Moderate</span>
                         <span>Critical</span>
@@ -576,7 +575,7 @@ export default function PriorityPage() {
                     {/* Occupancy & Area */}
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-white/70 mb-2">
+                        <label className="block text-sm font-medium text-[#355E6B] mb-2">
                           Occupancy
                         </label>
                         <input
@@ -590,11 +589,11 @@ export default function PriorityPage() {
                             })
                           }
                           placeholder="0"
-                          className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-white text-sm focus:outline-none focus:border-violet-500 transition"
+                          className="w-full bg-white/30 border border-white/20 rounded-2xl px-4 py-2 text-[#0F2A33] text-sm focus:outline-none focus:border-[#3F7F6B] focus:ring-2 focus:ring-[#3F7F6B]/20 transition shadow-inner"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-white/70 mb-2">
+                        <label className="block text-sm font-medium text-[#355E6B] mb-2">
                           Area (sqm)
                         </label>
                         <input
@@ -608,14 +607,14 @@ export default function PriorityPage() {
                             })
                           }
                           placeholder="0"
-                          className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-white text-sm focus:outline-none focus:border-violet-500 transition"
+                          className="w-full bg-white/30 border border-white/20 rounded-2xl px-4 py-2 text-[#0F2A33] text-sm focus:outline-none focus:border-[#3F7F6B] focus:ring-2 focus:ring-[#3F7F6B]/20 transition shadow-inner"
                         />
                       </div>
                     </div>
 
                     {/* Impact Factors */}
                     <div>
-                      <label className="block text-sm font-medium text-white/70 mb-3">
+                      <label className="block text-sm font-medium text-[#355E6B] mb-3">
                         Impact Factors
                       </label>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -637,7 +636,7 @@ export default function PriorityPage() {
                         ].map(({ key, label }) => (
                           <label
                             key={key}
-                            className="flex items-center gap-2 p-2 bg-white/5 rounded-lg border border-white/5 cursor-pointer hover:bg-white/10 transition"
+                            className="flex items-center gap-2 p-2 bg-white/30 rounded-2xl border border-white/20 cursor-pointer hover:bg-white/50 transition shadow-sm"
                           >
                             <input
                               type="checkbox"
@@ -650,9 +649,9 @@ export default function PriorityPage() {
                                   [key]: e.target.checked,
                                 })
                               }
-                              className="w-4 h-4 rounded border-white/20 bg-transparent text-violet-500 focus:ring-violet-500"
+                              className="w-4 h-4 rounded border-white/20 bg-white/50 text-[#3F7F6B] focus:ring-[#3F7F6B] accent-[#3F7F6B]"
                             />
-                            <span className="text-xs text-white/80">
+                            <span className="text-xs text-[#0F2A33]">
                               {label}
                             </span>
                           </label>
@@ -662,7 +661,7 @@ export default function PriorityPage() {
 
                     {/* Context */}
                     <div>
-                      <label className="block text-sm font-medium text-white/70 mb-3">
+                      <label className="block text-sm font-medium text-[#355E6B] mb-3">
                         Context
                       </label>
                       <div className="grid grid-cols-2 gap-3">
@@ -674,18 +673,30 @@ export default function PriorityPage() {
                               timeOfDay: e.target.value,
                             })
                           }
-                          className="bg-black/20 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:border-violet-500"
+                          className="bg-white/30 border border-white/20 rounded-2xl px-3 py-2 text-sm text-[#0F2A33] focus:border-[#3F7F6B] focus:ring-2 focus:ring-[#3F7F6B]/20 shadow-inner"
                         >
-                          <option value="morning" className="bg-gray-900">
+                          <option
+                            value="morning"
+                            className="bg-white text-[#0F2A33]"
+                          >
                             🌅 Morning
                           </option>
-                          <option value="afternoon" className="bg-gray-900">
+                          <option
+                            value="afternoon"
+                            className="bg-white text-[#0F2A33]"
+                          >
                             ☀️ Afternoon
                           </option>
-                          <option value="evening" className="bg-gray-900">
+                          <option
+                            value="evening"
+                            className="bg-white text-[#0F2A33]"
+                          >
                             🌆 Evening
                           </option>
-                          <option value="night" className="bg-gray-900">
+                          <option
+                            value="night"
+                            className="bg-white text-[#0F2A33]"
+                          >
                             🌙 Night
                           </option>
                         </select>
@@ -697,12 +708,18 @@ export default function PriorityPage() {
                               dayOfWeek: e.target.value,
                             })
                           }
-                          className="bg-black/20 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:border-violet-500"
+                          className="bg-white/30 border border-white/20 rounded-2xl px-3 py-2 text-sm text-[#0F2A33] focus:border-[#3F7F6B] focus:ring-2 focus:ring-[#3F7F6B]/20 shadow-inner"
                         >
-                          <option value="weekday" className="bg-gray-900">
+                          <option
+                            value="weekday"
+                            className="bg-white text-[#0F2A33]"
+                          >
                             📅 Weekday
                           </option>
-                          <option value="weekend" className="bg-gray-900">
+                          <option
+                            value="weekend"
+                            className="bg-white text-[#0F2A33]"
+                          >
                             📅 Weekend
                           </option>
                         </select>
@@ -712,7 +729,7 @@ export default function PriorityPage() {
                     {/* Previous Occurrences */}
                     {formData.isRecurring && (
                       <div>
-                        <label className="block text-sm font-medium text-white/70 mb-2">
+                        <label className="block text-sm font-medium text-[#355E6B] mb-2">
                           Previous Occurrences
                         </label>
                         <input
@@ -726,7 +743,7 @@ export default function PriorityPage() {
                                 parseInt(e.target.value) || 0,
                             })
                           }
-                          className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-white text-sm focus:outline-none focus:border-violet-500 transition"
+                          className="w-full bg-white/30 border border-white/20 rounded-2xl px-4 py-2 text-[#0F2A33] text-sm focus:outline-none focus:border-[#3F7F6B] focus:ring-2 focus:ring-[#3F7F6B]/20 transition shadow-inner"
                         />
                       </div>
                     )}
@@ -734,7 +751,7 @@ export default function PriorityPage() {
                     <button
                       onClick={handleCalculate}
                       disabled={isSubmitting}
-                      className="w-full bg-gradient-to-r from-violet-600 to-sky-600 hover:from-violet-500 hover:to-sky-500 text-white font-medium py-3 rounded-xl transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full bg-gradient-to-r from-[#3F7F6B] to-[#2F8F8A] hover:from-[#235347] hover:to-[#3F7F6B] text-white font-medium py-3 rounded-2xl transition-all shadow-xl shadow-[#3F7F6B]/30 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isSubmitting ? (
                         <span className="flex items-center justify-center gap-2">
@@ -769,22 +786,20 @@ export default function PriorityPage() {
                 {/* Results Display */}
                 <div className="space-y-6">
                   {result ? (
-                    <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl md:rounded-3xl p-4 md:p-8">
-                      <h2 className="text-lg md:text-xl font-semibold mb-6 flex items-center gap-2">
-                        <span className="w-1 h-6 bg-sky-500 rounded-full" />
+                    <div className="bg-gradient-to-br from-[#BFE3D5] to-[#9ECFC2] backdrop-blur-xl border border-white/40 rounded-3xl md:rounded-3xl p-4 md:p-8 shadow-lg shadow-[#3F7F6B]/10">
+                      <h2 className="text-lg md:text-xl font-semibold mb-6 flex items-center gap-2 text-[#0F2A33]">
+                        <span className="w-1 h-6 bg-[#2F8F8A] rounded-full" />
                         Analysis Result
                       </h2>
 
                       {/* Score & Priority */}
-                      <div className="relative mb-8 p-6 rounded-2xl bg-gradient-to-br from-white/10 to-white/5 border border-white/10 overflow-hidden">
+                      <div className="relative mb-8 p-6 rounded-3xl bg-gradient-to-br from-white/40 to-white/20 border border-white/30 overflow-hidden shadow-inner">
                         <div
-                          className={`absolute inset-0 bg-gradient-to-br ${getScoreGradient(
-                            result.score,
-                          )} opacity-10`}
+                          className={`absolute inset-0 bg-gradient-to-br ${getScoreGradient(result.score)} opacity-5`}
                         />
                         <div className="relative flex items-center justify-between">
                           <div>
-                            <p className="text-sm text-white/50 mb-2">
+                            <p className="text-sm text-[#7A9DA8] mb-2">
                               Priority Level
                             </p>
                             <div
@@ -796,24 +811,22 @@ export default function PriorityPage() {
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="text-sm text-white/50 mb-2">Score</p>
+                            <p className="text-sm text-[#7A9DA8] mb-2">Score</p>
                             <p
-                              className={`text-5xl font-bold bg-gradient-to-br ${getScoreGradient(
-                                result.score,
-                              )} bg-clip-text text-transparent`}
+                              className={`text-5xl font-bold bg-gradient-to-br ${getScoreGradient(result.score)} bg-clip-text text-transparent`}
                             >
                               {Math.round(result.score)}
-                              <span className="text-xl text-white/30 font-normal">
+                              <span className="text-xl text-[#7A9DA8] font-normal">
                                 /100
                               </span>
                             </p>
                           </div>
                         </div>
                         <div className="relative mt-4 flex items-center justify-between text-sm">
-                          <span className="text-white/60">
+                          <span className="text-[#355E6B]">
                             Confidence: {(result.confidence * 100).toFixed(0)}%
                           </span>
-                          <span className="text-white/60">
+                          <span className="text-[#355E6B]">
                             SLA: {result.recommendedSLA}h
                           </span>
                         </div>
@@ -821,7 +834,7 @@ export default function PriorityPage() {
 
                       {/* Score Breakdown */}
                       <div className="mb-8">
-                        <h3 className="text-sm font-medium text-white/70 uppercase tracking-wider mb-4">
+                        <h3 className="text-sm font-medium text-[#355E6B] uppercase tracking-wider mb-4">
                           Score Breakdown
                         </h3>
                         <div className="space-y-3">
@@ -829,21 +842,19 @@ export default function PriorityPage() {
                             ([key, value]) => (
                               <div key={key}>
                                 <div className="flex justify-between text-sm mb-1">
-                                  <span className="text-white/70 capitalize">
+                                  <span className="text-[#355E6B] capitalize">
                                     {key.replace("Score", "")}
                                   </span>
-                                  <span className="text-white font-medium">
+                                  <span className="text-[#0F2A33] font-medium">
                                     {Math.round(value as number)}
                                   </span>
                                 </div>
-                                <div className="w-full bg-white/5 rounded-full h-2 overflow-hidden">
+                                <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden shadow-inner">
                                   <motion.div
                                     initial={{ width: 0 }}
                                     animate={{ width: `${value}%` }}
                                     transition={{ duration: 0.8, delay: 0.2 }}
-                                    className={`h-2 rounded-full bg-gradient-to-r ${getScoreGradient(
-                                      value as number,
-                                    )}`}
+                                    className={`h-2 rounded-full bg-gradient-to-r ${getScoreGradient(value as number)}`}
                                   />
                                 </div>
                               </div>
@@ -854,7 +865,7 @@ export default function PriorityPage() {
 
                       {/* AI Reasoning */}
                       <div>
-                        <h3 className="text-sm font-medium text-white/70 uppercase tracking-wider mb-3">
+                        <h3 className="text-sm font-medium text-[#355E6B] uppercase tracking-wider mb-3">
                           Priority Reasoning
                         </h3>
                         <ul className="space-y-2">
@@ -864,9 +875,11 @@ export default function PriorityPage() {
                               initial={{ opacity: 0, x: -20 }}
                               animate={{ opacity: 1, x: 0 }}
                               transition={{ delay: index * 0.1 }}
-                              className="flex gap-3 text-sm text-white/80 p-3 bg-white/5 rounded-lg border border-white/5"
+                              className="flex gap-3 text-sm text-[#0F2A33] p-3 bg-white/30 rounded-2xl border border-white/20 shadow-sm"
                             >
-                              <span className="text-sky-400 font-bold">•</span>
+                              <span className="text-[#2F8F8A] font-bold">
+                                •
+                              </span>
                               <span>{reason}</span>
                             </motion.li>
                           ))}
@@ -874,8 +887,8 @@ export default function PriorityPage() {
                       </div>
                     </div>
                   ) : (
-                    <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl md:rounded-3xl p-8 h-full flex flex-col items-center justify-center text-center text-white/40">
-                      <div className="w-20 h-20 bg-white/5 rounded-2xl flex items-center justify-center mb-4">
+                    <div className="bg-gradient-to-br from-[#BFE3D5] to-[#9ECFC2] backdrop-blur-xl border border-white/40 rounded-3xl md:rounded-3xl p-8 h-full flex flex-col items-center justify-center text-center text-[#7A9DA8] shadow-lg shadow-[#3F7F6B]/10">
+                      <div className="w-20 h-20 bg-white/30 rounded-3xl flex items-center justify-center mb-4 shadow-inner">
                         <svg
                           className="w-10 h-10"
                           fill="none"
@@ -890,7 +903,9 @@ export default function PriorityPage() {
                           />
                         </svg>
                       </div>
-                      <p className="text-lg mb-2">Ready to Calculate</p>
+                      <p className="text-lg mb-2 text-[#0F2A33]">
+                        Ready to Calculate
+                      </p>
                       <p className="text-sm">
                         Configure parameters and click calculate to see the
                         priority analysis
@@ -908,25 +923,31 @@ export default function PriorityPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl md:rounded-3xl p-4 md:p-8"
+                className="bg-gradient-to-br from-[#BFE3D5] to-[#9ECFC2] backdrop-blur-xl border border-white/40 rounded-3xl md:rounded-3xl p-4 md:p-8 shadow-lg shadow-[#3F7F6B]/10"
               >
                 <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-                  <h2 className="text-xl md:text-2xl font-bold">
+                  <h2 className="text-xl md:text-2xl font-bold text-[#0F2A33]">
                     All Issues by Priority
                   </h2>
                   <div className="flex items-center gap-4">
                     <select
                       value={sortBy}
                       onChange={(e) => setSortBy(e.target.value as any)}
-                      className="bg-black/20 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:border-violet-500"
+                      className="bg-white/30 border border-white/20 rounded-2xl px-3 py-2 text-sm text-[#0F2A33] focus:border-[#3F7F6B] shadow-inner"
                     >
-                      <option value="score" className="bg-gray-900">
+                      <option value="score" className="bg-white text-[#0F2A33]">
                         Sort by Score
                       </option>
-                      <option value="category" className="bg-gray-900">
+                      <option
+                        value="category"
+                        className="bg-white text-[#0F2A33]"
+                      >
                         Sort by Category
                       </option>
-                      <option value="status" className="bg-gray-900">
+                      <option
+                        value="status"
+                        className="bg-white text-[#0F2A33]"
+                      >
                         Sort by Status
                       </option>
                     </select>
@@ -934,14 +955,14 @@ export default function PriorityPage() {
                       onClick={() =>
                         setSortOrder(sortOrder === "asc" ? "desc" : "asc")
                       }
-                      className="p-2 bg-white/5 hover:bg-white/10 rounded-lg transition"
+                      className="p-2 bg-white/30 hover:bg-white/50 rounded-2xl transition shadow-sm"
                     >
                       {sortOrder === "asc" ? "↑" : "↓"}
                     </button>
                     <button
                       onClick={loadIssues}
                       disabled={isLoadingIssues}
-                      className="px-4 py-2 bg-violet-600 hover:bg-violet-500 rounded-lg text-sm transition disabled:opacity-50"
+                      className="px-4 py-2 bg-gradient-to-r from-[#3F7F6B] to-[#2F8F8A] hover:from-[#235347] hover:to-[#3F7F6B] text-white rounded-2xl text-sm transition-all shadow-lg disabled:opacity-50"
                     >
                       {isLoadingIssues ? "Loading..." : "Refresh"}
                     </button>
@@ -951,7 +972,7 @@ export default function PriorityPage() {
                 {isLoadingIssues ? (
                   <div className="flex items-center justify-center py-20">
                     <svg
-                      className="animate-spin h-8 w-8 text-violet-500"
+                      className="animate-spin h-8 w-8 text-[#3F7F6B]"
                       viewBox="0 0 24 24"
                     >
                       <circle
@@ -974,23 +995,23 @@ export default function PriorityPage() {
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead>
-                        <tr className="border-b border-white/10 text-left">
-                          <th className="pb-3 text-sm font-medium text-white/70 uppercase tracking-wider">
+                        <tr className="border-b border-[#A3C6BE]/30 text-left">
+                          <th className="pb-3 text-sm font-medium text-[#355E6B] uppercase tracking-wider">
                             Priority
                           </th>
-                          <th className="pb-3 text-sm font-medium text-white/70 uppercase tracking-wider">
+                          <th className="pb-3 text-sm font-medium text-[#355E6B] uppercase tracking-wider">
                             Score
                           </th>
-                          <th className="pb-3 text-sm font-medium text-white/70 uppercase tracking-wider hidden md:table-cell">
+                          <th className="pb-3 text-sm font-medium text-[#355E6B] uppercase tracking-wider hidden md:table-cell">
                             Category
                           </th>
-                          <th className="pb-3 text-sm font-medium text-white/70 uppercase tracking-wider">
+                          <th className="pb-3 text-sm font-medium text-[#355E6B] uppercase tracking-wider">
                             Issue
                           </th>
-                          <th className="pb-3 text-sm font-medium text-white/70 uppercase tracking-wider hidden lg:table-cell">
+                          <th className="pb-3 text-sm font-medium text-[#355E6B] uppercase tracking-wider hidden lg:table-cell">
                             Status
                           </th>
-                          <th className="pb-3 text-sm font-medium text-white/70 uppercase tracking-wider">
+                          <th className="pb-3 text-sm font-medium text-[#355E6B] uppercase tracking-wider">
                             Votes
                           </th>
                         </tr>
@@ -1006,7 +1027,7 @@ export default function PriorityPage() {
                               initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ delay: index * 0.03 }}
-                              className="border-b border-white/5 hover:bg-white/5 transition group"
+                              className="border-b border-[#A3C6BE]/20 hover:bg-white/30 transition group"
                             >
                               <td className="py-4">
                                 <div
@@ -1037,7 +1058,7 @@ export default function PriorityPage() {
                                 </div>
                               </td>
                               <td className="py-4 hidden md:table-cell">
-                                <span className="text-sm text-white/70">
+                                <span className="text-sm text-[#355E6B]">
                                   {issue.category}
                                 </span>
                               </td>
@@ -1046,10 +1067,10 @@ export default function PriorityPage() {
                                   href={`/issues/${issue.id}`}
                                   className="block max-w-xs hover:text-violet-400 transition-colors"
                                 >
-                                  <p className="text-sm font-medium text-white truncate group-hover:text-violet-400 transition-colors">
+                                  <p className="text-sm font-medium text-[#0F2A33] truncate group-hover:text-[#3F7F6B] transition-colors">
                                     {issue.title}
                                   </p>
-                                  <p className="text-xs text-white/50 truncate">
+                                  <p className="text-xs text-[#7A9DA8] truncate">
                                     {issue.description}
                                   </p>
                                 </Link>
@@ -1058,12 +1079,12 @@ export default function PriorityPage() {
                                 <span
                                   className={`inline-block px-2 py-1 rounded text-xs ${
                                     issue.status === "open"
-                                      ? "bg-blue-500/10 text-blue-400"
+                                      ? "bg-[#7CBFD0]/20 text-[#26658C]"
                                       : issue.status === "in_progress"
-                                        ? "bg-yellow-500/10 text-yellow-400"
+                                        ? "bg-[#2F8F8A]/20 text-[#3F7F6B]"
                                         : issue.status === "resolved"
-                                          ? "bg-green-500/10 text-green-400"
-                                          : "bg-gray-500/10 text-gray-400"
+                                          ? "bg-[#3F7F6B]/20 text-[#235347]"
+                                          : "bg-[#A3C6BE]/20 text-[#7A9DA8]"
                                   }`}
                                 >
                                   {issue.status.replace("_", " ")}
@@ -1085,23 +1106,24 @@ export default function PriorityPage() {
 
                     {/* Pagination Controls */}
                     {sortedIssues.length > itemsPerPage && (
-                      <div className="flex items-center justify-between mt-6 pt-4 border-t border-white/10">
+                      <div className="flex items-center justify-between mt-6 pt-4 border-t border-[#A3C6BE]/30">
                         <button
                           onClick={() => paginate(currentPage - 1)}
                           disabled={currentPage === 1}
-                          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 text-sm transition disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-white/30 hover:bg-white/50 text-[#355E6B] text-sm transition disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                         >
                           <ChevronLeft className="w-4 h-4" />
                           Previous
                         </button>
-                        <span className="text-sm text-white/50">
-                          Page <span className="text-white">{currentPage}</span>{" "}
+                        <span className="text-sm text-[#7A9DA8]">
+                          Page{" "}
+                          <span className="text-[#0F2A33]">{currentPage}</span>{" "}
                           of {totalPages}
                         </span>
                         <button
                           onClick={() => paginate(currentPage + 1)}
                           disabled={currentPage === totalPages}
-                          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 text-sm transition disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-white/30 hover:bg-white/50 text-[#355E6B] text-sm transition disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                         >
                           Next
                           <ChevronRight className="w-4 h-4" />
@@ -1110,8 +1132,8 @@ export default function PriorityPage() {
                     )}
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center py-20 text-white/40">
-                    <div className="w-16 h-16 bg-white/5 rounded-xl flex items-center justify-center mb-4">
+                  <div className="flex flex-col items-center justify-center py-20 text-[#7A9DA8]">
+                    <div className="w-16 h-16 bg-white/30 rounded-3xl flex items-center justify-center mb-4 shadow-inner">
                       <svg
                         className="w-8 h-8"
                         fill="none"
@@ -1126,13 +1148,15 @@ export default function PriorityPage() {
                         />
                       </svg>
                     </div>
-                    <p className="text-lg mb-2">No Issues Found</p>
+                    <p className="text-lg mb-2 text-[#0F2A33]">
+                      No Issues Found
+                    </p>
                     <p className="text-sm mb-4">
                       No issues have been reported yet for your organization
                     </p>
                     <button
                       onClick={() => router.push("/report")}
-                      className="px-6 py-2 bg-violet-600 hover:bg-violet-500 text-white rounded-lg transition text-sm"
+                      className="px-6 py-2 bg-gradient-to-r from-[#3F7F6B] to-[#2F8F8A] hover:from-[#235347] hover:to-[#3F7F6B] text-white rounded-2xl transition-all shadow-lg text-sm"
                     >
                       Report Your First Issue
                     </button>
@@ -1156,9 +1180,9 @@ export default function PriorityPage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all"
+                    className="bg-gradient-to-br from-[#BFE3D5] to-[#9ECFC2] backdrop-blur-xl border border-white/40 rounded-3xl p-6 hover:from-[#9ECFC2] hover:to-[#78B6A8] transition-all shadow-lg shadow-[#3F7F6B]/10"
                   >
-                    <h3 className="text-lg font-semibold mb-3 text-white">
+                    <h3 className="text-lg font-semibold mb-3 text-[#0F2A33]">
                       {scenario.scenario}
                     </h3>
                     <div
@@ -1170,12 +1194,12 @@ export default function PriorityPage() {
                     </div>
                     <div className="mb-4">
                       <div className="flex justify-between text-sm mb-2">
-                        <span className="text-white/60">Score</span>
-                        <span className="text-white font-bold">
+                        <span className="text-[#355E6B]">Score</span>
+                        <span className="text-[#0F2A33] font-bold">
                           {Math.round(scenario.result.score)}/100
                         </span>
                       </div>
-                      <div className="w-full bg-white/5 rounded-full h-2">
+                      <div className="w-full bg-white/20 rounded-full h-2 shadow-inner">
                         <div
                           className={`h-2 rounded-full bg-gradient-to-r ${getScoreGradient(
                             scenario.result.score,
@@ -1184,7 +1208,7 @@ export default function PriorityPage() {
                         />
                       </div>
                     </div>
-                    <div className="text-xs text-white/60 space-y-1">
+                    <div className="text-xs text-[#355E6B] space-y-1">
                       {scenario.result.reasoning
                         .slice(0, 3)
                         .map((reason: string, i: number) => (
@@ -1203,15 +1227,15 @@ export default function PriorityPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl md:rounded-3xl p-6 md:p-8"
+                className="bg-gradient-to-br from-[#BFE3D5] to-[#9ECFC2] backdrop-blur-xl border border-white/40 rounded-3xl md:rounded-3xl p-6 md:p-8 shadow-lg shadow-[#3F7F6B]/10"
               >
-                <h2 className="text-2xl font-bold mb-6">
+                <h2 className="text-2xl font-bold mb-6 text-[#0F2A33]">
                   {algorithm.description}
                 </h2>
 
                 {/* Weights */}
                 <div className="mb-8">
-                  <h3 className="text-lg font-semibold mb-4 text-white/90">
+                  <h3 className="text-lg font-semibold mb-4 text-[#0F2A33]">
                     Scoring Weights
                   </h3>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -1219,12 +1243,12 @@ export default function PriorityPage() {
                       ([key, value]) => (
                         <div
                           key={key}
-                          className="bg-white/5 border border-white/10 rounded-xl p-4"
+                          className="bg-white/30 border border-white/20 rounded-2xl p-4 shadow-inner"
                         >
-                          <p className="text-sm text-white/60 capitalize mb-1">
+                          <p className="text-sm text-[#355E6B] capitalize mb-1">
                             {key.replace("Score", "")}
                           </p>
-                          <p className="text-2xl font-bold text-violet-400">
+                          <p className="text-2xl font-bold text-[#3F7F6B]">
                             {String(value)}
                           </p>
                         </div>
@@ -1235,7 +1259,7 @@ export default function PriorityPage() {
 
                 {/* Score Ranges */}
                 <div className="mb-8">
-                  <h3 className="text-lg font-semibold mb-4 text-white/90">
+                  <h3 className="text-lg font-semibold mb-4 text-[#0F2A33]">
                     Priority Ranges
                   </h3>
                   <div className="space-y-3">
@@ -1243,7 +1267,7 @@ export default function PriorityPage() {
                       ([key, value]) => (
                         <div
                           key={key}
-                          className={`flex items-center justify-between p-4 rounded-xl border ${getPriorityColor(
+                          className={`flex items-center justify-between p-4 rounded-2xl border shadow-sm ${getPriorityColor(
                             key,
                           )}`}
                         >
@@ -1257,19 +1281,19 @@ export default function PriorityPage() {
 
                 {/* Boosters */}
                 <div>
-                  <h3 className="text-lg font-semibold mb-4 text-white/90">
+                  <h3 className="text-lg font-semibold mb-4 text-[#0F2A33]">
                     Priority Boosters
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {Object.entries(algorithm.boosters).map(([key, value]) => (
                       <div
                         key={key}
-                        className="flex justify-between items-center p-3 bg-white/5 rounded-lg border border-white/5"
+                        className="flex justify-between items-center p-3 bg-white/30 rounded-2xl border border-white/20 shadow-sm"
                       >
-                        <span className="text-sm text-white/70 capitalize">
+                        <span className="text-sm text-[#355E6B] capitalize">
                           {key.replace(/([A-Z])/g, " $1").trim()}
                         </span>
-                        <span className="text-sm font-bold text-green-400">
+                        <span className="text-sm font-bold text-[#3F7F6B]">
                           {String(value)}
                         </span>
                       </div>

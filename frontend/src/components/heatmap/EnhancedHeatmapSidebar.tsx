@@ -117,11 +117,11 @@ export function EnhancedHeatmapSidebar({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         onClick={toggleSidebar}
-        className="fixed left-2 md:left-4 top-16 md:top-20 z-[1000] p-2 md:p-3 bg-black/80 backdrop-blur-xl border border-white/10 rounded-lg md:rounded-xl shadow-lg hover:bg-black/90 transition-colors"
+        className="fixed left-2 md:left-4 top-16 md:top-20 z-[1000] p-2 md:p-3 bg-gradient-to-br from-[#BFE3D5] to-[#9ECFC2] border border-white/40 rounded-lg md:rounded-xl shadow-lg shadow-[#3F7F6B]/10 hover:shadow-xl transition-all"
         aria-label="Open sidebar"
       >
         <svg
-          className="w-5 h-5 md:w-6 md:h-6 text-white"
+          className="w-5 h-5 md:w-6 md:h-6 text-[#0F2A33]"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -143,18 +143,20 @@ export function EnhancedHeatmapSidebar({
       animate={{ x: 0 }}
       exit={{ x: -450 }}
       transition={{ type: "spring", damping: 25, stiffness: 200 }}
-      className="fixed left-0 md:left-4 top-14 md:top-20 bottom-0 md:bottom-auto z-[1000] w-full md:w-[420px] md:max-h-[calc(100vh-112px)] bg-black/90 backdrop-blur-xl border-0 md:border border-white/10 md:rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+      className="fixed left-0 md:left-4 top-14 md:top-20 bottom-0 md:bottom-auto z-[1000] w-full md:w-[420px] md:max-h-[calc(100vh-112px)] bg-gradient-to-br from-[#BFE3D5] to-[#9ECFC2] border-0 md:border border-white/40 md:rounded-2xl shadow-2xl shadow-[#3F7F6B]/10 overflow-hidden flex flex-col"
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-white/10 flex-shrink-0">
-        <h2 className="text-lg font-semibold text-white">Heatmap Controls</h2>
+      <div className="flex items-center justify-between p-4 border-b border-white/40 flex-shrink-0">
+        <h2 className="text-lg font-semibold text-[#0F2A33]">
+          Heatmap Controls
+        </h2>
         <button
           onClick={toggleSidebar}
-          className="p-1.5 rounded-lg hover:bg-white/10 transition-colors"
+          className="p-1.5 rounded-lg hover:bg-white/20 transition-colors"
           aria-label="Toggle sidebar"
         >
           <svg
-            className="w-5 h-5 text-white/70"
+            className="w-5 h-5 text-[#26658C]"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -170,7 +172,7 @@ export function EnhancedHeatmapSidebar({
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-white/10 flex-shrink-0 flex-row justify-center">
+      <div className="flex border-b border-white/40 flex-shrink-0 flex-row justify-center">
         {[
           { id: "presets", label: "Presets", icon: <Zap /> },
           { id: "filters", label: "Filters", icon: <Search /> },
@@ -179,11 +181,10 @@ export function EnhancedHeatmapSidebar({
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
-            // Added: flex, items-center, justify-center
             className={`flex-1 px-4 py-3 text-sm font-medium transition-all flex items-center justify-center ${
               activeTab === tab.id
-                ? "text-white bg-white/10 border-b-2 border-violet-500"
-                : "text-white/60 hover:text-white/80 hover:bg-white/5"
+                ? "text-white bg-[#3F7F6B] border-b-2 border-[#2F8F8A]"
+                : "text-[#355E6B] hover:text-[#0F2A33] hover:bg-white/20"
             }`}
           >
             <span className="mr-2 flex items-center">{tab.icon}</span>
@@ -193,34 +194,54 @@ export function EnhancedHeatmapSidebar({
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-6">
+      <div
+        className="flex-1 overflow-y-auto p-4 space-y-6"
+        style={{
+          WebkitOverflowScrolling: "touch",
+          touchAction: "pan-y",
+          overscrollBehavior: "contain",
+        }}
+      >
         {/* Presets Tab */}
         {activeTab === "presets" && (
           <div className="space-y-3">
-            <p className="text-xs text-white/60 mb-4">
+            <p className="text-xs text-[#355E6B] mb-4">
               Quick-select optimized configurations for common use cases
             </p>
-            {presets.map((preset) => (
-              <motion.button
-                key={preset.id}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => onPresetSelect(preset.id)}
-                className={`w-full p-4 rounded-xl bg-gradient-to-r ${preset.color} text-white shadow-lg hover:shadow-xl transition-all text-left`}
-              >
-                <div className="flex items-start gap-3">
-                  <span className="text-3xl">{preset.icon}</span>
-                  <div>
-                    <h3 className="font-semibold text-base mb-1">
-                      {preset.name}
-                    </h3>
-                    <p className="text-xs text-white/80">
-                      {preset.description}
-                    </p>
+            {presets.map((preset) => {
+              // Map presets to City Blue + Care Green gradients
+              const presetGradients = {
+                emergency: "from-[#023859] to-[#26658C]",
+                maintenance: "from-[#548FB3] to-[#7CBFD0]",
+                overview: "from-[#3F7F6B] to-[#2F8F8A]",
+                zone: "from-[#26658C] to-[#3F7F6B]",
+              };
+              const gradientClass =
+                presetGradients[preset.id as keyof typeof presetGradients] ||
+                "from-[#548FB3] to-[#26658C]";
+
+              return (
+                <motion.button
+                  key={preset.id}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => onPresetSelect(preset.id)}
+                  className={`w-full p-4 rounded-2xl bg-gradient-to-r ${gradientClass} text-white shadow-lg shadow-[#3F7F6B]/20 hover:shadow-xl transition-all text-left`}
+                >
+                  <div className="flex items-start gap-3">
+                    <span className="text-3xl">{preset.icon}</span>
+                    <div>
+                      <h3 className="font-semibold text-base mb-1">
+                        {preset.name}
+                      </h3>
+                      <p className="text-xs text-white/90">
+                        {preset.description}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </motion.button>
-            ))}
+                </motion.button>
+              );
+            })}
           </div>
         )}
 
@@ -229,7 +250,7 @@ export function EnhancedHeatmapSidebar({
           <div className="space-y-6">
             {/* Layer Toggles */}
             <div>
-              <h3 className="text-sm font-medium text-white/80 mb-3">
+              <h3 className="text-sm font-medium text-[#0F2A33] mb-3">
                 Category Filters
               </h3>
               <div className="space-y-2">
@@ -252,16 +273,16 @@ export function EnhancedHeatmapSidebar({
                 ].map((layer) => (
                   <label
                     key={layer.key}
-                    className="flex items-center gap-3 p-3 rounded-xl bg-white/5 hover:bg-white/10 cursor-pointer transition-colors"
+                    className="flex items-center gap-3 p-3 rounded-xl bg-white/40 hover:bg-white/60 cursor-pointer transition-colors"
                   >
                     <input
                       type="checkbox"
                       checked={layers[layer.key]}
                       onChange={() => onLayerToggle(layer.key)}
-                      className="w-4 h-4 rounded border-white/20 bg-white/10 text-violet-500 focus:ring-violet-500 focus:ring-offset-0"
+                      className="w-4 h-4 rounded border-white/40 bg-white/30 text-[#3F7F6B] focus:ring-[#3F7F6B] focus:ring-offset-0"
                     />
                     <span className="text-2xl">{layer.icon}</span>
-                    <span className="text-sm text-white/90 flex-1">
+                    <span className="text-sm text-[#0F2A33] flex-1">
                       {layer.label}
                     </span>
                   </label>
@@ -271,14 +292,14 @@ export function EnhancedHeatmapSidebar({
 
             {/* Priority Filter */}
             <div>
-              <h3 className="text-sm font-medium text-white/80 mb-3">
+              <h3 className="text-sm font-medium text-[#0F2A33] mb-3">
                 Priority Levels
               </h3>
               <div className="grid grid-cols-2 gap-2">
                 {["critical", "high", "medium", "low"].map((priority) => (
                   <label
                     key={priority}
-                    className="flex items-center gap-2 p-2 rounded-lg bg-white/5 hover:bg-white/10 cursor-pointer transition-colors"
+                    className="flex items-center gap-2 p-2 rounded-lg bg-white/40 hover:bg-white/60 cursor-pointer transition-colors"
                   >
                     <input
                       type="checkbox"
@@ -289,9 +310,9 @@ export function EnhancedHeatmapSidebar({
                           : filters.priorities.filter((p) => p !== priority);
                         onFiltersChange({ priorities: newPriorities });
                       }}
-                      className="w-3.5 h-3.5 rounded border-white/20 bg-white/10 text-violet-500"
+                      className="w-3.5 h-3.5 rounded border-white/40 bg-white/30 text-[#3F7F6B]"
                     />
-                    <span className="text-xs text-white/90">
+                    <span className="text-xs text-[#0F2A33]">
                       {priority.charAt(0).toUpperCase() + priority.slice(1)}
                     </span>
                   </label>
@@ -301,14 +322,14 @@ export function EnhancedHeatmapSidebar({
 
             {/* Status Filter */}
             <div>
-              <h3 className="text-sm font-medium text-white/80 mb-3">
+              <h3 className="text-sm font-medium text-[#0F2A33] mb-3">
                 Issue Status
               </h3>
               <div className="grid grid-cols-2 gap-2">
                 {["open", "in_progress", "resolved", "closed"].map((status) => (
                   <label
                     key={status}
-                    className="flex items-center gap-2 p-2 rounded-lg bg-white/5 hover:bg-white/10 cursor-pointer transition-colors"
+                    className="flex items-center gap-2 p-2 rounded-lg bg-white/40 hover:bg-white/60 cursor-pointer transition-colors"
                   >
                     <input
                       type="checkbox"
@@ -319,9 +340,9 @@ export function EnhancedHeatmapSidebar({
                           : filters.statuses.filter((s) => s !== status);
                         onFiltersChange({ statuses: newStatuses });
                       }}
-                      className="w-3.5 h-3.5 rounded border-white/20 bg-white/10 text-violet-500"
+                      className="w-3.5 h-3.5 rounded border-white/40 bg-white/30 text-[#3F7F6B]"
                     />
-                    <span className="text-xs text-white/90">
+                    <span className="text-xs text-[#0F2A33]">
                       {status
                         .replace("_", " ")
                         .split(" ")
@@ -335,7 +356,7 @@ export function EnhancedHeatmapSidebar({
 
             {/* Time Range */}
             <div>
-              <h3 className="text-sm font-medium text-white/80 mb-3">
+              <h3 className="text-sm font-medium text-[#0F2A33] mb-3">
                 Time Range
               </h3>
               <div className="space-y-2">
@@ -349,8 +370,8 @@ export function EnhancedHeatmapSidebar({
                     onClick={() => onFiltersChange({ timeRange: option.value })}
                     className={`w-full px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
                       filters.timeRange === option.value
-                        ? "bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white shadow-lg shadow-violet-500/25"
-                        : "bg-white/5 text-white/70 hover:bg-white/10"
+                        ? "bg-gradient-to-r from-[#3F7F6B] to-[#2F8F8A] text-white shadow-lg shadow-[#3F7F6B]/25"
+                        : "bg-white/40 text-[#355E6B] hover:bg-white/60"
                     }`}
                   >
                     {option.label}
@@ -362,10 +383,10 @@ export function EnhancedHeatmapSidebar({
             {/* Min Severity Slider */}
             <div>
               <div className="flex justify-between items-center mb-2">
-                <h3 className="text-sm font-medium text-white/80">
+                <h3 className="text-sm font-medium text-[#0F2A33]">
                   Min Severity
                 </h3>
-                <span className="text-sm font-semibold text-violet-400">
+                <span className="text-sm font-semibold text-[#3F7F6B]">
                   {filters.minSeverity}/10
                 </span>
               </div>
@@ -377,9 +398,9 @@ export function EnhancedHeatmapSidebar({
                 onChange={(e) =>
                   onFiltersChange({ minSeverity: parseInt(e.target.value) })
                 }
-                className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-violet-500"
+                className="w-full h-2 bg-white/40 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#3F7F6B]"
               />
-              <div className="flex justify-between text-xs text-white/40 mt-1">
+              <div className="flex justify-between text-xs text-[#7A9DA8] mt-1">
                 <span>Low</span>
                 <span>Medium</span>
                 <span>Critical</span>
@@ -388,7 +409,7 @@ export function EnhancedHeatmapSidebar({
 
             {/* Max Age Input */}
             <div>
-              <h3 className="text-sm font-medium text-white/80 mb-2">
+              <h3 className="text-sm font-medium text-[#0F2A33] mb-2">
                 Max Age (days)
               </h3>
               <input
@@ -402,7 +423,7 @@ export function EnhancedHeatmapSidebar({
                   })
                 }
                 placeholder="All ages"
-                className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="w-full px-4 py-2 rounded-lg bg-white/40 border border-white/40 text-[#0F2A33] placeholder-[#7A9DA8] focus:outline-none focus:ring-2 focus:ring-[#3F7F6B]"
               />
             </div>
           </div>
@@ -413,7 +434,7 @@ export function EnhancedHeatmapSidebar({
           <div className="space-y-6">
             {/* Endpoint Mode Selection */}
             <div>
-              <h3 className="text-sm font-medium text-white/80 mb-3">
+              <h3 className="text-sm font-medium text-[#0F2A33] mb-3">
                 API Endpoint
               </h3>
               <div className="space-y-2">
@@ -439,8 +460,8 @@ export function EnhancedHeatmapSidebar({
                     onClick={() => onEndpointModeChange(option.value)}
                     className={`w-full px-4 py-2.5 rounded-xl text-left transition-all ${
                       endpointMode === option.value
-                        ? "bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white shadow-lg shadow-violet-500/25"
-                        : "bg-white/5 text-white/70 hover:bg-white/10"
+                        ? "bg-gradient-to-r from-[#3F7F6B] to-[#2F8F8A] text-white shadow-lg shadow-[#3F7F6B]/25"
+                        : "bg-white/40 text-[#355E6B] hover:bg-white/60"
                     }`}
                   >
                     <div className="font-medium text-sm">{option.label}</div>
@@ -450,7 +471,7 @@ export function EnhancedHeatmapSidebar({
                   </button>
                 ))}
               </div>
-              <p className="text-xs text-white/50 mt-2">
+              <p className="text-xs text-[#7A9DA8] mt-2">
                 {endpointMode === "data" &&
                   "Uses /api/heatmap/data with all features"}
                 {endpointMode === "clustered" &&
@@ -461,19 +482,19 @@ export function EnhancedHeatmapSidebar({
             </div>
 
             {/* Heat Intensity Section - Collapsible */}
-            <div className="border border-white/10 rounded-xl overflow-hidden">
+            <div className="border border-white/40 rounded-xl overflow-hidden">
               <button
                 onClick={() => setIsIntensityOpen(!isIntensityOpen)}
-                className="w-full flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 transition-colors"
+                className="w-full flex items-center justify-between p-4 bg-white/30 hover:bg-white/50 transition-colors"
               >
                 <div className="flex items-center gap-2">
                   <span className="text-lg">🔥</span>
-                  <h3 className="text-sm font-medium text-white/90">
+                  <h3 className="text-sm font-medium text-[#0F2A33]">
                     Heat Intensity Controls
                   </h3>
                 </div>
                 <svg
-                  className={`w-5 h-5 text-white/70 transition-transform duration-200 ${
+                  className={`w-5 h-5 text-[#355E6B] transition-transform duration-200 ${
                     isIntensityOpen ? "rotate-180" : ""
                   }`}
                   fill="none"
@@ -490,14 +511,14 @@ export function EnhancedHeatmapSidebar({
               </button>
 
               {isIntensityOpen && (
-                <div className="p-4 space-y-6 bg-black/20">
+                <div className="p-4 space-y-6 bg-white/20">
                   {/* Time Decay Factor */}
                   <div>
                     <div className="flex justify-between items-center mb-2">
-                      <h3 className="text-sm font-medium text-white/80">
+                      <h3 className="text-sm font-medium text-[#0F2A33]">
                         Time Decay Factor
                       </h3>
-                      <span className="text-sm font-semibold text-violet-400">
+                      <span className="text-sm font-semibold text-[#3F7F6B]">
                         {config.timeDecayFactor.toFixed(1)}
                       </span>
                     </div>
@@ -512,14 +533,14 @@ export function EnhancedHeatmapSidebar({
                           timeDecayFactor: parseFloat(e.target.value),
                         })
                       }
-                      className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-violet-500"
+                      className="w-full h-2 bg-white/40 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#3F7F6B]"
                     />
-                    <div className="flex justify-between text-xs text-white/40 mt-1">
+                    <div className="flex justify-between text-xs text-[#7A9DA8] mt-1">
                       <span>No Decay (0)</span>
                       <span>Moderate (1)</span>
                       <span>Fast (2)</span>
                     </div>
-                    <p className="text-xs text-white/50 mt-2">
+                    <p className="text-xs text-[#7A9DA8] mt-2">
                       Controls how recent issues are weighted. Higher = only
                       recent issues visible.
                     </p>
@@ -528,10 +549,10 @@ export function EnhancedHeatmapSidebar({
                   {/* Severity Weight Multiplier */}
                   <div>
                     <div className="flex justify-between items-center mb-2">
-                      <h3 className="text-sm font-medium text-white/80">
+                      <h3 className="text-sm font-medium text-[#0F2A33]">
                         Severity Weight
                       </h3>
-                      <span className="text-sm font-semibold text-violet-400">
+                      <span className="text-sm font-semibold text-[#3F7F6B]">
                         {config.severityWeightMultiplier.toFixed(1)}x
                       </span>
                     </div>
@@ -546,14 +567,14 @@ export function EnhancedHeatmapSidebar({
                           severityWeightMultiplier: parseFloat(e.target.value),
                         })
                       }
-                      className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-violet-500"
+                      className="w-full h-2 bg-white/40 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#3F7F6B]"
                     />
-                    <div className="flex justify-between text-xs text-white/40 mt-1">
+                    <div className="flex justify-between text-xs text-[#7A9DA8] mt-1">
                       <span>Subtle (0.5)</span>
                       <span>Default (2)</span>
                       <span>Heavy (5)</span>
                     </div>
-                    <p className="text-xs text-white/50 mt-2">
+                    <p className="text-xs text-[#7A9DA8] mt-2">
                       Amplifies critical issue visibility. Higher = severe
                       issues dominate.
                     </p>
@@ -564,7 +585,7 @@ export function EnhancedHeatmapSidebar({
 
             {/* Grid Size */}
             <div>
-              <h3 className="text-sm font-medium text-white/80 mb-3">
+              <h3 className="text-sm font-medium text-[#0F2A33] mb-3">
                 Grid Size (meters)
               </h3>
               <div className="grid grid-cols-4 gap-2">
@@ -574,15 +595,15 @@ export function EnhancedHeatmapSidebar({
                     onClick={() => onConfigChange({ gridSize: size })}
                     className={`px-3 py-2 rounded-lg text-xs font-medium transition-all ${
                       config.gridSize === size
-                        ? "bg-violet-600 text-white shadow-lg"
-                        : "bg-white/5 text-white/70 hover:bg-white/10"
+                        ? "bg-[#3F7F6B] text-white shadow-lg shadow-[#3F7F6B]/25"
+                        : "bg-white/40 text-[#355E6B] hover:bg-white/60"
                     }`}
                   >
                     {size}m
                   </button>
                 ))}
               </div>
-              <p className="text-xs text-white/50 mt-2">
+              <p className="text-xs text-[#7A9DA8] mt-2">
                 Spatial aggregation density. Lower = more detail, higher =
                 overview.
               </p>
@@ -591,10 +612,10 @@ export function EnhancedHeatmapSidebar({
             {/* Cluster Radius */}
             <div>
               <div className="flex justify-between items-center mb-2">
-                <h3 className="text-sm font-medium text-white/80">
+                <h3 className="text-sm font-medium text-[#0F2A33]">
                   Cluster Radius (m)
                 </h3>
-                <span className="text-sm font-semibold text-violet-400">
+                <span className="text-sm font-semibold text-[#3F7F6B]">
                   {config.clusterRadius || "Off"}
                 </span>
               </div>
@@ -610,16 +631,16 @@ export function EnhancedHeatmapSidebar({
                   })
                 }
                 placeholder="Disabled"
-                className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="w-full px-4 py-2 rounded-lg bg-white/40 border border-white/40 text-[#0F2A33] placeholder-[#7A9DA8] focus:outline-none focus:ring-2 focus:ring-[#3F7F6B]"
               />
-              <p className="text-xs text-white/50 mt-2">
+              <p className="text-xs text-[#7A9DA8] mt-2">
                 Clustering distance for large datasets. Leave empty to disable.
               </p>
             </div>
 
             {/* Min Cluster Size */}
             <div>
-              <h3 className="text-sm font-medium text-white/80 mb-2">
+              <h3 className="text-sm font-medium text-[#0F2A33] mb-2">
                 Min Cluster Size
               </h3>
               <input
@@ -632,29 +653,29 @@ export function EnhancedHeatmapSidebar({
                     minClusterSize: parseInt(e.target.value),
                   })
                 }
-                className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                className="w-full px-4 py-2 rounded-lg bg-white/40 border border-white/40 text-[#0F2A33] placeholder-[#7A9DA8] focus:outline-none focus:ring-2 focus:ring-[#3F7F6B]"
               />
-              <p className="text-xs text-white/50 mt-2">
+              <p className="text-xs text-[#7A9DA8] mt-2">
                 Minimum issues required to form a cluster.
               </p>
             </div>
 
             {/* Normalize Weights */}
             <div>
-              <label className="flex items-center gap-3 p-3 rounded-xl bg-white/5 hover:bg-white/10 cursor-pointer transition-colors">
+              <label className="flex items-center gap-3 p-3 rounded-xl bg-white/40 hover:bg-white/60 cursor-pointer transition-colors">
                 <input
                   type="checkbox"
                   checked={config.normalizeWeights}
                   onChange={(e) =>
                     onConfigChange({ normalizeWeights: e.target.checked })
                   }
-                  className="w-4 h-4 rounded border-white/20 bg-white/10 text-violet-500 focus:ring-violet-500 focus:ring-offset-0"
+                  className="w-4 h-4 rounded border-white/40 bg-white/30 text-[#3F7F6B] focus:ring-[#3F7F6B] focus:ring-offset-0"
                 />
                 <div>
-                  <h3 className="text-sm font-medium text-white/90">
+                  <h3 className="text-sm font-medium text-[#0F2A33]">
                     Normalize Weights
                   </h3>
-                  <p className="text-xs text-white/50">
+                  <p className="text-xs text-[#7A9DA8]">
                     Scale weights to 0-1 range
                   </p>
                 </div>

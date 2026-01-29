@@ -78,8 +78,8 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#050814] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-violet-400"></div>
+      <div className="min-h-screen bg-gradient-to-br from-[#DDF3E6] to-[#CFEAF0] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#3F7F6B]"></div>
       </div>
     );
   }
@@ -89,12 +89,11 @@ export default function ProfilePage() {
   }
 
   return (
-    <main className="relative min-h-screen bg-[#050814] text-white overflow-hidden pb-20">
+    <main className="relative min-h-screen bg-gradient-to-br from-[#DDF3E6] to-[#CFEAF0] text-[#0F2A33] overflow-hidden pb-20">
       {/* Background effects */}
       <div className="fixed inset-0 -z-10">
-        <div className="absolute top-[-10%] left-[-10%] w-[40rem] h-[40rem] bg-violet-500/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[36rem] h-[36rem] bg-sky-500/10 rounded-full blur-3xl" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_#1f2937_0,_#020617_55%,_#020617_100%)] opacity-60" />
+        <div className="absolute top-[-10%] left-[-10%] w-[40rem] h-[40rem] bg-[#3F7F6B]/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[36rem] h-[36rem] bg-[#7CBFD0]/5 rounded-full blur-3xl" />
       </div>
 
       <div className="container mx-auto px-4 pt-24 md:pt-32 pb-20">
@@ -109,11 +108,11 @@ export default function ProfilePage() {
               <div>
                 <h1 className="text-3xl md:text-5xl font-bold tracking-tight mb-2">
                   My{" "}
-                  <span className="gradient-heading bg-clip-text text-transparent">
+                  <span className="bg-gradient-to-r from-[#3F7F6B] to-[#26658C] bg-clip-text text-transparent">
                     Profile
                   </span>
                 </h1>
-                <p className="text-white/60 text-base md:text-lg">
+                <p className="text-[#355E6B] text-base md:text-lg">
                   Manage your account, track achievements, and view leaderboard
                 </p>
               </div>
@@ -126,7 +125,7 @@ export default function ProfilePage() {
                     window.dispatchEvent(new Event("citycare_auth_changed"));
                     router.push("/");
                   }}
-                  className="px-6 py-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-medium shadow-lg transition-all"
+                  className="px-6 py-3 rounded-2xl bg-gradient-to-r from-[#26658C] to-[#023859] hover:from-[#023859] hover:to-[#011C40] text-white font-medium shadow-lg shadow-[#26658C]/20 transition-all"
                 >
                   Logout
                 </button>
@@ -155,10 +154,10 @@ export default function ProfilePage() {
               <button
                 key={id}
                 onClick={() => setActiveTab(id as any)}
-                className={`px-4 md:px-6 py-2 md:py-3 rounded-xl font-medium transition-all text-sm md:text-base flex flex-row justify-center ${
+                className={`px-4 md:px-6 py-2 md:py-3 rounded-2xl font-medium transition-all text-sm md:text-base flex flex-row justify-center shadow-md ${
                   activeTab === id
-                    ? "bg-gradient-to-r from-indigo-500 to-violet-800 text-white shadow-lg"
-                    : "bg-white/5 text-white/70 hover:bg-white/10"
+                    ? "bg-gradient-to-r from-[#3F7F6B] to-[#2F8F8A] text-white shadow-lg shadow-[#3F7F6B]/20 border border-white/40"
+                    : "bg-gradient-to-br from-[#BFE3D5] to-[#9ECFC2] text-[#355E6B] hover:from-[#9ECFC2] hover:to-[#78B6A8] border border-white/30"
                 }`}
               >
                 <span className="mr-2">{icon}</span>
@@ -175,7 +174,7 @@ export default function ProfilePage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.2 }}
-              className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-8"
+              className="bg-gradient-to-br from-[#BFE3D5] to-[#9ECFC2] backdrop-blur-xl border border-white/40 rounded-3xl p-6 md:p-8 shadow-lg shadow-[#3F7F6B]/10"
             >
               {activeTab === "profile" && (
                 <ProfileInfo user={user} onUpdate={handleUserUpdate} />
@@ -183,7 +182,7 @@ export default function ProfilePage() {
               {activeTab === "rewards" && <RewardsProfile />}
               {activeTab === "badges" && (
                 <div>
-                  <h2 className="text-2xl font-bold text-white mb-6">
+                  <h2 className="text-2xl font-bold text-[#0F2A33] mb-6">
                     Badge Collection
                   </h2>
                   <BadgesGrid userId={user.id} />
@@ -191,7 +190,7 @@ export default function ProfilePage() {
               )}
               {activeTab === "leaderboard" && (
                 <div>
-                  <h2 className="text-2xl font-bold text-white mb-6">
+                  <h2 className="text-2xl font-bold text-[#0F2A33] mb-6">
                     Community Leaderboard
                   </h2>
                   <Leaderboard cityId={user.cityId} />
