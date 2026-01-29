@@ -158,9 +158,9 @@ export default function HeatmapPage() {
 
   // UI layer state
   const [layers, setLayers] = useState({
-    water: true,
-    power: true,
-    wifi: true,
+    infrastructure: true,
+    environment: true,
+    safety: true,
   });
 
   // Configuration state
@@ -193,40 +193,46 @@ export default function HeatmapPage() {
 
   // Map UI layer names to backend category names
   const layerCategoryMap: Record<string, string[]> = {
-    water: [
+    infrastructure: [
       "Water",
       "Plumbing",
       "Drainage",
       "Water Supply",
-      "WATER",
-      "PLUMBING",
-    ],
-    power: [
       "Power",
       "Electrical",
       "Electricity",
-      "Power Supply",
+      "WATER",
+      "PLUMBING",
       "POWER",
       "ELECTRICAL",
-      "ELECTRICITY",
     ],
-    wifi: [
-      "Wi-Fi",
-      "Network",
-      "Internet",
-      "Connectivity",
-      "WiFi",
-      "WIFI",
-      "NETWORK",
+    environment: [
+      "Sanitation",
+      "Waste",
+      "Pollution",
+      "Cleanliness",
+      "SANITATION",
+      "WASTE",
+      "POLLUTION",
+    ],
+    safety: [
+      "Safety",
+      "Security",
+      "Lighting",
+      "Roads",
+      "Traffic",
+      "SAFETY",
+      "SECURITY",
+      "LIGHTING",
     ],
   };
 
   // Build categories array from active layers
   const getActiveCategories = useCallback(() => {
     const categories: string[] = [];
-    if (layers.water) categories.push(...layerCategoryMap.water);
-    if (layers.power) categories.push(...layerCategoryMap.power);
-    if (layers.wifi) categories.push(...layerCategoryMap.wifi);
+    if (layers.infrastructure) categories.push(...layerCategoryMap.infrastructure);
+    if (layers.environment) categories.push(...layerCategoryMap.environment);
+    if (layers.safety) categories.push(...layerCategoryMap.safety);
     return categories;
   }, [layers]);
 
@@ -506,7 +512,7 @@ export default function HeatmapPage() {
   }, [fetchHeatmapData, fetchStats]);
 
   // Handle layer toggle
-  const handleLayerToggle = (layer: "water" | "power" | "wifi") => {
+  const handleLayerToggle = (layer: "infrastructure" | "environment" | "safety") => {
     setLayers((prev) => ({
       ...prev,
       [layer]: !prev[layer],

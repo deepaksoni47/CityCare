@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { DEFAULT_CITY_ID } from "@/data/cities";
 import { safeJsonResponse } from "@/lib/safeJsonResponse";
@@ -14,7 +14,7 @@ const getApiBaseUrl = () => {
 
 type Status = "loading" | "error";
 
-export default function GoogleOAuthCallbackPage() {
+function GoogleOAuthCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [status, setStatus] = useState<Status>("loading");
@@ -165,5 +165,27 @@ export default function GoogleOAuthCallbackPage() {
         )}
       </div>
     </main>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <main className="min-h-screen flex items-center justify-center bg-[#050814] text-white px-4">
+      <div className="w-full max-w-md text-center space-y-4">
+        <div className="mx-auto h-12 w-12 rounded-full border-2 border-white/20 border-t-white/70 animate-spin" />
+        <div className="space-y-2">
+          <h1 className="text-xl font-semibold">Loading...</h1>
+          <p className="text-sm text-white/70">Please wait...</p>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+export default function GoogleOAuthCallbackPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <GoogleOAuthCallbackContent />
+    </Suspense>
   );
 }

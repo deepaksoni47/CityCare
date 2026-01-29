@@ -267,9 +267,9 @@ export function HeatmapContainer({
     // Notify parent component of filter changes
     if (onFiltersChange) {
       const activeCategories: string[] = [];
-      if (layers.water) activeCategories.push(...layerCategoryMap.water);
-      if (layers.power) activeCategories.push(...layerCategoryMap.power);
-      if (layers.wifi) activeCategories.push(...layerCategoryMap.wifi);
+      if (layers.infrastructure) activeCategories.push(...layerCategoryMap.infrastructure);
+      if (layers.environment) activeCategories.push(...layerCategoryMap.environment);
+      if (layers.safety) activeCategories.push(...layerCategoryMap.safety);
 
       onFiltersChange({
         categories: activeCategories,

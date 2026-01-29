@@ -385,8 +385,8 @@ export default function HeatmapPage() {
         });
 
         const points: HeatmapPoint[] = allFeatures
-          .filter((f) => f.isValid)
-          .map(({ feature }: any) => {
+          .filter((f: { feature: any; isValid: boolean }) => f.isValid)
+          .map(({ feature }: { feature: any }) => {
             const [lng, lat] = feature.geometry.coordinates;
             const props = feature.properties;
             return {

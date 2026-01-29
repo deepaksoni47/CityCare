@@ -4,8 +4,7 @@ import { Leaderboard } from "@/components/leaderboard/Leaderboard";
 import { useAuth } from "@/lib/hooks/useAuth";
 
 export default function LeaderboardPage() {
-  const { getUser } = useAuth();
-  const user = getUser();
+  const { user } = useAuth();
 
   // In a real app, you'd get the cityId from user context or URL
   const cityId = user?.cityId || "bilaspur";
