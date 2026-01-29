@@ -38,10 +38,7 @@ router.post(
     .withMessage("Name is required")
     .isLength({ max: 100 })
     .withMessage("Name must be less than 100 characters"),
-  body("cityId")
-    .trim()
-    .notEmpty()
-    .withMessage("Organization ID is required"),
+  body("cityId").trim().notEmpty().withMessage("Organization ID is required"),
   handleValidationErrors,
   authController.registerWithEmail,
 );
@@ -190,6 +187,16 @@ router.get(
   "/oauth/google/url",
   authRateLimiter,
   oauthController.getGoogleAuthUrl,
+);
+
+/**
+ * @route   GET /api/auth/oauth/google/callback
+ * @desc    Handle Google OAuth callback redirect (redirects to frontend)
+ * @access  Public
+ */
+router.get(
+  "/oauth/google/callback",
+  oauthController.handleGoogleCallbackRedirect,
 );
 
 /**
