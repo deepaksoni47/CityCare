@@ -273,82 +273,66 @@ export async function authenticateWithEmail(
   password: string,
 ): Promise<{ user: User; token: string }> {
   try {
-    // Verify credentials using Google Cloud Identity REST API
-    const googleApiKey = process.env.GOOGLE_OAUTH_API_KEY;
-    if (!googleApiKey) {
-      throw new Error("Google OAuth API key not configured");
-    }
-
-    const authResponse = await fetch(
-      `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${googleApiKey}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          password,
-          returnSecureToken: true,
-        }),
-      },
-    );
-
-    if (!authResponse.ok) {
-      const errorData = (await authResponse.json()) as {
-        error?: { message?: string };
-      };
-      throw new Error(errorData.error?.message || "Invalid credentials");
-    }
-
-    const authData = (await authResponse.json()) as {
-      localId: string;
-      idToken: string;
-    };
-    const uid = authData.localId;
-
-    // Get user profile from MongoDB
-    const userDoc = await UserModel.findById(uid).lean();
+    // Find user in MongoDB by email
+    const userDoc = await UserModel.findOne({
+      email: email.toLowerCase(),
+    }).select("+password");
 
     if (!userDoc) {
-      throw new Error("User profile not found");
+      throw new Error("Invalid email or password");
     }
 
-    const userData = userDoc as any;
-
     // Check if user is active
-    if (!userData.isActive) {
+    if (!userDoc.isActive) {
       throw new Error("User account is deactivated");
     }
 
+    // Verify password
+    if (!userDoc.password) {
+      throw new Error("Invalid email or password");
+    }
+
+    const isPasswordValid = await userDoc.comparePassword(password);
+    if (!isPasswordValid) {
+      throw new Error("Invalid email or password");
+    }
+
     // Update last login
-    await UserModel.findByIdAndUpdate(uid, {
+    await UserModel.findByIdAndUpdate(userDoc._id, {
       lastLogin: new Date(),
     });
 
-    // Return the ID token from Firebase Auth
-    const token = authData.idToken;
+    // Generate a simple JWT token
+    const jwt = require("jsonwebtoken");
+    const token = jwt.sign(
+      {
+        userId: userDoc._id.toString(),
+        email: userDoc.email,
+        role: userDoc.role,
+      },
+      process.env.JWT_SECRET || "your-secret-key",
+      { expiresIn: "7d" },
+    );
+
+    const userData = userDoc.toObject();
+    delete (userData as any).password;
 
     return {
-      user: { id: uid, ...userData } as User,
+      user: {
+        id: userDoc._id.toString(),
+        ...userData,
+        cityId: userDoc.cityId.toString(),
+        agencyId: userDoc.agencyId?.toString(),
+      } as User,
       token,
     };
   } catch (error: unknown) {
     if (error instanceof Error) {
-      if (error.message.includes("User profile not found")) {
+      if (
+        error.message.includes("deactivated") ||
+        error.message.includes("Invalid email or password")
+      ) {
         throw error;
-      }
-      if (error.message.includes("account is deactivated")) {
-        throw error;
-      }
-      if (error.message.includes("INVALID_PASSWORD")) {
-        throw new Error("Invalid email or password");
-      }
-      if (error.message.includes("EMAIL_NOT_FOUND")) {
-        throw new Error("Invalid email or password");
-      }
-      if (error.message.includes("USER_DISABLED")) {
-        throw new Error("User account has been disabled");
       }
     }
     throw new Error("Invalid email or password");

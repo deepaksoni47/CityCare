@@ -256,9 +256,15 @@ async function upsertUsers(cityId: string, agencyMap: Record<string, string>) {
   for (const user of users) {
     const agencyId = user.agencyCode ? agencyMap[user.agencyCode] : undefined;
 
-    await User.findOneAndUpdate(
-      { email: user.email, cityId },
-      {
+    // Find existing user or create new one
+    let userDoc = await User.findOne({
+      email: user.email,
+      cityId,
+    });
+
+    if (!userDoc) {
+      // Create new user - this will trigger the pre-save hook to hash password
+      userDoc = new User({
         cityId,
         email: user.email,
         name: user.name,
@@ -268,12 +274,11 @@ async function upsertUsers(cityId: string, agencyMap: Record<string, string>) {
         isActive: true,
         password: user.password,
         permissions: {
-          canReportIssues: true,
+          canCreateIssues: true,
           canResolveIssues: user.role !== "citizen",
           canAssignIssues: user.role === "admin" || user.role === "manager",
           canViewAllIssues: true,
           canManageUsers: user.role === "admin",
-          canGenerateReports: user.role !== "citizen",
         },
         preferences: {
           notifications: true,
@@ -281,9 +286,33 @@ async function upsertUsers(cityId: string, agencyMap: Record<string, string>) {
           receiveUpdates: true,
         },
         updatedAt: new Date(),
-      },
-      { upsert: true, new: true, setDefaultsOnInsert: true },
-    );
+      });
+      await userDoc.save();
+    } else {
+      // Update existing user, but reset password
+      userDoc.name = user.name;
+      userDoc.role = user.role;
+      userDoc.agencyId = agencyId;
+      userDoc.isVerified = true;
+      userDoc.isActive = true;
+      if (user.password) {
+        userDoc.password = user.password; // Will be hashed by pre-save hook
+      }
+      userDoc.permissions = {
+        canCreateIssues: true,
+        canResolveIssues: user.role !== "citizen",
+        canAssignIssues: user.role === "admin" || user.role === "manager",
+        canViewAllIssues: true,
+        canManageUsers: user.role === "admin",
+      };
+      userDoc.preferences = {
+        notifications: true,
+        emailAlerts: true,
+        receiveUpdates: true,
+      };
+      userDoc.updatedAt = new Date();
+      await userDoc.save();
+    }
 
     console.log(`User ready: ${user.email}`);
   }

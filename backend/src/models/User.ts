@@ -29,12 +29,11 @@ export interface IUser extends Document {
   oauthProfiles: IOAuthProfile[];
 
   permissions: {
-    canReportIssues: boolean;
+    canCreateIssues: boolean;
     canResolveIssues: boolean;
     canAssignIssues: boolean;
     canViewAllIssues: boolean;
     canManageUsers: boolean;
-    canGenerateReports: boolean;
   };
 
   // Rewards system
@@ -76,7 +75,7 @@ const UserSchema = new Schema<IUser>(
       required: [true, "Email is required"],
       lowercase: true,
       match: [
-        /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
         "Please provide a valid email address",
       ],
       index: true,
@@ -142,12 +141,11 @@ const UserSchema = new Schema<IUser>(
     },
 
     permissions: {
-      canReportIssues: { type: Boolean, default: true },
+      canCreateIssues: { type: Boolean, default: true },
       canResolveIssues: { type: Boolean, default: false },
       canAssignIssues: { type: Boolean, default: false },
       canViewAllIssues: { type: Boolean, default: false },
       canManageUsers: { type: Boolean, default: false },
-      canGenerateReports: { type: Boolean, default: false },
     },
 
     // Rewards system

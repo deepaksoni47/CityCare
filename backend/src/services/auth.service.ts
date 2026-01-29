@@ -219,36 +219,32 @@ export async function updateUserProfile(
 function setPermissionsByRole(user: IUser) {
   const rolePermissions: Record<string, Partial<IUser["permissions"]>> = {
     admin: {
-      canReportIssues: true,
+      canCreateIssues: true,
       canResolveIssues: true,
       canAssignIssues: true,
       canViewAllIssues: true,
       canManageUsers: true,
-      canGenerateReports: true,
     },
     manager: {
-      canReportIssues: true,
+      canCreateIssues: true,
       canResolveIssues: true,
       canAssignIssues: true,
       canViewAllIssues: true,
       canManageUsers: false,
-      canGenerateReports: true,
     },
     officer: {
-      canReportIssues: true,
+      canCreateIssues: true,
       canResolveIssues: true,
       canAssignIssues: false,
       canViewAllIssues: true,
       canManageUsers: false,
-      canGenerateReports: false,
     },
     citizen: {
-      canReportIssues: true,
+      canCreateIssues: true,
       canResolveIssues: false,
       canAssignIssues: false,
       canViewAllIssues: false,
       canManageUsers: false,
-      canGenerateReports: false,
     },
   };
 

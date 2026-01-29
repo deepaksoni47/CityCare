@@ -206,12 +206,11 @@ async function upsertReporter(cityId: string) {
       isVerified: true,
       isActive: true,
       permissions: {
-        canReportIssues: true,
+        canCreateIssues: true,
         canResolveIssues: false,
         canAssignIssues: false,
         canViewAllIssues: true,
         canManageUsers: false,
-        canGenerateReports: false,
       },
       preferences: {
         notifications: true,

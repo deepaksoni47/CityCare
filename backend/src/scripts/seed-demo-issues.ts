@@ -146,13 +146,12 @@ async function ensureReporterUsers(cityId: string) {
         isActive: true,
         isVerified: true,
         permissions: {
-          canReportIssues: true,
+          canCreateIssues: true,
           canResolveIssues: user.role !== "citizen",
           // Only admins in this seed can assign; reporters/managers aren't created here
           canAssignIssues: user.role === "admin",
           canViewAllIssues: true,
           canManageUsers: user.role === "admin",
-          canGenerateReports: user.role !== "citizen",
         },
         preferences: {
           notifications: true,

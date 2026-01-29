@@ -22,6 +22,12 @@ export function FloatingNav() {
   const [userRole, setUserRole] = useState<string | null>(null);
   const { scrollY } = useScroll();
 
+  // Hide FloatingNav on admin panel
+  const isAdminPanel = pathname.startsWith("/admin");
+  if (isAdminPanel) {
+    return null;
+  }
+
   const backgroundBlur = useTransform(scrollY, [0, 100], [0.3, 0.5]);
 
   // --- HELPER FOR ACTIVE STYLES ---
