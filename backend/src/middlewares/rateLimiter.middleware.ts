@@ -164,7 +164,7 @@ export const createDynamicRateLimiter = (options: {
 export const addRateLimitInfo = (
   _req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   res.setHeader("X-RateLimit-Policy", "standard");
   next();

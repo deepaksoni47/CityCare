@@ -36,6 +36,40 @@ export async function getGoogleAuthUrl(req: Request, res: Response) {
 }
 
 /**
+ * Handle Google OAuth callback redirect from Google
+ * GET /api/auth/oauth/google/callback?code=<code>&state=<state>
+ * Redirects to frontend callback page
+ */
+export function handleGoogleCallbackRedirect(req: Request, res: Response) {
+  try {
+    const { code, state } = req.query;
+
+    if (!code || typeof code !== "string") {
+      return res.status(400).json({
+        error: "Missing parameter",
+        message: "code is required",
+      });
+    }
+
+    // state contains the cityId
+    const cityId = typeof state === "string" ? state : "bilaspur";
+
+    // Redirect to frontend callback handler
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+    const redirectUrl = `${frontendUrl}/auth/google/callback?code=${encodeURIComponent(code)}&state=${encodeURIComponent(cityId)}`;
+
+    res.redirect(redirectUrl);
+  } catch (error: unknown) {
+    console.error("Google OAuth callback redirect error:", error);
+    res.status(500).json({
+      error: "Callback handling failed",
+      message:
+        error instanceof Error ? error.message : "Failed to process callback",
+    });
+  }
+}
+
+/**
  * Handle Google OAuth callback
  * POST /api/auth/oauth/google/callback
  * Body: { code, cityId }
